@@ -1,0 +1,589 @@
+▂▃▅▇█▓▒░ START -merged_output.txt ░▒▓█▇▅▃▂
+----------------------------------------------------------------------
+----------------------attach_frida_by_pid.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Fetch running processes
+echo "Fetching running processes..."
+frida-ps -Uia
+
+# Prompt for PID
+read -p "Enter the PID of the process to attach Frida: " pid
+
+# Attach Frida to the process by PID
+frida -U -p "$pid"
+
+# Verify attachment
+if [ $? -ne 0 ]; then
+    echo "[ERROR] Failed to attach Frida to PID $pid. Ensure the PID is valid."
+else
+    echo "[SUCCESS] Frida attached to PID $pid."
+fi
+----------------------------------------------------------------------
+----------------------attach_frida_to_pid.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+echo "Attaching Frida to process by PID..."
+read -p "Enter the PID: " pid
+frida -U -p "$pid"
+
+
+----------------------------------------------------------------------
+----------------------bypass_ssl_pinning.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Open a new terminal window to display frida-ps output
+gnome-terminal -- bash -c "frida-ps -Uia; exec bash"
+
+if [ $? -ne 0 ]; then
+    echo "[ERROR] Failed to open Frida process list in a new terminal window."
+else
+    echo "[SUCCESS] Opened Frida process list in a new terminal."
+fi
+----------------------------------------------------------------------
+----------------------bypass_ssl_with_objection.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+echo "Disabling SSL pinning with Objection..."
+read -p "Enter the package name: " package_name
+objection --gadget "$package_name" sslpinning disable
+
+
+----------------------------------------------------------------------
+----------------------check_adb_devices.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Check connected devices using adb
+adb devices
+
+# Ensure at least one device is listed
+if adb devices | grep -q "device$"; then
+    echo "[SUCCESS] Emulator/Device connected."
+else
+    echo "[ERROR] No devices found. Ensure the emulator is running."
+fi
+----------------------------------------------------------------------
+----------------------check_ip_address.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Display local machine IP address
+echo "Local Machine IP Address:"
+hostname -I | awk '{print $1}'
+----------------------------------------------------------------------
+----------------------check_port_pid.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Prompt for port number
+read -p "Enter port number to check PID: " port_number
+
+# Check port PID
+adb shell netstat -tuln | grep :$port_number
+----------------------------------------------------------------------
+----------------------check_port_usage.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Prompt for port number
+read -p "Enter port number to check: " port_number
+
+# Check port usage
+adb shell lsof -i :$port_number
+----------------------------------------------------------------------
+----------------------enable_adb_root.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Enable adb root
+adb root
+
+# Verify root access
+if adb shell whoami | grep -q "root"; then
+    echo "[SUCCESS] ADB root enabled."
+else
+    echo "[ERROR] Failed to enable ADB root. Ensure the device supports root."
+fi
+----------------------------------------------------------------------
+----------------------find_open_emulator_processes.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Fetch open processes on the emulator
+echo "Fetching open processes on the emulator..."
+adb shell ps -A | grep "emulator"
+
+# Ensure the command ran successfully
+if [ $? -ne 0 ]; then
+    echo "[ERROR] Failed to fetch open processes. Ensure the emulator is running."
+else
+    echo "[SUCCESS] Open processes fetched successfully."
+fi
+----------------------------------------------------------------------
+----------------------kill_frida_server.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Kill Frida server if running
+adb shell pkill frida-server
+
+# Confirm if it was killed successfully
+if adb shell pgrep -f "frida-server"; then
+    echo "[ERROR] Failed to kill Frida server."
+else
+    echo "[SUCCESS] Frida server killed."
+fi
+----------------------------------------------------------------------
+----------------------launch_frida_app_script.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+echo "Launching Frida script for app/package..."
+read -p "Enter the package name: " package_name
+read -p "Enter the script path: " script_path
+frida -U -n "$package_name" -s "$script_path"
+
+
+----------------------------------------------------------------------
+----------------------launch_frida_script.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Fetch available Frida scripts
+echo "Fetching available Frida scripts..."
+scripts_dir="/home/flintx/APKs/frida/"
+scripts=$(ls "$scripts_dir"*.js 2>/dev/null)
+
+if [ -z "$scripts" ]; then
+    echo "[ERROR] No Frida scripts found in $scripts_dir"
+    exit 1
+fi
+
+echo "Available Frida scripts:"
+select script in $scripts; do
+    if [ -n "$script" ]; then
+        echo "Selected script: $script"
+        break
+    else
+        echo "[ERROR] Invalid selection. Try again."
+    fi
+done
+
+# Fetch running processes
+echo "Fetching running processes..."
+frida-ps -Uia
+read -p "Enter the process name or package name to attach the script: " process_name
+
+# Launch the Frida script
+frida -U -n "$process_name" -s "$script"
+----------------------------------------------------------------------
+----------------------logcat_stream.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+echo "Starting Logcat for app..."
+read -p "Enter the package name: " package_name
+adb logcat | grep "$package_name"
+
+
+----------------------------------------------------------------------
+----------------------merge.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Directory containing the files
+input_dir="./"  # Directory where your files are located
+output_file="merged_output.txt"
+
+# Clear or create the output file
+> "$output_file"
+
+# Loop through all files in the directory
+for file in "$input_dir"*.sh; do
+    if [[ -f "$file" ]]; then
+        # Get the file name without the path
+        filename=$(basename "$file")
+
+        # Add the separator with the file name
+        printf -- "----------------------------------------------------------------------\n" >> "$output_file"
+        printf -- "----------------------%s------------------------------\n" "$filename" >> "$output_file"
+        printf -- "----------------------------------------------------------------------\n" >> "$output_file"
+
+        # Append the file content
+        if ! cat "$file" >> "$output_file"; then
+            echo "Error reading $file. Skipping." >&2
+        fi
+
+        # Add a newline at the end for separation
+        printf "\n" >> "$output_file"
+    else
+        echo "No files found matching *.sh in $input_dir." >&2
+    fi
+done
+
+echo "All files have been merged into $output_file"
+
+----------------------------------------------------------------------
+----------------------objection_explore_app.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+echo "Running Objection to explore app..."
+read -p "Enter the package name: " package_name
+objection --gadget "$package_name" explore
+
+
+----------------------------------------------------------------------
+----------------------open_frida_process_list.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Open a new terminal window to display frida-ps output
+gnome-terminal -- bash -c "frida-ps -Uia; exec bash"
+
+if [ $? -ne 0 ]; then
+    echo "[ERROR] Failed to open Frida process list in a new terminal window."
+else
+    echo "[SUCCESS] Opened Frida process list in a new terminal."
+fi
+----------------------------------------------------------------------
+----------------------patch_apk_objection.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+echo "Patching APK with Objection..."
+read -p "Enter the APK path: " apk_path
+objection patchapk -s "$apk_path"
+
+
+----------------------------------------------------------------------
+----------------------patch_apk.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Prompt for APK file path
+read -p "Enter the path to the APK file to patch: " apk_path
+
+# Patch the APK
+objection patchapk -s "$apk_path"
+
+# Verify success
+if [ $? -ne 0 ]; then
+    echo "[ERROR] Failed to patch APK at $apk_path."
+else
+    echo "[SUCCESS] APK patched successfully: $apk_path.objection.apk"
+fi
+----------------------------------------------------------------------
+----------------------push_frida_server.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Log file
+LOG_FILE="obrida.log"
+
+# Function to log messages
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
+}
+
+# Get the architecture of the connected Android device
+get_device_architecture() {
+    adb shell getprop ro.product.cpu.abi | tr -d '\r'
+}
+
+# Download the latest Frida server
+download_frida_server() {
+    local arch=$1
+    local frida_version="16.1.3" # Update to latest version as needed
+    local url="https://github.com/frida/frida/releases/download/${frida_version}/frida-server-${frida_version}-android-${arch}.xz"
+
+    log "Downloading Frida server for architecture: $arch"
+    curl -L -o "frida-server-${arch}.xz" "$url"
+    if [ $? -ne 0 ]; then
+        log "[ERROR] Failed to download Frida server from $url"
+        exit 1
+    fi
+
+    # Unpack the xz file
+    log "Unpacking Frida server..."
+    xz -d "frida-server-${arch}.xz"
+    chmod +x "frida-server-${arch}"
+    mv "frida-server-${arch}" "frida-server"
+}
+
+# Push the Frida server to the device
+push_frida_to_device() {
+    log "Pushing Frida server to device..."
+    adb push frida-server /data/local/tmp/frida-server
+    adb shell chmod 755 /data/local/tmp/frida-server
+}
+
+# Start the Frida server on the device
+start_frida_server() {
+    log "Starting Frida server on device..."
+    adb shell /data/local/tmp/frida-server &
+}
+
+# Main function
+main() {
+    log "Detecting device architecture..."
+    local arch=$(get_device_architecture)
+
+    if [ -z "$arch" ]; then
+        log "[ERROR] Could not detect device architecture. Ensure the device is connected and adb is working."
+        exit 1
+    fi
+
+    log "Device architecture detected: $arch"
+
+    if [ ! -f "frida-server" ]; then
+        download_frida_server "$arch"
+    else
+        log "Frida server binary already exists locally. Skipping download."
+    fi
+
+    push_frida_to_device
+    start_frida_server
+
+    log "[SUCCESS] Frida server has been pushed and started successfully!"
+}
+
+main
+
+----------------------------------------------------------------------
+----------------------restart_frida_server.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Start Frida server
+adb shell /data/local/tmp/frida-server &
+
+# Verify if Frida server started
+if adb shell pgrep -f "frida-server"; then
+    echo "[SUCCESS] Frida server started."
+else
+    echo "[ERROR] Failed to start Frida server."
+fi
+----------------------------------------------------------------------
+----------------------run_frida_ps.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Run frida-ps to list processes
+echo "Fetching running processes with Frida..."
+frida-ps -Uia
+
+# Ensure the command ran successfully
+if [ $? -ne 0 ]; then
+    echo "[ERROR] Failed to list processes. Ensure Frida server is running and device is connected."
+else
+    echo "[SUCCESS] Processes fetched successfully."
+fi
+----------------------------------------------------------------------
+----------------------run_frida_server.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Start Frida server
+adb shell /data/local/tmp/frida-server &
+
+# Confirm Frida server is running
+adb shell pgrep -f "frida-server"
+----------------------------------------------------------------------
+----------------------run_objection_explore.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Fetch running processes
+echo "Fetching running processes..."
+frida-ps -Uia
+read -p "Enter the app package name to explore with Objection: " package_name
+
+# Launch Objection
+objection -g "$package_name" explore
+
+# Verify success
+if [ $? -ne 0 ]; then
+    echo "[ERROR] Failed to launch Objection for package $package_name."
+else
+    echo "[SUCCESS] Objection launched for package $package_name."
+fi
+----------------------------------------------------------------------
+----------------------select_frida_script.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+echo "Fetching Frida scripts..."
+scripts=(/home/flintx/obrida/frida-scripts/*.js)
+echo "Available scripts:"
+select script in "${scripts[@]}"; do
+    if [[ -n "$script" ]]; then
+        echo "Selected script: $script"
+        read -p "Enter the process name or PID: " process
+        frida -U -n "$process" -s "$script"
+        break
+    fi
+done
+
+
+----------------------------------------------------------------------
+----------------------set_emulator_proxy.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Prompt for proxy details
+read -p "Enter local machine IP: " local_ip
+read -p "Enter proxy port (e.g., 8080): " proxy_port
+
+# Set proxy on emulator
+adb shell settings put global http_proxy "$local_ip:$proxy_port"
+
+# Verify proxy settings
+adb shell settings get global http_proxy
+----------------------------------------------------------------------
+----------------------set_reverse_tcp.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Prompt for port details
+read -p "Enter local port: " local_port
+read -p "Enter emulator port: " emulator_port
+
+# Set reverse TCP port
+adb reverse tcp:$local_port tcp:$emulator_port
+
+# Verify port forwarding
+adb reverse --list
+----------------------------------------------------------------------
+----------------------start_app_and_run_frida.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Prompt for app package and activity
+read -p "Enter the app package name: " package_name
+read -p "Enter the app activity name: " activity_name
+
+# Start the app
+adb shell am start -n "$package_name/$activity_name"
+
+# Prompt for Frida script
+scripts_dir="/home/flintx/APKs/frida/"
+scripts=$(ls "$scripts_dir"*.js 2>/dev/null)
+
+if [ -z "$scripts" ]; then
+    echo "[ERROR] No Frida scripts found in $scripts_dir"
+    exit 1
+fi
+
+echo "Available Frida scripts:"
+select script in $scripts; do
+    if [ -n "$script" ]; then
+        echo "Selected script: $script"
+        break
+    else
+        echo "[ERROR] Invalid selection. Try again."
+    fi
+done
+
+# Attach Frida script
+frida -U -n "$package_name" -s "$script"
+----------------------------------------------------------------------
+----------------------start_app_with_frida.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+echo "Starting app and running Frida script..."
+read -p "Enter the package name: " package_name
+read -p "Enter the activity name: " activity_name
+read -p "Enter the script path: " script_path
+adb shell am start -n "$package_name/$activity_name"
+frida -U -n "$package_name" -s "$script_path"
+
+
+----------------------------------------------------------------------
+----------------------start_emulator.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Path to the Android SDK emulator directory
+SDK_EMULATOR_DIR="/home/flintx/Android/Sdk/emulator"
+
+# Path to the avdmanager binary
+SDK_TOOLS_DIR="/home/flintx/Android/Sdk/cmdline-tools/latest/bin"
+
+# Check if the required tools exist
+if [[ ! -f "$SDK_TOOLS_DIR/avdmanager" ]]; then
+    echo "Error: avdmanager not found in $SDK_TOOLS_DIR"
+    exit 1
+fi
+
+if [[ ! -f "$SDK_EMULATOR_DIR/emulator" ]]; then
+    echo "Error: emulator binary not found in $SDK_EMULATOR_DIR"
+    exit 1
+fi
+
+# List available emulators
+echo "Fetching available emulators..."
+emulators=$("$SDK_TOOLS_DIR/avdmanager" list avd | grep "Name:" | cut -d: -f2 | xargs)
+
+if [ -z "$emulators" ]; then
+    echo "No emulators available."
+    exit 1
+fi
+
+# Display list of emulators and prompt user to select one
+echo "Available emulators:"
+select emulator in $emulators; do
+    if [ -n "$emulator" ]; then
+        echo "Launching emulator: $emulator"
+        "$SDK_EMULATOR_DIR/emulator" -avd "$emulator" -no-snapshot -writable-system &
+        echo "Emulator $emulator is now running."
+        break
+    else
+        echo "Invalid selection, try again."
+    fi
+done
+
+----------------------------------------------------------------------
+----------------------start_frida_server.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Function to start the Frida server
+start_frida_server() {
+    echo "Checking ADB connection..."
+    adb devices | grep -w "device" > /dev/null
+    if [ $? -ne 0 ]; then
+        echo "[ERROR] No connected devices found. Ensure the device is connected and ADB is running."
+        exit 1
+    fi
+
+    echo "Starting Frida server on the device..."
+    adb shell /data/local/tmp/frida-server &
+    if [ $? -eq 0 ]; then
+        echo "[SUCCESS] Frida server started successfully."
+    else
+        echo "[ERROR] Failed to start Frida server."
+    fi
+}
+
+# Run the function
+start_frida_server
+
+----------------------------------------------------------------------
+----------------------verify_selinux_mode.sh------------------------------
+----------------------------------------------------------------------
+#!/bin/bash
+
+# Check SELinux mode
+selinux_mode=$(adb shell getenforce)
+
+echo "Current SELinux mode: $selinux_mode"
+
+# Set SELinux to permissive if needed
+if [[ "$selinux_mode" != "Permissive" ]]; then
+    adb shell setenforce 0
+    echo "[INFO] SELinux set to permissive mode."
+else
+    echo "[INFO] SELinux is already in permissive mode."
+fi
+
+▂▃▅▇█▓▒░ END -merged_output.txt ░▒▓█▇▅▃▂
+

@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.x509 import CertificateBuilder, NameOID
+from datetime import datetime, timedelta
+from uuid import uuid4
+import os
+
+def generate_certificate():
+    print("[INFO] Generating Certificate...")
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    public_key = private_key.public_key()
+
+    cert = (
+        CertificateBuilder()
+        .subject_name(x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Obrida Root CA")]))
+        .issuer_name(x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Obrida Root CA")]))
+        .public_key(public_key)
+        .serial_number(uuid4().int)
+        .not_valid_before(datetime.utcnow())
+        .not_valid_after(datetime.utcnow() + timedelta(days=365 * 2))
+        .sign(private_key, hashes.SHA256())
+    )
+
+    with open("obrida_ca.pem", "wb") as f:
+        f.write(cert.public_bytes(serialization.Encoding.PEM))
+    print("[SUCCESS] Certificate Generated.")
+
+def install_certificate():
+    print("[INFO] Installing Certificate on Device...")
+    os.system("adb push obrida_ca.pem /data/local/tmp/")
+    os.system("adb shell mv /data/local/tmp/obrida_ca.pem /system/etc/security/cacerts/")
+    os.system("adb shell chmod 644 /system/etc/security/cacerts/obrida_ca.pem")
+    print("[SUCCESS] Certificate Installed.")
+
+if __name__ == "__main__":
+    generate_certificate()
+    install_certificate()

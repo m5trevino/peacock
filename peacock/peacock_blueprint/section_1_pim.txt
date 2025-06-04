@@ -1,0 +1,3 @@
+# SECTION 1: PROJECT IDEATION MODE (PIM)
+# Purpose: Guide the user from a vague project idea to a structured plan.
+# Status: High-level concept defined. Needs detailed blueprinting of user interaction, AI prompting, parsing plan output, saving plan to PKB.

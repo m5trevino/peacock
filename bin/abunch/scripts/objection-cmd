@@ -1,0 +1,106 @@
+#!/bin/bash
+
+# Function to print and execute a command
+run_command() {
+    echo "Running: $1"
+    eval "$1"
+    if [ $? -ne 0 ]; then
+        echo "[ERROR] Command failed: $1"
+    else
+        echo "[SUCCESS] Command executed: $1"
+    fi
+    echo "------------------------------------"
+}
+
+# Objection Commands Menu
+PS3="Select an Objection command: "
+options=(
+    "Patch an APK with Objection"
+    "Launch app with Objection Explore"
+    "Convert DER certificates to PEM and push to emulator"
+    "Run Objection Explore with a specific app"
+    "Dump app certificates"
+    "Bypass SSL pinning"
+    "Trace app function with Objection"
+    "Mount sdcard directory to emulator"
+    "Set file permissions for Frida or certificates"
+    "Exit"
+)
+
+select opt in "${options[@]}"; do
+    case $opt in
+        "Patch an APK with Objection")
+            echo "Enter the path to the APK file to patch:"
+            read -r apk_path
+            run_command "objection patchapk --source \"$apk_path\""
+            ;;
+        "Launch app with Objection Explore")
+            echo "Enter the package name of the app (e.g., com.example.app):"
+            read -r package_name
+            run_command "objection -g \"$package_name\" explore"
+            ;;
+        "Convert DER certificates to PEM and push to emulator")
+            cert_dir="/home/flintx/APKs/sdcard/newcerts"
+            pem_dir="/home/flintx/APKs/sdcard/newcerts/pem"
+
+            if [ ! -d "$cert_dir" ]; then
+                echo "Certificate directory not found at $cert_dir."
+                break
+            fi
+
+            mkdir -p "$pem_dir"
+            echo "Converting DER files to PEM format..."
+            for der_file in "$cert_dir"/*.der; do
+                if [ -f "$der_file" ]; then
+                    pem_file="$pem_dir/$(basename "$der_file" .der).pem"
+                    echo "Converting $der_file to $pem_file"
+                    openssl x509 -inform DER -in "$der_file" -out "$pem_file"
+                fi
+            done
+
+            echo "Pushing PEM files to emulator..."
+            for pem_file in "$pem_dir"/*.pem; do
+                adb push "$pem_file" /sdcard/newcerts/
+            done
+            echo "PEM files converted and pushed successfully."
+            ;;
+        "Run Objection Explore with a specific app")
+            echo "Enter the package name of the app to explore:"
+            read -r package_name
+            run_command "objection -g \"$package_name\" explore"
+            ;;
+        "Dump app certificates")
+            echo "Enter the package name of the app to dump certificates:"
+            read -r package_name
+            run_command "objection -g \"$package_name\" explore --dump-certificates"
+            ;;
+        "Bypass SSL pinning")
+            echo "Enter the package name of the app:"
+            read -r package_name
+            run_command "objection -g \"$package_name\" explore --bypass-ssl-pinning"
+            ;;
+        "Trace app function with Objection")
+            echo "Enter the function name to trace:"
+            read -r function_name
+            echo "Enter the package name of the app:"
+            read -r package_name
+            run_command "objection -g \"$package_name\" explore --hook \"$function_name\""
+            ;;
+        "Mount sdcard directory to emulator")
+            run_command "adb shell mount --bind /mnt/media_rw/B981-7732 /sdcard"
+            run_command "adb shell ls -l /sdcard"
+            ;;
+        "Set file permissions for Frida or certificates")
+            echo "Enter the full path to the file on the emulator (e.g., /data/local/tmp/burp.der):"
+            read -r file_path
+            run_command "adb shell chmod 644 \"$file_path\""
+            ;;
+        "Exit")
+            echo "Exiting script."
+            break
+            ;;
+        *)
+            echo "[ERROR] Invalid option. Try again."
+            ;;
+    esac
+done

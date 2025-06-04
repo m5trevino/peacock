@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# Directory where your environments are stored
+env_dir="/home/flintx"
+
+# Function to list "major" apps in a given environment
+list_major_apps() {
+    env_path="$env_dir/$1"
+    if [ -d "$env_path/bin" ]; then
+        echo "Major apps in $1:"
+        # List a predefined set of 'major' apps, like python, pip, etc.
+        major_apps=("python" "pip" "bash" "node" "java")
+        for app in "${major_apps[@]}"; do
+            if [ -x "$env_path/bin/$app" ]; then
+                echo "  $app"
+            fi
+        done
+    else
+        echo "No 'bin' directory found for $1. Skipping..."
+    fi
+}
+
+# Function to list all executables in an environment
+list_all_apps() {
+    env_path="$env_dir/$1"
+    if [ -d "$env_path/bin" ]; then
+        echo "All executables in $1:"
+        ls -1 "$env_path/bin" || echo "No executables found in $env_path/bin."
+    else
+        echo "No 'bin' directory found for $1. Skipping..."
+    fi
+}
+
+# List all directories under /home/flintx that look like environments
+echo "Available environments under $env_dir:"
+environments=$(ls -d "$env_dir"/*/ | grep -E 'poetry-env|pentest-env|virtual-env')
+
+# If no environments are found, exit
+if [ -z "$environments" ]; then
+    echo "No environments found in $env_dir."
+    exit 1
+fi
+
+# List the environments and their major apps
+for env in $environments; do
+    env_name=$(basename "$env")
+    echo "Checking $env_name..."
+    list_major_apps "$env_name"
+    echo "--------------------------------"
+done
+
+# Prompt user to choose an environment to activate
+echo "Which environment would you like to activate? Enter the name (e.g., 'poetry-env' or 'virtual-env') or type 'none' to skip:"
+read -r selected_env
+
+if [[ "$selected_env" == "none" ]]; then
+    echo "No environment selected. Exiting..."
+    exit 0
+fi
+
+# Check if the selected environment exists
+if [[ -d "$env_dir/$selected_env" ]]; then
+    # Check if the environment has an 'activate' script
+    activate_script="$env_dir/$selected_env/bin/activate"
+    if [ -f "$activate_script" ]; then
+        echo "Activating $selected_env..."
+        source "$activate_script"
+        echo "Environment '$selected_env' activated. Run 'deactivate' to exit."
+    else
+        echo "No 'activate' script found in $selected_env. Please check the environment."
+        exit 1
+    fi
+else
+    echo "Environment '$selected_env' not found! Make sure the name is correct."
+    exit 1
+fi

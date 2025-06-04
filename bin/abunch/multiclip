@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo "Starting Multiclip system..."
+
+# Step 1: Activate the virtual environment
+echo "Activating virtual environment as user..."
+source /home/flintx/virtual-env/bin/activate || { echo "Failed to activate virtual environment as user"; exit 1; }
+
+# Step 2: Switch to root and keep running
+echo "Switching to root..."
+sudo -i bash <<'EOF'
+    echo "Activating virtual environment as root..."
+    source /home/flintx/virtual-env/bin/activate || { echo "Failed to activate virtual environment as root"; exit 1; }
+
+    echo "Starting Multiclip script..."
+    python3 /home/flintx/multiclip/multiclip.py
+EOF

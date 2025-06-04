@@ -1,0 +1,93 @@
+#!/bin/bash
+
+# Function to print and execute a command
+run_command() {
+    echo "Running: $1"
+    eval "$1"
+    if [ $? -ne 0 ]; then
+        echo "[ERROR] Command failed: $1"
+    else
+        echo "[SUCCESS] Command executed: $1"
+    fi
+    echo "------------------------------------"
+}
+
+# Menu header
+echo "===================================="
+echo "        Apache Commands Menu        "
+echo "===================================="
+
+# Apache Commands Menu
+PS3="Select an Apache command: "
+options=(
+    "Restart Apache service"
+    "Check Apache service status"
+    "Enable an Apache module"
+    "List enabled Apache modules"
+    "List available Apache modules"
+    "Disable an Apache module"
+    "Test Apache configuration"
+    "Edit Apache configuration file"
+    "Edit a site configuration file"
+    "Check which process is listening on a port"
+    "Enable WebDAV modules"
+    "Check Apache error logs"
+    "Exit"
+)
+
+# Menu loop
+select opt in "${options[@]}"; do
+    case $opt in
+        "Restart Apache service")
+            run_command "sudo systemctl restart apache2"
+            ;;
+        "Check Apache service status")
+            run_command "sudo systemctl status apache2"
+            ;;
+        "Enable an Apache module")
+            echo "Enter the module name to enable (e.g., rewrite):"
+            read -r module_name
+            run_command "sudo a2enmod $module_name"
+            ;;
+        "List enabled Apache modules")
+            run_command "ls -l /etc/apache2/mods-enabled/"
+            ;;
+        "List available Apache modules")
+            run_command "ls -l /etc/apache2/mods-available/"
+            ;;
+        "Disable an Apache module")
+            echo "Enter the module name to disable (e.g., rewrite):"
+            read -r module_name
+            run_command "sudo a2dismod $module_name"
+            ;;
+        "Test Apache configuration")
+            run_command "sudo apache2ctl configtest"
+            ;;
+        "Edit Apache configuration file")
+            run_command "sudo subl /etc/apache2/apache2.conf"
+            ;;
+        "Edit a site configuration file")
+            echo "Enter the site config filename (e.g., 000-default.conf):"
+            read -r site_config
+            run_command "sudo subl /etc/apache2/sites-available/$site_config"
+            ;;
+        "Check which process is listening on a port")
+            echo "Enter the port number to check (e.g., 8182):"
+            read -r port_number
+            run_command "sudo netstat -tuln | grep :$port_number"
+            ;;
+        "Enable WebDAV modules")
+            run_command "sudo a2enmod dav && sudo a2enmod dav_fs"
+            ;;
+        "Check Apache error logs")
+            run_command "sudo tail -f /var/log/apache2/error.log"
+            ;;
+        "Exit")
+            echo "Exiting script."
+            break
+            ;;
+        *)
+            echo "[ERROR] Invalid option. Try again."
+            ;;
+    esac
+done

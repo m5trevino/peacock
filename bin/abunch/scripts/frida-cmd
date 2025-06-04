@@ -1,0 +1,126 @@
+#!/bin/bash
+
+# Function to print and execute a command
+run_command() {
+    echo "Running: $1"
+    eval "$1"
+    if [ $? -ne 0 ]; then
+        echo "[ERROR] Command failed: $1"
+    else
+        echo "[SUCCESS] Command executed: $1"
+    fi
+    echo "------------------------------------"
+}
+
+# Frida Commands Menu
+PS3="Select a Frida command: "
+options=(
+    "Start Frida server on the device"
+    "Show processes with Frida-ps"
+    "Push Frida server to the device"
+    "Launch Frida script for app/package"
+    "Attach Frida to a process by PID"
+    "Trace a function with Frida"
+    "Restart Frida server and clean processes"
+    "Kill Frida server on device"
+    "Find Frida server location on device"
+    "Exit"
+)
+
+# Start Frida server on the device
+start_frida_server() {
+    echo "Starting Frida server on the device..."
+    run_command "adb shell /data/local/tmp/frida-server &"
+}
+
+# Show processes with Frida-ps
+show_frida_processes() {
+    echo "Listing processes with frida-ps..."
+    run_command "frida-ps -U"
+}
+
+# Push Frida server to the device
+push_frida_to_device() {
+    echo "Enter the local path to the Frida server binary (e.g., /path/to/frida-server):"
+    read -r frida_path
+    if [ -f "$frida_path" ]; then
+        echo "Pushing Frida server to the device..."
+        run_command "adb push \"$frida_path\" /data/local/tmp/frida-server"
+        run_command "adb shell chmod 755 /data/local/tmp/frida-server"
+    else
+        echo "[ERROR] File not found: $frida_path"
+    fi
+}
+
+# Launch a Frida script for a specific app
+launch_frida_script() {
+    echo "Enter the package name of the app or PID to attach to:"
+    read -r target
+    echo "Enter the path to the Frida script file (e.g., /path/to/script.js):"
+    read -r script_path
+    if [ -f "$script_path" ]; then
+        echo "Launching Frida script..."
+        run_command "frida -U -n \"$target\" --load \"$script_path\""
+    else
+        echo "[ERROR] Script file not found: $script_path"
+    fi
+}
+
+# Attach Frida to a process by PID
+attach_frida_by_pid() {
+    echo "Enter the PID to attach Frida to:"
+    read -r pid
+    echo "Enter the path to the Frida script file (e.g., /path/to/script.js):"
+    read -r script_path
+    if [ -f "$script_path" ]; then
+        echo "Attaching Frida to PID $pid..."
+        run_command "frida -U -p \"$pid\" --load \"$script_path\""
+    else
+        echo "[ERROR] Script file not found: $script_path"
+    fi
+}
+
+# Trace a function with Frida
+frida_trace_function() {
+    echo "Enter the function name to trace:"
+    read -r function_name
+    echo "Enter the package name of the app:"
+    read -r app_name
+    run_command "frida-trace -U -i \"$function_name\" \"$app_name\""
+}
+
+# Restart Frida server and clean up
+restart_frida_server() {
+    echo "Restarting Frida server and cleaning up..."
+    run_command "adb shell pkill frida-server"
+    run_command "adb shell /data/local/tmp/frida-server &"
+}
+
+# Kill Frida server on device
+kill_frida_server() {
+    echo "Killing Frida server on the device..."
+    run_command "adb shell pkill frida-server"
+}
+
+# Find Frida server location on the device
+find_frida_server_location() {
+    echo "Finding Frida server location on the device..."
+    run_command "adb shell which frida-server"
+}
+
+# Main Menu Loop
+select opt in "${options[@]}"; do
+    case $opt in
+        "Start Frida server on the device") start_frida_server ;;
+        "Show processes with Frida-ps") show_frida_processes ;;
+        "Push Frida server to the device") push_frida_to_device ;;
+        "Launch Frida script for app/package") launch_frida_script ;;
+        "Attach Frida to a process by PID") attach_frida_by_pid ;;
+        "Trace a function with Frida") frida_trace_function ;;
+        "Restart Frida server and clean processes") restart_frida_server ;;
+        "Kill Frida server on device") kill_frida_server ;;
+        "Find Frida server location on device") find_frida_server_location ;;
+        "Exit") echo "Exiting script."; break ;;
+        *) echo "[ERROR] Invalid option. Try again." ;;
+    esac
+done

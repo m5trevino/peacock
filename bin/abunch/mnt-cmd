@@ -1,0 +1,111 @@
+#!/bin/bash
+
+# Function to print and execute a command
+run_command() {
+    echo "Running: $1"
+    eval "$1"
+    if [ $? -ne 0 ]; then
+        echo "[ERROR] Command failed: $1"
+    else
+        echo "[SUCCESS] Command executed: $1"
+    fi
+    echo "------------------------------------"
+}
+
+# Mount and Remount Commands
+mount_rw() {
+    echo "Mounting /system as read-write..."
+    run_command "mount -o rw,remount /system"
+}
+
+remount_ro() {
+    echo "Remounting /system as read-only..."
+    run_command "mount -o ro,remount /system"
+}
+
+mount_data_rw() {
+    echo "Mounting /data as read-write..."
+    run_command "mount -o rw,remount /data"
+}
+
+remount_data_ro() {
+    echo "Remounting /data as read-only..."
+    run_command "mount -o ro,remount /data"
+}
+
+# File Permissions Commands (for any file)
+set_permissions() {
+    echo "Setting permissions for file: $1"
+    echo "Enter permissions (e.g., 644):"
+    read -r perms
+    run_command "chmod $perms \"$1\""
+}
+
+# File Ownership Commands (for any file)
+set_ownership() {
+    echo "Setting ownership for file: $1"
+    echo "Enter owner (e.g., root):"
+    read -r owner
+    echo "Enter group (e.g., root):"
+    read -r group
+    run_command "chown $owner:$group \"$1\""
+}
+
+# Function for working with certificates (or any file)
+process_cert() {
+    echo "Processing certificate at: $1"
+    run_command "chmod 644 \"$1\""
+    run_command "chown root:root \"$1\""
+}
+
+# Main menu loop
+PS3="Select an option: "
+options=(
+    "Mount /system as read-write"
+    "Remount /system as read-only"
+    "Mount /data as read-write"
+    "Remount /data as read-only"
+    "Set permissions for any file"
+    "Set ownership for any file"
+    "Process a certificate (set permissions and ownership)"
+    "Exit"
+)
+
+select opt in "${options[@]}"; do
+    case $opt in
+        "Mount /system as read-write")
+            mount_rw
+            ;;
+        "Remount /system as read-only")
+            remount_ro
+            ;;
+        "Mount /data as read-write")
+            mount_data_rw
+            ;;
+        "Remount /data as read-only")
+            remount_data_ro
+            ;;
+        "Set permissions for any file")
+            echo "Enter file path:"
+            read -r file_path
+            set_permissions "$file_path"
+            ;;
+        "Set ownership for any file")
+            echo "Enter file path:"
+            read -r file_path
+            set_ownership "$file_path"
+            ;;
+        "Process a certificate (set permissions and ownership)")
+            echo "Enter certificate file path:"
+            read -r cert_path
+            process_cert "$cert_path"
+            ;;
+        "Exit")
+            echo "Exiting script."
+            break
+            ;;
+        *)
+            echo "[ERROR] Invalid option. Try again."
+            ;;
+    esac
+done

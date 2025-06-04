@@ -1,0 +1,164 @@
+#!/bin/bash
+
+# Function to print and execute a command, while showing the actual command
+run_command() {
+    echo "------------------------------------"
+    echo "Running: $1"
+    echo "Command verbatim: $1"  # Show the actual command verbatim
+    echo "------------------------------------"
+    eval "$1"
+    if [ $? -ne 0 ]; then
+        echo "[ERROR] Command failed: $1"
+    else
+        echo "[SUCCESS] Command executed: $1"
+    fi
+    echo "------------------------------------"
+}
+
+# Network Commands Menu
+PS3="Select a network command: "
+options=(
+    "Display IP addresses"
+    "Show MAC addresses"
+    "Search for a port in network interfaces"
+    "Test Apache configuration"
+    "Show all network interfaces"
+    "List open network connections (lsof)"
+    "Display active TCP/UDP connections (netstat)"
+    "Flush all iptables rules"
+    "Restart networking service"
+    "Check/Restart SSH server"
+    "Check/Restart Apache2 server"
+    "Check/Restart WebDAV server"
+    "Firewall: Block port"
+    "Firewall: Allow port"
+    "Firewall: Block IP address"
+    "Firewall: Allow IP address"
+    "View current firewall rules"
+    "Show network statistics"
+    "Show network interface info (ip link)"
+    "Show detailed network interface stats (ethtool)"
+    "Configure static IP (set static IP)"
+    "Configure DNS"
+    "Exit"
+)
+
+select opt in "${options[@]}"; do
+    case $opt in
+        "Display IP addresses")
+            run_command "ip a"
+            ;;
+        "Show MAC addresses")
+            run_command "ifconfig | grep ether"
+            ;;
+        "Search for a port in network interfaces")
+            echo "Enter the port to search (e.g., 8080):"
+            read -r port
+            run_command "ifconfig | grep $port"
+            ;;
+        "Test Apache configuration")
+            run_command "sudo apache2ctl configtest"
+            ;;
+        "Show all network interfaces")
+            run_command "ifconfig"
+            ;;
+        "List open network connections (lsof)")
+            run_command "sudo lsof -i"
+            ;;
+        "Display active TCP/UDP connections (netstat)")
+            run_command "sudo netstat -tuln"
+            ;;
+        "Flush all iptables rules")
+            run_command "sudo iptables -F && sudo iptables -X"
+            ;;
+        "Restart networking service")
+            run_command "sudo systemctl restart networking"
+            ;;
+        "Check/Restart SSH server")
+            echo "Check SSH status: sudo systemctl status ssh"
+            echo "Restart SSH service: sudo systemctl restart ssh"
+            echo "Start SSH service: sudo systemctl start ssh"
+            echo "Enable SSH service: sudo systemctl enable ssh"
+            echo "Disable SSH service: sudo systemctl disable ssh"
+            echo "Enter option (status/restart/start/enable/disable):"
+            read -r ssh_action
+            run_command "sudo systemctl $ssh_action ssh"
+            ;;
+        "Check/Restart Apache2 server")
+            echo "Check Apache2 status: sudo systemctl status apache2"
+            echo "Restart Apache2 service: sudo systemctl restart apache2"
+            echo "Start Apache2 service: sudo systemctl start apache2"
+            echo "Enable Apache2 service: sudo systemctl enable apache2"
+            echo "Disable Apache2 service: sudo systemctl disable apache2"
+            echo "Enter option (status/restart/start/enable/disable):"
+            read -r apache_action
+            run_command "sudo systemctl $apache_action apache2"
+            ;;
+        "Check/Restart WebDAV server")
+            echo "Check WebDAV status: sudo systemctl status apache2"
+            echo "Restart WebDAV service: sudo systemctl restart apache2"
+            echo "Start WebDAV service: sudo systemctl start apache2"
+            echo "Enable WebDAV service: sudo systemctl enable apache2"
+            echo "Disable WebDAV service: sudo systemctl disable apache2"
+            echo "Enter option (status/restart/start/enable/disable):"
+            read -r webdav_action
+            run_command "sudo systemctl $webdav_action apache2"
+            ;;
+        "Firewall: Block port")
+            echo "Enter the port to block:"
+            read -r block_port
+            run_command "sudo iptables -A INPUT -p tcp --dport $block_port -j REJECT"
+            ;;
+        "Firewall: Allow port")
+            echo "Enter the port to allow:"
+            read -r allow_port
+            run_command "sudo iptables -A INPUT -p tcp --dport $allow_port -j ACCEPT"
+            ;;
+        "Firewall: Block IP address")
+            echo "Enter the IP address to block:"
+            read -r block_ip
+            run_command "sudo iptables -A INPUT -s $block_ip -j REJECT"
+            ;;
+        "Firewall: Allow IP address")
+            echo "Enter the IP address to allow:"
+            read -r allow_ip
+            run_command "sudo iptables -A INPUT -s $allow_ip -j ACCEPT"
+            ;;
+        "View current firewall rules")
+            run_command "sudo iptables -L"
+            ;;
+        "Show network statistics")
+            run_command "netstat -i"
+            run_command "netstat -s"
+            ;;
+        "Show network interface info (ip link)")
+            run_command "ip link show"
+            ;;
+        "Show detailed network interface stats (ethtool)")
+            echo "Enter the network interface (e.g., eth0):"
+            read -r interface
+            run_command "ethtool $interface"
+            ;;
+        "Configure static IP (set static IP)")
+            echo "Enter static IP address (e.g., 192.168.1.100):"
+            read -r ip_address
+            echo "Enter network interface (e.g., eth0):"
+            read -r iface
+            run_command "sudo ip addr add $ip_address dev $iface"
+            ;;
+        "Configure DNS")
+            echo "Enter DNS server (e.g., 8.8.8.8):"
+            read -r dns_server
+            run_command "sudo nmcli dev show | grep DNS"
+            run_command "sudo nmcli con mod \"System eth0\" ipv4.dns $dns_server"
+            run_command "sudo systemctl restart NetworkManager"
+            ;;
+        "Exit")
+            echo "Exiting script."
+            break
+            ;;
+        *)
+            echo "[ERROR] Invalid option. Try again."
+            ;;
+    esac
+done

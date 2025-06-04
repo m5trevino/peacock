@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Step 1: Activate Virtual Environment
+echo "Activating the virtual environment..."
+source /home/flintx/virtual-env/bin/activate
+
+# Step 2: Switch to root (asks for password)
+echo "Switching to root..."
+sudo su

@@ -1,0 +1,15 @@
+[
+    { "id": "zz-peacock-llm",
+      "children": [
+          { "caption": "Peacock LLM",
+            "children": [
+                { "command": "llm_hustle_explain", "caption": "Explain Selection" },
+                { "command": "llm_hustle_fix", "caption": "Suggest Fix" },
+                { "command": "llm_hustle_rewrite", "caption": "Rewrite Selection" },
+                { "command": "llm_hustle_alternatives", "caption": "Alternative Methods" },
+                { "command": "llm_hustle_question", "caption": "Ask about Selection" }
+            ]
+          }
+      ]
+    }
+]

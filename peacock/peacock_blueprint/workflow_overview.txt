@@ -1,0 +1,27 @@
+# PEACOCK HIGH-LEVEL WORKFLOW & BLUEPRINT SECTIONS
+
+# This maps the damn hustle, broken into the main operational phases.
+
+1.  Section 1: Project Ideation Mode (PIM) - From Idea to Plan
+    # Purpose: Guide the user from a vague project idea to a structured plan.
+    # Workflow: User inputs idea -> MCP (PIM) plans/guides/manages scope -> Outputs: Structured Plan (PKB), Initial Code.
+
+2.  Section 2: Project Initialization - Kicking Off the Build
+    # Purpose: Transition the user from the Ideation plan to the Refinement workflow.
+    # Workflow: Present Plan/Code -> User starts work -> Link code to Plan.
+    # Outputs: User ready.
+
+3.  Section 3: Code Refinement Mode (CRM) - Building & Analyzing Code
+    # Purpose: Provide structured AI assistance for editing, analyzing, and debugging code within the editor.
+    # Workflow: User selects/commands in EIP -> EIP sends to MCP -> MCP uses PKB/AIP/IRP/PCM/Refinement LLM -> MCP generates/saves PKB intel -> MCP sends result to EIP -> EIP displays.
+    # Outputs: Updated/New code, Structured Analysis/Documentation (PKB).
+
+4.  Section 4: Project Knowledge Base (PKB) Management & Usage
+    # Purpose: Store and manage project-related AI-generated intel and plans.
+    # Contents: Structured Project Plan (Objectives, Workflow), HTML Analysis Reports, (maybe) Future Ideas/Backlog list.
+    # Functions: Saving reports/plans, looking up relevant context for CRM requests, potentially displaying progress status based on Objectives met.
+    # Workflow: (Details how MCP reads/writes PKB, how user interacts with saved docs).
+
+5.  Section 5: System Components - The Building Blocks
+    # Purpose: Detail the technical implementation of the core pieces.
+    # Contents: EIP Specs, MCP Specs, LLMs, Communication Protocols (AIP).

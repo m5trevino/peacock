@@ -1,0 +1,110 @@
+#!/bin/bash
+
+# Define paths
+CERT_DIR="/home/flintx/APKs/daily-certs"
+DOWNLOAD_DIR="/mnt/sdcard/Download"
+TEMP_DIR="/data/local/tmp"
+CERT_INFO_LIB="/home/flintx/APKs/cert-library.txt"
+
+# Function to list all certificate files in CERT_DIR
+list_cert_files() {
+    echo "[INFO] Listing certificate files in $CERT_DIR..."
+    cert_files=($(ls "$CERT_DIR" | grep -E "\.der$|\.pem$"))
+    
+    if [ ${#cert_files[@]} -eq 0 ]; then
+        echo "[ERROR] No .der or .pem files found in $CERT_DIR."
+        exit 1
+    fi
+
+    echo "Available certificate files:"
+    for i in "${!cert_files[@]}"; do
+        echo "$((i + 1))) ${cert_files[$i]}"
+    done
+}
+
+# Function to select a certificate file
+select_cert_file() {
+    list_cert_files
+    echo "Enter the number corresponding to the certificate file:"
+    read -r selection
+
+    if [[ ! "$selection" =~ ^[0-9]+$ ]] || [ "$selection" -le 0 ] || [ "$selection" -gt "${#cert_files[@]}" ]; then
+        echo "[ERROR] Invalid selection. Exiting."
+        exit 1
+    fi
+
+    selected_cert="${cert_files[$((selection - 1))]}"
+    echo "[INFO] You selected: $selected_cert"
+}
+
+# Function to check and create missing PEM/DER files
+check_and_create_cert_files() {
+    local cert_file="$CERT_DIR/$selected_cert"
+    local base_name="${cert_file%.*}"  # Remove extension
+
+    # Check if both .der and .pem files exist
+    if [ -f "${base_name}.der" ] && [ -f "${base_name}.pem" ]; then
+        echo "[INFO] Both PEM and DER files already exist. Skipping creation."
+        return 0
+    elif [[ "$cert_file" == *.der ]]; then
+        echo "[INFO] DER file exists, converting to PEM."
+        convert_der_to_pem "$base_name"
+    elif [[ "$cert_file" == *.pem ]]; then
+        echo "[INFO] PEM file exists, converting to DER."
+        convert_pem_to_der "$base_name"
+    else
+        echo "[ERROR] Unexpected file type. Exiting."
+        exit 1
+    fi
+}
+
+# Function to convert DER to PEM
+convert_der_to_pem() {
+    local base_name="$1"
+    echo "[INFO] Converting DER to PEM for $base_name..."
+    openssl x509 -inform DER -in "${base_name}.der" -out "${base_name}.pem"
+    if [ $? -eq 0 ]; then
+        echo "[SUCCESS] DER converted to PEM."
+        send_to_emulator "$base_name"
+    else
+        echo "[ERROR] DER to PEM conversion failed."
+        exit 1
+    fi
+}
+
+# Function to convert PEM to DER
+convert_pem_to_der() {
+    local base_name="$1"
+    echo "[INFO] Converting PEM to DER for $base_name..."
+    openssl x509 -outform DER -in "${base_name}.pem" -out "${base_name}.der"
+    if [ $? -eq 0 ]; then
+        echo "[SUCCESS] PEM converted to DER."
+        send_to_emulator "$base_name"
+    else
+        echo "[ERROR] PEM to DER conversion failed."
+        exit 1
+    fi
+}
+
+# Function to send both PEM and DER files to emulator
+send_to_emulator() {
+    local base_name="$1"
+    echo "[INFO] Sending cert files to emulator..."
+
+    adb push "${base_name}.pem" "$DOWNLOAD_DIR/"
+    adb push "${base_name}.der" "$DOWNLOAD_DIR/"
+    adb push "${base_name}.pem" "$TEMP_DIR/"
+    adb push "${base_name}.der" "$TEMP_DIR/"
+    
+    if [ $? -eq 0 ]; then
+        echo "[SUCCESS] Cert files sent to emulator."
+    else
+        echo "[ERROR] Failed to send cert files to emulator."
+        exit 1
+    fi
+}
+
+# Main script
+echo "[INFO] Welcome to Cert Handler!"
+select_cert_file
+check_and_create_cert_files

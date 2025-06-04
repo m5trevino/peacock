@@ -1,0 +1,12 @@
+▂▃▅▇█▓▒░ START -disable_secure_flag.js ░▒▓█▇▅▃▂
+Java.perform(() => {
+    const Activity = Java.use("android.app.Activity");
+    Activity.getWindow.implementation = function () {
+        this.setFlags(0, 128); // Disable SECURE flag
+        return this.getWindow();
+    };
+    console.log("SECURE flag disabled.");
+});
+
+▂▃▅▇█▓▒░ END -disable_secure_flag.js ░▒▓█▇▅▃▂
+

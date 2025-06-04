@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Activate the virtual environment
+source /home/flintx/virtual-env/bin/activate

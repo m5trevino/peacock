@@ -1,0 +1,240 @@
+#!/bin/bash
+
+# Function to print and execute a command
+run_command() {
+    echo "Running: $1"
+    eval "$1"
+    if [ $? -ne 0 ]; then
+        echo "[ERROR] Command failed: $1"
+    else
+        echo "[SUCCESS] Command executed: $1"
+    fi
+    echo "------------------------------------"
+}
+
+# Frida Commands Menu
+PS3="Select a Frida or Objection command: "
+options=(
+    "Start Frida server on the device"
+    "Show processes with frida-ps"
+    "Restart Frida server and clean processes"
+    "Kill Frida server on device"
+    "Set file permissions for Frida or certificates"
+    "Check port usage (lsof)"
+    "Check port PID (netstat)"
+    "Set SELinux to permissive"
+    "Find open processes on the Android emulator"
+    "Run adb root"
+    "Launch Frida script for app/package"
+    "Attach Frida to a process by PID"
+    "Trace a function with Frida"
+    "Run Objection - Explore App"
+    "Bypass SSL pinning with Objection"
+    "Patch an APK with Objection"
+    "Push Frida server to the device"
+    "Find Frida server location on device"
+    "Run adb shell dumpsys package"
+    "Force stop the app"
+    "Start app activity"
+    "Find app process"
+    "Start app and run Frida script"
+    "Select and run Frida script on a process"
+    "Exit"
+)
+
+# Helper function to fetch and display processes
+fetch_processes() {
+    echo "Fetching processes with frida-ps -Uia..."
+    mapfile -t processes < <(frida-ps -Uia | tail -n +3)
+
+    if [ ${#processes[@]} -eq 0 ]; then
+        echo "[ERROR] No processes found. Ensure the device is connected and Frida server is running."
+        return 1
+    fi
+
+    echo "Select a process:"
+    for i in "${!processes[@]}"; do
+        pid=$(echo "${processes[$i]}" | awk '{print $1}')
+        name=$(echo "${processes[$i]}" | awk '{print $2}')
+        identifier=$(echo "${processes[$i]}" | awk '{print $NF}')
+        echo "$((i+1))) PID: $pid - Name: $name - Identifier: $identifier"
+    done
+}
+
+# Helper function to fetch and display scripts
+fetch_scripts() {
+    echo "Fetching scripts from /home/flintx/APKs/frida..."
+    mapfile -t scripts < <(ls /home/flintx/APKs/frida/*.js 2>/dev/null)
+
+    if [ ${#scripts[@]} -eq 0 ]; then
+        echo "[ERROR] No scripts found in /home/flintx/APKs/frida."
+        return 1
+    fi
+
+    echo "Select a script:"
+    for i in "${!scripts[@]}"; do
+        echo "$((i+1))) ${scripts[$i]}"
+    done
+}
+
+# Function to attach to a process and run a script
+select_and_run_frida_script() {
+    # Fetch and display processes
+    fetch_processes || return
+    read -p "Enter the number of the process: " process_number
+
+    if ! [[ "$process_number" =~ ^[0-9]+$ ]] || [ "$process_number" -le 0 ] || [ "$process_number" -gt ${#processes[@]} ]; then
+        echo "[ERROR] Invalid process selection."
+        return
+    fi
+
+    selected_process=$(echo "${processes[$((process_number-1))]}" | awk '{print $NF}')
+    selected_pid=$(echo "${processes[$((process_number-1))]}" | awk '{print $1}')
+    echo "Selected process identifier: $selected_process (PID: $selected_pid)"
+
+    # Fetch and display scripts
+    fetch_scripts || return
+    read -p "Enter the number of the script: " script_number
+
+    if ! [[ "$script_number" =~ ^[0-9]+$ ]] || [ "$script_number" -le 0 ] || [ "$script_number" -gt ${#scripts[@]} ]; then
+        echo "[ERROR] Invalid script selection."
+        return
+    fi
+
+    selected_script="${scripts[$((script_number-1))]}"
+    echo "Selected script: $selected_script"
+
+    # Attempt to attach by name
+    echo "Attempting to attach to process by name: $selected_process"
+    run_command "frida -U -N \"$selected_process\" --load \"$selected_script\""
+
+    # If attaching by name fails, fallback to PID
+    if [ $? -ne 0 ]; then
+        echo "[WARNING] Attaching by name failed. Trying PID: $selected_pid"
+        run_command "frida -U -p \"$selected_pid\" --load \"$selected_script\""
+    fi
+}
+
+# Function implementations for existing options
+start_frida_server() {
+    echo "Starting Frida server on the device..."
+    run_command "adb shell /data/local/tmp/frida-server &"
+}
+
+show_frida_processes() {
+    echo "Listing processes with frida-ps..."
+    run_command "frida-ps -Uia"
+}
+
+restart_frida_server() {
+    echo "Restarting Frida server and cleaning up..."
+    run_command "adb shell pkill frida-server"
+    run_command "adb shell /data/local/tmp/frida-server &"
+}
+
+kill_frida_server() {
+    echo "Killing Frida server on the device..."
+    run_command "adb shell pkill frida-server"
+}
+
+set_file_permissions() {
+    echo "Enter the full path to the file on the emulator (e.g., /data/local/tmp/burp.der):"
+    read -r file_path
+    run_command "adb shell chmod 644 \"$file_path\""
+}
+
+check_port_usage() {
+    echo "Enter the port number to check usage for:"
+    read -r port
+    run_command "adb shell lsof -i :$port"
+}
+
+check_port_pid() {
+    echo "Enter the port number to check the PID for:"
+    read -r port
+    run_command "adb shell netstat -tuln | grep :$port"
+}
+
+set_selinux_permissive() {
+    echo "Setting SELinux to permissive mode..."
+    run_command "adb shell setenforce 0"
+}
+
+find_open_processes() {
+    echo "Listing all open processes on the Android emulator..."
+    run_command "adb shell ps -A"
+}
+
+run_adb_root() {
+    echo "Running adb root command..."
+    run_command "adb root"
+}
+
+get_main_activity() {
+    echo "Enter the package name of the app (e.g., com.seattleapplab.jerseymikes):"
+    read -r package_name
+    run_command "adb shell dumpsys package $package_name | grep -A 1 'MAIN'"
+}
+
+force_stop_app() {
+    echo "Enter the package name of the app to force stop:"
+    read -r package_name
+    run_command "adb shell am force-stop $package_name"
+}
+
+start_app_activity() {
+    echo "Enter the package name of the app (e.g., com.seattleapplab.jerseymikes):"
+    read -r package_name
+    echo "Enter the activity name to start (e.g., com.jerseymikes.welcome.WelcomeActivity):"
+    read -r activity_name
+    run_command "adb shell am start -n $package_name/$activity_name"
+}
+
+find_app_process() {
+    echo "Enter the package name of the app:"
+    read -r package_name
+    run_command "adb shell ps | grep $package_name"
+}
+
+start_app_and_run_frida() {
+    echo "Enter the package name of the app to launch:"
+    read -r package_name
+    echo "Enter the activity name to start:"
+    read -r activity_name
+    echo "Starting the app..."
+    run_command "adb shell am start -n $package_name/$activity_name"
+    echo "Running Frida script..."
+    run_command "frida -U -N $package_name --load /home/flintx/APKs/frida/universal-android-ssl-pinning-bypass-with-frida.js"
+}
+
+# Main Menu Loop
+select opt in "${options[@]}"; do
+    case $opt in
+        "Start Frida server on the device") start_frida_server ;;
+        "Show processes with frida-ps") show_frida_processes ;;
+        "Restart Frida server and clean processes") restart_frida_server ;;
+        "Kill Frida server on device") kill_frida_server ;;
+        "Set file permissions for Frida or certificates") set_file_permissions ;;
+        "Check port usage (lsof)") check_port_usage ;;
+        "Check port PID (netstat)") check_port_pid ;;
+        "Set SELinux to permissive") set_selinux_permissive ;;
+        "Find open processes on the Android emulator") find_open_processes ;;
+        "Run adb root") run_adb_root ;;
+        "Launch Frida script for app/package") launch_frida_script ;;
+        "Attach Frida to a process by PID") attach_frida_by_pid ;;
+        "Trace a function with Frida") frida_trace_function ;;
+        "Run Objection - Explore App") run_objection_explore ;;
+        "Bypass SSL pinning with Objection") bypass_ssl_pinning ;;
+        "Patch an APK with Objection") patch_apk ;;
+        "Push Frida server to the device") push_frida_to_device ;;
+        "Find Frida server location on device") find_frida_server_location ;;
+        "Run adb shell dumpsys package") get_main_activity ;;
+        "Force stop the app") force_stop_app ;;
+        "Start app activity") start_app_activity ;;
+        "Find app process") find_app_process ;;
+        "Start app and run Frida script") start_app_and_run_frida ;;
+        "Select and run Frida script on a process") select_and_run_frida_script ;;
+        "Exit") echo "Exiting script."; break ;;
+        *) echo "[ERROR] Invalid option. Try again." ;;
+    esac
+done

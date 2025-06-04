@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Path to the Android SDK emulator directory
+SDK_EMULATOR_DIR="/home/flintx/Android/Sdk/emulator"
+
+# Path to the avdmanager binary (cmdline-tools are now in 'cmdline-tools/latest/bin')
+SDK_TOOLS_DIR="/home/flintx/Android/Sdk/cmdline-tools/latest/bin"
+
+# Check if the required tools exist
+if [[ ! -f "$SDK_TOOLS_DIR/avdmanager" ]]; then
+    echo "Error: avdmanager not found in $SDK_TOOLS_DIR"
+    exit 1
+fi
+
+if [[ ! -f "$SDK_EMULATOR_DIR/emulator" ]]; then
+    echo "Error: emulator binary not found in $SDK_EMULATOR_DIR"
+    exit 1
+fi
+
+# List available emulators
+echo "Fetching available emulators..."
+emulators=$("$SDK_TOOLS_DIR/avdmanager" list avd | grep "Name:" | cut -d: -f2 | xargs)
+
+# Debug: Show the available emulators
+echo "Emulators available: $emulators"
+
+if [ -z "$emulators" ]; then
+    echo "No emulators available."
+    exit 1
+fi
+
+# Display list of emulators and prompt user to select one
+echo "Available emulators:"
+select emulator in $emulators; do
+    if [ -n "$emulator" ]; then
+        echo "You selected: $emulator"
+        echo "Launching emulator: $emulator"
+
+        # Debug: Log the command that will be executed
+        echo "Executing: $SDK_EMULATOR_DIR/emulator -avd \"$emulator\" -no-snapshot -writable-system -gpu swiftshader_indirect"
+
+        # Launch the emulator with fixed configuration
+        "$SDK_EMULATOR_DIR/emulator" -avd "$emulator" -no-snapshot -writable-system -gpu swiftshader_indirect &
+        break
+    else
+        echo "Invalid selection, try again."
+    fi
+done

@@ -1,0 +1,148 @@
+#!/bin/bash
+
+# Function to print and execute a command
+run_command() {
+    echo "Running: $1"
+    eval "$1"
+    if [ $? -ne 0 ]; then
+        echo "[ERROR] Command failed: $1"
+    else
+        echo "[SUCCESS] Command executed: $1"
+    fi
+    echo "------------------------------------"
+}
+
+# ADB Commands Menu
+PS3="Select an ADB command: "
+options=(
+    "Root (Enable root access)"
+    "List connected devices"
+    "Start ADB server"
+    "Kill ADB server"
+    "Install an APK"
+    "Uninstall an app by package name"
+    "Push a file to the device"
+    "Pull a file from the device"
+    "Set reverse TCP"
+    "Reset reverse TCP"
+    "Set global HTTP proxy"
+    "Get global HTTP proxy settings"  # Added this option
+    "Reset global HTTP proxy"
+    "Restart device"
+    "Enter ADB shell"
+    "Direct ADB shell to /data/local/tmp/"
+    "Network Reset (Reset all network settings)"
+    "Check port usage (lsof)"
+    "Check port PID (netstat)"
+    "Find open processes on the Android emulator"
+    "Set SELinux to permissive"
+    "Exit"
+)
+
+# Menu loop
+select opt in "${options[@]}"; do
+    case $opt in
+        "Root (Enable root access)")
+            run_command "adb root"
+            ;;
+        "List connected devices")
+            run_command "adb devices $*"
+            ;;
+        "Start ADB server")
+            run_command "adb start-server $*"
+            ;;
+        "Kill ADB server")
+            run_command "adb kill-server $*"
+            ;;
+        "Install an APK")
+            echo "Enter the path to the APK file:"
+            read -r apk_path
+            if [ -f "$apk_path" ]; then
+                run_command "adb install \"$apk_path\" $*"
+            else
+                echo "[ERROR] File not found: $apk_path"
+            fi
+            ;;
+        "Uninstall an app by package name")
+            echo "Enter the package name to uninstall (e.g., com.example.app):"
+            read -r package_name
+            run_command "adb uninstall \"$package_name\" $*"
+            ;;
+        "Push a file to the device")
+            echo "Enter the local file path to push:"
+            read -r local_path
+            if [ -f "$local_path" ]; then
+                echo "Enter the target path on the device (e.g., /sdcard/):"
+                read -r target_path
+                run_command "adb push \"$local_path\" \"$target_path\" $*"
+            else
+                echo "[ERROR] File not found: $local_path"
+            fi
+            ;;
+        "Pull a file from the device")
+            echo "Enter the file path on the device to pull:"
+            read -r device_path
+            echo "Enter the local destination path:"
+            read -r local_dest
+            run_command "adb pull \"$device_path\" \"$local_dest\" $*"
+            ;;
+        "Set reverse TCP")
+            echo "Enter local port (e.g., 8080):"
+            read -r local_port
+            echo "Enter remote port (e.g., 8080):"
+            read -r remote_port
+            run_command "adb reverse tcp:$local_port tcp:$remote_port $*"
+            ;;
+        "Reset reverse TCP")
+            run_command "adb reverse --remove-all $*"
+            ;;
+        "Set global HTTP proxy")
+            echo "Enter proxy (IP:Port, e.g., 192.168.1.2:8080):"
+            read -r proxy
+            run_command "adb shell settings put global http_proxy \"$proxy\" $*"
+            ;;
+        "Get global HTTP proxy settings")  # New option
+            run_command "adb shell settings get global http_proxy $*"
+            ;;
+        "Reset global HTTP proxy")
+            run_command "adb shell settings put global http_proxy :0 $*"
+            ;;
+        "Restart device")
+            run_command "adb reboot $*"
+            ;;
+        "Enter ADB shell")
+            run_command "adb shell $*"
+            ;;
+        "Direct ADB shell to /data/local/tmp/")
+            run_command "adb shell cd /data/local/tmp/ && bash $*"
+            ;;
+        "Network Reset (Reset all network settings)")
+            run_command "adb shell am broadcast -a android.intent.action.MASTER_CLEAR $*"
+            ;;
+        "Check port usage (lsof)")
+            echo "Enter the port number to check:"
+            read -r port
+            run_command "lsof -i :$port $*"
+            ;;
+        "Check port PID (netstat)")
+            echo "Enter the port number to check PID:"
+            read -r port
+            run_command "netstat -tuln | grep :$port $*"
+            ;;
+        "Find open processes on the Android emulator")
+            echo "Listing all open processes on the Android emulator..."
+            run_command "adb shell ps -A"
+            ;;
+        "Set SELinux to permissive")
+            echo "Setting SELinux to permissive mode..."
+            run_command "adb shell setenforce 0"
+            ;;
+        "Exit")
+            echo "Exiting script."
+            break
+            ;;
+        *)
+            echo "[ERROR] Invalid option. Try again."
+            ;;
+    esac
+done

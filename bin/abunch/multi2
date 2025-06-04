@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Step 1: Reactivate Virtual Environment (root)
+echo "Reactivating the virtual environment in root's session..."
+source /home/flintx/virtual-env/bin/activate
+
+# The script ends here with root inside the environment
+echo "Virtual environment activated in root's session."

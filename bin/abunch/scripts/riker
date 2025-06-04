@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Function to activate the virtual environment
+activate_virtualenv() {
+    echo "Activating the virtual environment..."
+    sudo su <<EOF
+source /home/flintx/virtual-env/bin/activate
+EOF
+}
+
+# Function to delete text files in the directory
+delete_txt_files() {
+    echo "Do you want to delete all .txt files in /home/flintx/riker? (y/n)"
+    read -r confirm_delete
+    if [ "$confirm_delete" = "y" ]; then
+        echo "Deleting .txt files..."
+        sudo rm -i /home/flintx/riker/*.txt
+    else
+        echo "Skipping deletion of .txt files."
+    fi
+}
+
+# Function to run the Python script
+run_python_script() {
+    echo "Running the Python script: j4u.py..."
+    sudo python3 /home/flintx/riker/j4u.py
+}
+
+# Main Function
+main() {
+    activate_virtualenv
+    delete_txt_files
+    run_python_script
+    echo "All done!"
+}
+
+# Call the main function
+main

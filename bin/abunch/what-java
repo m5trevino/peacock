@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Display the current Java version
+echo "Current Java version:"
+java -version
+
+# Show all available Java alternatives and allow the user to select one
+echo ""
+echo "Select a Java version to switch:"
+update-alternatives --config java
