@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Portfolio Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .status-bar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-dot.disconnected {
+            background: #ef4444;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .search-section {
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .search-results {
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .search-result {
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .search-result:hover {
+            background-color: #f8fafc;
+        }
+        
+        .add-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .add-button:hover {
+            background: #5a67d8;
+        }
+        
+        .portfolio-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: #f8fafc;
+        }
+        
+        .portfolio-item.positive {
+            border-left: 4px solid #10b981;
+        }
+        
+        .portfolio-item.negative {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .coin-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .coin-name {
+            font-weight: 600;
+            color: #1a202c;
+        }
+        
+        .coin-symbol {
+            font-size: 0.9rem;
+            color: #718096;
+            text-transform: uppercase;
+        }
+        
+        .price-info {
+            text-align: right;
+        }
+        
+        .current-price {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .price-change {
+            font-size: 0.9rem;
+        }
+        
+        .price-change.positive {
+            color: #10b981;
+        }
+        
+        .price-change.negative {
+            color: #ef4444;
+        }
+        
+        .total-value {
+            background: linear-gradient(135deg, #4ade80 0%, #10b981 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .total-value h3 {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        
+        .total-value .amount {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .alert-form {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .form-row input,
+        .form-row select {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #d2d6dc;
+            border-radius: 5px;
+        }
+        
+        .create-alert-btn {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .create-alert-btn:hover {
+            background: #d97706;
+        }
+        
+        .alert-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .delete-alert {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-width: 300px;
+            display: none;
+        }
+        
+        .notification.alert {
+            background: #f59e0b;
+        }
+        
+        .notification.error {
+            background: #ef4444;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #718096;
+            padding: 20px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            color: #718096;
+            padding: 40px;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Crypto Portfolio Tracker</h1>
+            <p>Real-time tracking with instant alerts</p>
+        </div>
+        
+        <div class="status-bar">
+            <div class="connection-status">
+                <div class="status-dot" id="connectionStatus"></div>
+                <span id="connectionText">Connected</span>
+            </div>
+            <div class="last-update">
+                Last Update: <span id="lastUpdateTime">Never</span>
+            </div>
+        </div>
+        
+        <div class="total-value" id="totalValue" style="display: none;">
+            <h3>Total Portfolio Value</h3>
+            <div class="amount">$0.00</div>
+        </div>
+        
+        <div class="main-content">
+            <div class="card">
+                <h2>📈 Your Portfolio</h2>
+                
+                <div class="search-section">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search cryptocurrencies...">
+                    <div class="search-results" id="searchResults"></div>
+                </div>
+                
+                <div id="portfolioContent">
+                    <div class="empty-state">
+                        <i>💰</i>
+                        <h3>No cryptocurrencies yet</h3>
+                        <p>Search and add coins to start tracking your portfolio</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>🔔 Price Alerts</h2>
+                
+                <div class="alert-form">
+                    <div class="form-row">
+                        <input type="text" id="alertCoin" placeholder="Coin ID (e.g., bitcoin)" readonly>
+                        <select id="alertCondition">
+                            <option value="above">Above</option>
+                            <option value="below">Below</option>
+                        </select>
+                        <input type="number" id="alertThreshold" placeholder="Price" step="0.01">
+                    </div>
+                    <button class="create-alert-btn" onclick="createAlert()">Create Alert</button>
+                </div>
+                
+                <div id="alertsList">
+                    <div class="empty-state">
+                        <i>🔕</i>
+                        <h3>No alerts set</h3>
+                        <p>Create price alerts to get notified of market movements</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+    
+    <script>
+        // Global variables
+        const socket = io();
+        const userId = 'user_' + Math.random().toString(36).substr(2, 9);
+        let portfolio = [];
+        let alerts = [];
+        let searchTimeout;
+        
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPortfolio();
+            loadAlerts();
+            setupEventListeners();
+            
+            // Join user room for personalized alerts
+            socket.emit('join_user_room', { user_id: userId });
+        });
+        
+        // Socket event handlers
+        socket.on('connect', function() {
+            updateConnectionStatus(true);
+            showNotification('Connected to live data feed', 'success');
+        });
+        
+        socket.on('disconnect', function() {
+            updateConnectionStatus(false);
+            showNotification('Disconnected from live data', 'error');
+        });
+        
+        socket.on('price_update', function(data) {
+            updatePrices(data.prices);
+            updateLastUpdateTime(data.timestamp);
+        });
+        
+        socket.on('alert_triggered', function(data) {
+            showNotification(`ALERT: ${data.message}`, 'alert');
+            // Play notification sound if supported
+            if ('Notification' in window) {
+                new Notification('Price Alert!', {
+                    body: data.message,
+                    icon: '/static/favicon.ico'
+                });
+            }
+        });
+        
+        // Event listeners
+        function setupEventListeners() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    if (this.value.length > 2) {
+                        searchCoins(this.value);
+                    } else {
+                        document.getElementById('searchResults').innerHTML = '';
+                    }
+                }, 500);
+            });
+            
+            // Request notification permission
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+        
+        // Portfolio functions
+        async function loadPortfolio() {
+            try {
+                const response = await fetch(`/api/portfolio/${userId}`);
+                const data = await response.json();
+                portfolio = data.holdings;
+                updatePortfolioDisplay();
+                updateTotalValue(data.total_value);
+            } catch (error) {
+                console.error('Error loading portfolio:', error);
+                showNotification('Error loading portfolio', 'error');
+            }
+        }
+        
+        async function addToPortfolio(coin) {
+            const quantity = prompt(`How many ${coin.symbol.toUpperCase()} do you own?`);
+            if (quantity && !isNaN(quantity) && quantity > 0) {
+                try {
+                    const response = await fetch(`/api/portfolio/${userId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            coin_id: coin.id,
+                            name: coin.name,
+                            symbol: coin.symbol,
+                            quantity: parseFloat(quantity)
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        loadPortfolio();
+                        showNotification(`Added ${coin.name} to portfolio`, 'success');
+                        document.getElementById('alertCoin').value = coin.id;
+                        document.getElementById('searchInput').value = '';
+                        document.getElementById('searchResults').innerHTML = '';
+                    }
+                } catch (error) {
+                    console.error('Error adding to portfolio:', error);
+                    showNotification('Error adding to portfolio', 'error');
+                }
+            }
+        }
+        
+        function updatePortfolioDisplay() {
+            const container = document.getElementById('portfolioContent');
+            
+            if (portfolio.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i>💰</i>
+                        <h3>No cryptocurrencies yet</h3>
+                        <p>Search and add coins to start tracking your portfolio</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = portfolio.map(holding => `
+                <div class="portfolio-item ${getChangeClass(holding)}">
+                    <div class="coin-info">
+                        <div class="coin-name">${holding.name}</div>
+                        <div class="coin-symbol">${holding.symbol}</div>
+                        <div style="font-size: 0.9rem; color: #718096;">
+                            ${holding.quantity} ${holding.symbol.toUpperCase()}
+                        </div>
+                    </div>
+                    <div class="price-info">
+                        <div class="current-price">$${(holding.current_price || 0).toLocaleString()}</div>
+                        <div class="price-change ${getChangeClass(holding)}">
+                            Value: $${(holding.value || 0).toLocaleString()}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function updateTotalValue(totalValue) {
+            const container = document.getElementById('totalValue');
+            if (totalValue > 0) {
+                container.style.display = 'block';
+                container.querySelector('.amount').textContent = `$${totalValue.toLocaleString()}`;
+            } else {
+                container.style.display = 'none';
+            }
+        }
+        
+        function getChangeClass(holding) {
+            // This would be enhanced with actual 24h change data
+            return Math.random() > 0.5 ? 'positive' : 'negative';
+        }
+        
+        // Search functions
+        async function searchCoins(query) {
+            try {
+                const response = await fetch(`/api/search/${encodeURIComponent(query)}`);
+                const coins = await response.json();
+                displaySearchResults(coins);
+            } catch (error) {
+                console.error('Error searching coins:', error);
+                showNotification('Error searching coins', 'error');
+            }
+        }
+        
+        function displaySearchResults(coins) {
+            const container = document.getElementById('searchResults');
+            
+            if (coins.length === 0) {
+                container.innerHTML = '<div style="padding: 10px; color: #718096;">No results found</div>';
+                return;
+            }
+            
+            container.innerHTML = coins.map(coin => `
+                <div class="search-result">
+                    <div>
+                        <strong>${coin.name}</strong>
+                        <span style="color: #718096; margin-left: 5px;">${coin.symbol.toUpperCase()}</span>
+                    </div>
+                    <button class="add-button" onclick="addToPortfolio(${JSON.stringify(coin).replace(/"/g, '&quot;')})">
+                        Add
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        // Alert functions
+        async function loadAlerts() {
+            try {
+                const response = await fetch(`/api/alerts/${userId}`);
+                alerts = await response.json();
+                updateAlertsDisplay();
+            } catch (error) {
+                console.error('Error loading alerts:', error);
+                showNotification('Error loading alerts', 'error');
+            }
+        }
+        
+        async function createAlert() {
+            const coinId = document.getElementById('alertCoin').value;
+            const condition = document.getElementById('alertCondition').value;
+            const threshold = document.getElementById('alertThreshold').value;
+            
+            if (!coinId || !threshold) {
+                showNotification('Please fill in all alert fields', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/alerts/${userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        coin_id: coinId,
+                        condition: condition,
+                        threshold: parseFloat(threshold)
+                    })
+                });
+                
+                if (response.ok) {
+                    loadAlerts();
+                    showNotification('Alert created successfully', 'success');
+                    document.getElementById('alertThreshold').value = '';
+                }
+            } catch (error) {
+                console.error('Error creating alert:', error);
+                showNotification('Error creating alert', 'error');
+            }
+        }
+        
+        async function deleteAlert(alertId) {
+            try {
+                const response = await fetch(`/api/alerts/${userId}/${alertId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    loadAlerts();
+                    showNotification('Alert deleted', 'success');
+                }
+            } catch (error) {
+                console.error('Error deleting alert:', error);
+                showNotification('Error deleting alert', 'error');
+            }
+        }
+        
+        function updateAlertsDisplay() {
+            const container = document.getElementById('alertsList');
+            
+            if (alerts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i>🔕</i>
+                        <h3>No alerts set</h3>
+                        <p>Create price alerts to get notified of market movements</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = alerts.map(alert => `
+                <div class="alert-item">
+                    <div>
+                        <strong>${alert.coin_id.toUpperCase()}</strong>
+                        ${alert.condition} ${alert.threshold.toLocaleString()}
+                    </div>
+                    <button class="delete-alert" onclick="deleteAlert('${alert.id}')">Delete</button>
+                </div>
+            `).join('');
+        }
+        
+        // Price update functions
+        function updatePrices(prices) {
+            // Update portfolio with new prices
+            portfolio.forEach(holding => {
+                if (prices[holding.coin_id]) {
+                    holding.current_price = prices[holding.coin_id].usd;
+                    holding.value = holding.quantity * holding.current_price;
+                }
+            });
+            
+            updatePortfolioDisplay();
+            
+            // Calculate and update total value
+            const totalValue = portfolio.reduce((sum, holding) => sum + (holding.value || 0), 0);
+            updateTotalValue(totalValue);
+        }
+        
+        // Utility functions
+        function updateConnectionStatus(connected) {
+            const statusDot = document.getElementById('connectionStatus');
+            const statusText = document.getElementById('connectionText');
+            
+            if (connected) {
+                statusDot.classList.remove('disconnected');
+                statusText.textContent = 'Connected';
+            } else {
+                statusDot.classList.add('disconnected');
+                statusText.textContent = 'Disconnected';
+            }
+        }
+        
+        function updateLastUpdateTime(timestamp) {
+            const time = new Date(timestamp).toLocaleTimeString();
+            document.getElementById('lastUpdateTime').textContent = time;
+        }
+        
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

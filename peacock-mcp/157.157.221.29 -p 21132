@@ -1,0 +1,43 @@
+157.157.221.29 -p 21132 
+63.141.33.52-p 22070 
+
+63.141.33.52 -p 22152 -
+
+ssh root@69.30.85.169 -p 22157 -i ~/runpod
+
+69.30.85.169 -p 22113 
+
+69.30.85.169 -p 22099
+
+ssh -L 7860:localhost:7860 root@69.30.85.169 -p 22099 -i /home/flintx/runpod
+ssh -L 8188:localhost:8188 root@69.30.85.169 -p 22099 -i /home/flintx/runpod
+
+
+69.30.85.169 -p 22099
+
+scp -P 22157 -i /home/flintx/runpod /home/flintx/runpod1/newcomfy.sh root@69.30.85.169:/workspace/newcomfy.sh
+scp -P 22157 -i /home/flintx/runpod /home/flintx/runpod1/install_oobabooga.sh root@69.30.85.169:/workspace/install_oobabooga.sh
+
+
+sudo cp /root/install_comfyui.sh /home/flintx/install_comfy.sh
+sudo cp /root/install_oobabooga.sh /home/flintx/install_oobabooga.sh
+sudo cp /root/master_installer.sh /home/flintx/master_installer.sh
+
+   
+scp -P 22038 -i /home/flintx/runpod /home/flintx/install_comfy.sh root@194.68.245.126:/workspace/
+scp -P 22038 -i /home/flintx/runpod /home/flintx/install_oobabooga.sh root@194.68.245.126:/workspace/install_oobabooga.sh
+
+scp -P 22038 -i /home/flintx/runpod /home/flintx/master_installer.sh root@194.68.245.126:/workspace/master_installer.sh
+
+
+
+
+ssh root@63.141.33.52 -p 22152 -i ~/.ssh/id_ed25519
+
+
+
+   [VAE Decode (Blue IMAGE output)] to [KSampler] (NOT in your main chain.) 
+
+   [red line CLIP Text Encode] (Prompt) node. Disconnect that.
+
+   [red line from Load Checkpoint] (Yellow CLIP output) to [KSampler. Disconnect ] 

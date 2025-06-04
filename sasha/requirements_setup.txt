@@ -1,0 +1,133 @@
+# requirements.txt
+haralyzer==1.8.0
+rich==13.7.0
+click==8.1.7
+
+# setup.py
+from setuptools import setup, find_packages
+
+setup(
+    name="api-security-scanner",
+    version="1.0.0",
+    description="API Security Analysis Tool - HAR to Intelligence Pipeline",
+    author="Street Smart Security",
+    packages=find_packages(),
+    install_requires=[
+        "haralyzer>=1.8.0",
+        "rich>=13.0.0",
+        "click>=8.0.0"
+    ],
+    entry_points={
+        'console_scripts': [
+            'api-scan=api_security_tool:main',
+        ],
+    },
+    python_requires=">=3.8",
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Information Technology",
+        "Topic :: Security",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+    ]
+)
+
+# install.sh
+#!/bin/bash
+# Installation script for API Security Scanner
+
+echo "🔧 Setting up API Security Scanner..."
+
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install --upgrade pip
+pip install -r requirements.txt
+
+echo "✅ Installation complete!"
+echo ""
+echo "Usage:"
+echo "  source venv/bin/activate"
+echo "  python api_security_tool.py your_file.har"
+echo ""
+echo "Options:"
+echo "  --export-json          Export detailed JSON report"
+echo "  --export-wordlists     Export fuzzing wordlists"
+echo "  --output DIR           Set output directory"
+echo "  --quiet               Minimal terminal output"
+
+# README.md
+# API Security Scanner
+
+**Transform HAR files into actionable security intelligence**
+
+## 🎯 What This Tool Does
+
+This tool bridges the gap between traffic interception (HTTP Toolkit, Burp Suite) and actionable security analysis. Drop in a HAR file, get out:
+
+- **Secrets & Token Detection** - JWT tokens, API keys, auth tokens
+- **Authentication Mapping** - Login flows, OAuth endpoints, session handling  
+- **Vulnerability Leads** - SQL injection hints, XSS reflection points, IDOR candidates
+- **Endpoint Intelligence** - Complete API mapping with high-value target identification
+- **Security Assessment** - Missing headers, weak configurations
+- **Fuzzing Wordlists** - Ready-to-use lists for endpoint discovery
+
+## 🚀 Quick Start
+
+```bash
+# Install dependencies
+pip install haralyzer rich
+
+# Basic scan
+python api_security_tool.py captured_traffic.har
+
+# Full analysis with exports
+python api_security_tool.py captured_traffic.har --export-json --export-wordlists --output ./results
+```
+
+## 📊 Sample Output
+
+```
+🎯 API Security Analysis Summary
+┏━━━━━━━━━━━━━━━━━━┳━━━━━━━┓
+┃ Metric           ┃ Count ┃
+┡━━━━━━━━━━━━━━━━━━╇━━━━━━━┩
+│ Total Requests   │   847 │
+│ Unique Domains   │     3 │
+│ Unique Endpoints │   156 │
+│ Security Findings│    23 │
+│ Secrets Found    │     7 │
+│ Auth Endpoints   │    12 │
+└──────────────────┴───────┘
+
+🔐 Secrets & Tokens Found
+┏━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┓
+┃ Type       ┃ Location ┃ URL                                              ┃ Confidence ┃
+┡━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━┩
+│ jwt_token  │ headers  │ https://api.example.com/v1/user/profile         │ high       │
+│ api_key    │ url_params│ https://api.example.com/search?key=sk_live_abc...│ medium     │
+└────────────┴──────────┴──────────────────────────────────────────────────┴────────────┘
+```
+
+## 🎯 Use Cases
+
+### Bug Bounty Hunting
+- Intercept app traffic with HTTP Toolkit
+- Feed HAR file to this tool
+- Get prioritized list of security leads
+- Focus testing on high-value endpoints
+
+### Penetration Testing  
+- Comprehensive API surface mapping
+- Automated secrets detection
+- Generate custom wordlists for fuzzing
+- Identify authentication bypass opportunities
+
+### Security Assessment
+- Audit API security posture
+- Detect exposed secrets in traffic
+- Map

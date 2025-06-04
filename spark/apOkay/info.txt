@@ -1,0 +1,37 @@
+Stage 1: APK Intelligence Gathering 🔍
+
+JADX decompilation (full source extraction)
+Manifest analysis (permissions, components, exports)
+Binary analysis (native libs, obfuscation detection)
+Asset extraction (configs, keys, URLs)
+
+Stage 2: Security Feature Detection 🛡️
+
+Root detection patterns (RootBeer, custom checks)
+Certificate pinning (OkHttp, HttpsURLConnection, custom)
+Debug/tamper detection (anti-debugging, integrity checks)
+Obfuscation analysis (ProGuard, R8, custom packers)
+
+Stage 3: Vulnerability Pattern Scanning 🎯
+
+Hardcoded secrets (API keys, tokens, passwords)
+Insecure storage (SharedPrefs, files, databases)
+Crypto weaknesses (weak algorithms, bad implementations)
+Intent/deeplink vulns (exported activities, intent filters)
+
+Stage 4: Bypass Script Generation 🚀
+
+Auto-generate Frida scripts (root bypass, pinning bypass)
+Hook point identification (method signatures, class names)
+Payload customization (app-specific modifications)
+Multi-strategy approaches (multiple bypass techniques)
+
+Stage 5: Automation & Exploitation ⚡
+
+One-command deployment (APK → ready exploits)
+Interactive bypass shell (real-time testing)
+Report generation (findings + ready scripts)
+Integration hooks (Burp, mitmproxy, custom tools)
+
+Focus on core functionality over perfect implementation details. If a feature works 80% correctly but doesn't block the main objective, ship it and iterate. Don't get stuck optimizing edge cases that prevent the primary use case from working. Progress over perfection - we can polish later.
+Prioritize working functionality over perfect code. If something works but isn't elegant, implement it anyway if it moves us toward the goal. Don't let perfect be the enemy of good - we need a functional invisible terminal first, optimizations second.

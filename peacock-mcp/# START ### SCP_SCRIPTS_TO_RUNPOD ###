@@ -1,0 +1,10 @@
+# START ### SCP_SCRIPTS_TO_RUNPOD ###
+# Transfer install_comfyui.sh
+scp -P 22010 -i /home/flintx/runpod /home/flintx/runpod1/install_comfyui.sh root@63.141.33.11:/workspace/
+
+# Transfer install_oobabooga.sh
+scp -P 22010 -i /home/flintx/runpod /home/flintx/runpod1/install_oobabooga.sh root@63.141.33.11:/workspace/
+
+# Transfer master_installer.sh
+scp -P 22010 -i /home/flintx/runpod /home/flintx/runpod1/master_installer.sh root@63.141.33.11:/workspace/
+# FINISH ### SCP_SCRIPTS_TO_RUNPOD ###

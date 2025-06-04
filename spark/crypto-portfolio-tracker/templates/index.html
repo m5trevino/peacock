@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Crypto Portfolio Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        .search-input:focus { outline: none; border-color: #667eea; }
+        .search-results { max-height: 200px; overflow-y: auto; margin-bottom: 20px; }
+        .search-result {
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        .search-result:hover { background-color: #f8fafc; }
+        .add-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .add-button:hover { background: #5a67d8; }
+        .portfolio-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: #f8fafc;
+        }
+        .coin-info { display: flex; flex-direction: column; }
+        .coin-name { font-weight: 600; color: #1a202c; }
+        .coin-symbol { font-size: 0.9rem; color: #718096; text-transform: uppercase; }
+        .price-info { text-align: right; }
+        .current-price { font-weight: 600; font-size: 1.1rem; }
+        .empty-state {
+            text-align: center;
+            color: #718096;
+            padding: 40px;
+        }
+        .total-value {
+            background: linear-gradient(135deg, #4ade80 0%, #10b981 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .total-value h3 { font-size: 1.2rem; margin-bottom: 5px; }
+        .total-value .amount { font-size: 2rem; font-weight: 700; }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-width: 300px;
+            display: none;
+        }
+        .notification.error { background: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Crypto Portfolio Tracker</h1>
+            <p>Real-time tracking powered by Peacock AI</p>
+        </div>
+        
+        <div class="total-value" id="totalValue" style="display: none;">
+            <h3>Total Portfolio Value</h3>
+            <div class="amount">$0.00</div>
+        </div>
+        
+        <div class="card">
+            <h2>📈 Add Cryptocurrencies</h2>
+            <input type="text" class="search-input" id="searchInput" placeholder="Search cryptocurrencies (e.g., bitcoin, ethereum)...">
+            <div class="search-results" id="searchResults"></div>
+            
+            <h2>💰 Your Portfolio</h2>
+            <div id="portfolioContent">
+                <div class="empty-state">
+                    <h3>No cryptocurrencies yet</h3>
+                    <p>Search and add coins to start tracking your portfolio</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+    
+    <script>
+        const userId = 'user_' + Math.random().toString(36).substr(2, 9);
+        let portfolio = [];
+        let searchTimeout;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPortfolio();
+            setupEventListeners();
+        });
+        
+        function setupEventListeners() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    if (this.value.length > 2) {
+                        searchCoins(this.value);
+                    } else {
+                        document.getElementById('searchResults').innerHTML = '';
+                    }
+                }, 500);
+            });
+        }
+        
+        async function loadPortfolio() {
+            try {
+                const response = await fetch(`/api/portfolio/${userId}`);
+                const data = await response.json();
+                portfolio = data.holdings;
+                updatePortfolioDisplay();
+                updateTotalValue(data.total_value);
+            } catch (error) {
+                console.error('Error loading portfolio:', error);
+                showNotification('Error loading portfolio', 'error');
+            }
+        }
+        
+        async function addToPortfolio(coin) {
+            const quantity = prompt(`How many ${coin.symbol.toUpperCase()} do you own?`);
+            if (quantity && !isNaN(quantity) && quantity > 0) {
+                try {
+                    const response = await fetch(`/api/portfolio/${userId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            coin_id: coin.id,
+                            name: coin.name,
+                            symbol: coin.symbol,
+                            quantity: parseFloat(quantity)
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        loadPortfolio();
+                        showNotification(`Added ${coin.name} to portfolio`, 'success');
+                        document.getElementById('searchInput').value = '';
+                        document.getElementById('searchResults').innerHTML = '';
+                    }
+                } catch (error) {
+                    console.error('Error adding to portfolio:', error);
+                    showNotification('Error adding to portfolio', 'error');
+                }
+            }
+        }
+        
+        function updatePortfolioDisplay() {
+            const container = document.getElementById('portfolioContent');
+            
+            if (portfolio.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No cryptocurrencies yet</h3>
+                        <p>Search and add coins to start tracking your portfolio</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = portfolio.map(holding => `
+                <div class="portfolio-item">
+                    <div class="coin-info">
+                        <div class="coin-name">${holding.name}</div>
+                        <div class="coin-symbol">${holding.symbol}</div>
+                        <div style="font-size: 0.9rem; color: #718096;">
+                            ${holding.quantity} ${holding.symbol.toUpperCase()}
+                        </div>
+                    </div>
+                    <div class="price-info">
+                        <div class="current-price">$${(holding.current_price || 0).toLocaleString()}</div>
+                        <div style="color: #718096;">
+                            Value: $${(holding.value || 0).toLocaleString()}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function updateTotalValue(totalValue) {
+            const container = document.getElementById('totalValue');
+            if (totalValue > 0) {
+                container.style.display = 'block';
+                container.querySelector('.amount').textContent = `$${totalValue.toLocaleString()}`;
+            } else {
+                container.style.display = 'none';
+            }
+        }
+        
+        async function searchCoins(query) {
+            try {
+                const response = await fetch(`/api/search/${encodeURIComponent(query)}`);
+                const coins = await response.json();
+                displaySearchResults(coins);
+            } catch (error) {
+                console.error('Error searching coins:', error);
+                showNotification('Error searching coins', 'error');
+            }
+        }
+        
+        function displaySearchResults(coins) {
+            const container = document.getElementById('searchResults');
+            
+            if (coins.length === 0) {
+                container.innerHTML = '<div style="padding: 10px; color: #718096;">No results found</div>';
+                return;
+            }
+            
+            container.innerHTML = coins.map(coin => `
+                <div class="search-result">
+                    <div>
+                        <strong>${coin.name}</strong>
+                        <span style="color: #718096; margin-left: 5px;">${coin.symbol.toUpperCase()}</span>
+                    </div>
+                    <button class="add-button" onclick="addToPortfolio(${JSON.stringify(coin).replace(/"/g, '&quot;')})">
+                        Add
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invisible Terminal</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app" class="terminal-container">
+        <div class="header-bar">
+            <div class="header-left">
+                <span class="terminal-indicator">●</span>
+                <span class="session-info" id="sessionInfo">zsh</span>
+            </div>
+            <div class="header-center">
+                <span class="current-path" id="currentPath">~/</span>
+            </div>
+            <div class="header-right">
+                <button class="header-btn" id="aiBtn" title="AI Assistant">🤖</button>
+                <button class="header-btn" id="settingsBtn" title="Settings">⚙️</button>
+                <button class="header-btn" id="closeBtn" title="Close">✕</button>
+            </div>
+        </div>
+
+        <div class="ai-panel" id="aiPanel" style="display: none;">
+            <div class="ai-header">
+                <span>🧠 AI Command Assistant</span>
+                <button class="close-ai" id="closeAi">✕</button>
+            </div>
+            <div class="ai-content">
+                <div class="ai-suggestions" id="aiSuggestions"></div>
+                <div class="ai-input-area">
+                    <input type="text" id="aiInput" placeholder="Ask about commands, explain errors, or get suggestions...">
+                    <button id="aiSend">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="terminal-wrapper">
+            <div class="terminal" id="terminal"></div>
+            <div class="context-info" id="contextInfo">
+                <div class="context-item">
+                    <span class="context-label">Project:</span>
+                    <span class="context-value" id="projectName">-</span>
+                </div>
+                <div class="context-item">
+                    <span class="context-label">Git:</span>
+                    <span class="context-value" id="gitBranch">-</span>
+                </div>
+                <div class="context-item">
+                    <span class="context-label">Processes:</span>
+                    <span class="context-value" id="processCount">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="history-sidebar" id="historySidebar" style="display: none;">
+            <div class="history-header">
+                <span>📚 Command History</span>
+                <button class="close-history" id="closeHistory">✕</button>
+            </div>
+            <div class="history-content">
+                <div class="history-search">
+                    <input type="text" id="historySearch" placeholder="Search commands...">
+                </div>
+                <div class="history-list" id="historyList"></div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-left">
+                <span class="status-item" id="connectionStatus">🟢 Connected</span>
+                <span class="status-item" id="performanceStatus">CPU: 0%</span>
+            </div>
+            <div class="status-right">
+                <button class="status-btn" id="historyBtn" title="Command History">📚</button>
+                <button class="status-btn" id="sessionsBtn" title="Sessions">🗂️</button>
+                <span class="status-item" id="timeStatus">00:00</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="context-menu" id="contextMenu" style="display: none;">
+        <div class="context-menu-item" data-action="copy">Copy</div>
+        <div class="context-menu-item" data-action="paste">Paste</div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" data-action="clear">Clear Terminal</div>
+        <div class="context-menu-item" data-action="new-session">New Session</div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" data-action="ai-explain">Explain with AI</div>
+    </div>
+
+    <script src="xterm.js"></script>
+    <script src="simple-terminal-manager.js"></script>
+    <script src="ai-assistant.js"></script>
+    <script src="context-manager.js"></script>
+    <script src="renderer.js"></script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+# START ### CREATE_LOCAL_INSTALL_OOBABOOGA ###
+# Create the local directory if it doesn't exist
+mkdir -p /home/flintx/runpod1
+
+# Create the install_oobabooga.sh script
+cat << 'EOF' > /home/flintx/runpod1/install_oobabooga.sh
+#!/bin/bash
+
+# ##############################################################################
+# #    Oobabooga Text Generation WebUI Installer for runpod1 - Street Setup   #
+# ##############################################################################
+# This script gets Oobabooga's web UI ready for action on your runpod1.
+# Run this from /workspace.
+
+# --- Configuration ---
+OOBABOOGA_DIR="/workspace/text-generation-webui"
+PYTHON_VERSION="python3.10" # Match ComfyUI's Python version
+
+# --- Helper: Check command status ---
+check_status() {
+  if [ \$? -eq 0 ]; then
+    echo "[+] \$1... 4sho, that's locked in, G."
+  else
+    echo "[!] YO, HOLD UP! \$1... FAILED. Peep the errors, fucker. Script's out." >&2 # Send to stderr
+    exit 1
+  fi
+}
+
+echo "======================================================"
+echo "  Starting Oobabooga Text Generation WebUI Setup"
+echo "  Target Dir: ${OOBABOOGA_DIR}"
+echo "======================================================"
+
+# --- Prerequisites (Should be covered by master, but belt and suspenders) ---
+echo ""
+echo ">>> STEP 1: Gettin' basic system tools..."
+# apt-get update -y # Assuming master script handles this
+# Use explicit package names for clarity with apt-get
+# apt-get install -y git python3.10 python3.10-venv libgl1 libglib2.0-0 # Assuming master script handles this
+check_status "Basic system dependencies (assuming master script covered update/install)" # Placeholder check
+
+# --- Clone Oobabooga ---
+echo ""
+echo ">>> STEP 2: Grabbin' Oobabooga, the text artillery..."
+if [ -d "$OOBABOOGA_DIR" ]; then
+  echo "[*] Oobabooga directory already exists at ${OOBABOOGA_DIR}. Skippin' clone, playa. Pullin' latest..."
+  cd "$OOBABOOGA_DIR" || check_status "cd to ${OOBABOOGA_DIR}"
+  git pull
+  check_status "Pulling latest Oobabooga"
+else
+  git clone https://github.com/oobabooga/text-generation-webui.git "$OOBABOOGA_DIR"
+  check_status "Cloning Oobabooga"
+  cd "$OOBABOOGA_DIR" || check_status "cd to ${OOBABOOGA_DIR}"
+fi
+
+# --- Set up Python Virtual Environment ---
+echo ""
+echo ">>> STEP 3: Settin' up a clean room (venv) for Oobabooga..."
+# Using a specific venv name like 'ooba_venv' to avoid conflicts
+OOBABOOGA_VENV_DIR="${OOBABOOGA_DIR}/ooba_venv"
+if [ -d "${OOBABOOGA_VENV_DIR}" ]; then
+  echo "[*] Virtual environment '${OOBABOOGA_VENV_DIR}' already exists. Skippin' creation."
+else
+  # Use the explicit python version command to create the venv
+  /usr/bin/${PYTHON_VERSION} -m venv "${OOBABOOGA_VENV_DIR}"
+  check_status "Creating Python virtual environment at ${OOBABOOGA_VENV_DIR}"
+fi
+
+source "${OOBABOOGA_VENV_DIR}/bin/activate"
+check_status "Activating virtual environment for Oobabooga"
+echo "[*] Python interpreter in use: $(which python)"
+
+# --- Install Oobabooga Dependencies ---
+echo ""
+echo ">>> STEP 4: Loadin' up Oobabooga's ammo (Python dependencies)..."
+pip install --upgrade pip
+check_status "Upgrading pip"
+
+echo "[*] Installin' Oobabooga requirements..."
+# FIX: Corrected path to the primary requirements.txt file.
+# This should pull torch with CUDA if available based on environment.
+# If this fails, you MAY need to manually install PyTorch with CUDA via the helper script.
+pip install -r "${OOBABOOGA_DIR}/requirements/full/requirements.txt"
+check_status "Installing Oobabooga Python dependencies from requirements/full/requirements.txt"
+
+# Install huggingface_hub needed for downloading models via Ooba UI (belt and suspenders)
+pip install huggingface_hub
+check_status "Installing huggingface_hub"
+
+# --- Create Model Directories (Ooba defaults) ---
+echo ""
+echo ">>> STEP 5: Preppin' the stash spots for your LLM models..."
+mkdir -p "${OOBABOOGA_DIR}/models"
+mkdir -p "${OOBABOOGA_DIR}/characters"
+mkdir -p "${OOBABOOGA_DIR}/prompts"
+check_status "Creating standard Oobabooga directories"
+
+echo ""
+echo "========================================================================"
+echo "  Oobabooga Text Generation WebUI Installation Complete!"
+echo "========================================================================"
+echo ""
+echo "--- MANUAL STEPS STILL NEEDED, PLAYA ---"
+echo ""
+echo "1.  DOWNLOAD YOUR LLM MODELS:"
+echo "    -----------------------------"
+echo "    You need to download your LLM models (like GGUF files)."
+echo "    You can do this easily *AFTER* you start Oobabooga for the first time."
+echo "    Use the 'Model' tab in the WebUI to download models directly."
+echo "    Models will go into -> ${OOBABOOGA_DIR}/models/"
+echo "    (Remember, you were usin' lmstudio-community/DeepSeek-R1-Distill-Qwen-7B-GGUF - you can download that via the UI)."
+echo ""
+echo "2.  START OOBABOOGA WEBUI:"
+echo "    ------------------------"
+echo "    To start Oobabooga, you need to activate its environment and run the server script."
+echo "    The master installer script can create a helper script for this."
+echo ""
+echo "Script done. Run the master installer script for next steps and helper scripts."
+echo "---"
+
+# Note: Deactivation of the venv is handled by the master script or left to the user's shell
+EOF
+# FINISH ### CREATE_LOCAL_INSTALL_OOBABOOGA ###

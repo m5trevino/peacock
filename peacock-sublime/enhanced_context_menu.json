@@ -1,0 +1,86 @@
+[
+    {
+        "caption": "Peacock",
+        "children": [
+            {
+                "caption": "🦚 Full Analysis (All Stages)",
+                "command": "peacock_full",
+                "mnemonic": "F"
+            },
+            {
+                "caption": "-"
+            },
+            {
+                "caption": "Stage Analysis",
+                "children": [
+                    {
+                        "caption": "⚡ Spark - Requirements",
+                        "command": "peacock_spark",
+                        "mnemonic": "S"
+                    },
+                    {
+                        "caption": "🦅 Falcon - Architecture", 
+                        "command": "peacock_falcon",
+                        "mnemonic": "A"
+                    },
+                    {
+                        "caption": "🦅 Eagle - Implementation",
+                        "command": "peacock_eagle",
+                        "mnemonic": "I"
+                    },
+                    {
+                        "caption": "🦅 Hawk - Quality Assurance",
+                        "command": "peacock_hawk",
+                        "mnemonic": "Q"
+                    }
+                ]
+            },
+            {
+                "caption": "-"
+            },
+            {
+                "caption": "Code Operations",
+                "children": [
+                    {
+                        "caption": "🔧 Fix Code",
+                        "command": "peacock_fix",
+                        "mnemonic": "F"
+                    },
+                    {
+                        "caption": "📖 Explain Code",
+                        "command": "peacock_explain", 
+                        "mnemonic": "E"
+                    },
+                    {
+                        "caption": "✨ Rewrite Code",
+                        "command": "peacock_rewrite",
+                        "mnemonic": "R"
+                    },
+                    {
+                        "caption": "🔀 Show Alternatives",
+                        "command": "peacock_alternatives",
+                        "mnemonic": "A"
+                    },
+                    {
+                        "caption": "❓ Ask Question",
+                        "command": "peacock_question",
+                        "mnemonic": "Q"
+                    }
+                ]
+            },
+            {
+                "caption": "-"
+            },
+            {
+                "caption": "📁 Mark Files",
+                "command": "peacock_mark_files",
+                "mnemonic": "M"
+            },
+            {
+                "caption": "⚡ Quick Actions",
+                "command": "peacock_quick_actions",
+                "mnemonic": "Q"
+            }
+        ]
+    }
+]

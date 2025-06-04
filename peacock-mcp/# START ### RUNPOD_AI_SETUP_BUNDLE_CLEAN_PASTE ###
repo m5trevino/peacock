@@ -1,0 +1,537 @@
+# START ### RUNPOD_AI_SETUP_BUNDLE_CLEAN_PASTE ###
+# This script bundle will create the necessary installation scripts in /workspace,
+# make the master script executable, and then run it immediately.
+# Copy this ENTIRE block and paste into your Runpod terminal (e.g., in /workspace).
+# FIX: Corrected path to requirements.txt in install_oobabooga.sh and ensured clean bundle formatting.
+
+# --- Create install_comfyui.sh ---
+cat << 'EOF' > /workspace/install_comfyui.sh
+#!/bin/bash
+
+# ##############################################################################
+# #  ComfyUI & AnimateDiff-Evolved Installer for Runpod - Street Certified   #
+# ##############################################################################
+# Yo, this script gonna get ComfyUI and AnimateDiff set up on your Runpod, big dawg.
+# Run this from /workspace, make sure your Runpod instance got that GPU muscle.
+
+# --- Configuration ---
+COMFYUI_DIR="/workspace/ComfyUI"
+PYTHON_VERSION="python3.10" # Common on Runpods, adjust if your pod uses 3.11 etc.
+
+# --- Helper: Check command status ---
+check_status() {
+  if [ \$? -eq 0 ]; then
+    echo "[+] \$1... 4sho, that's locked in, G."
+  else
+    echo "[!] YO, HOLD UP! \$1... FAILED. Peep the errors, fucker. Script's out." >&2 # Send to stderr
+    exit 1
+  fi
+}
+
+echo "======================================================"
+echo "  Starting ComfyUI & AnimateDiff Setup on Runpod"
+echo "  Target Dir: ${COMFYUI_DIR}"
+echo "======================================================"
+
+# --- Prerequisites ---
+echo ""
+echo ">>> STEP 1: Gettin' the system dependencies straight..."
+apt-get update -y
+# Use explicit package names for clarity with apt-get
+apt-get install -y git python3.10 python3.10-venv libgl1 libglib2.0-0 wget
+check_status "System dependencies (git, python, venv, libs, wget)"
+
+# --- Clone ComfyUI ---
+echo ""
+echo ">>> STEP 2: Grabbin' ComfyUI, the main visual artillery..."
+if [ -d "$COMFYUI_DIR" ]; then
+  echo "[*] ComfyUI directory already exists at ${COMFYUI_DIR}. Skippin' clone, playa. Pullin' latest..."
+  cd "$COMFYUI_DIR" || check_status "cd to ${COMFYUI_DIR}" # Use || check_status for cd
+  git pull
+  check_status "Pulling latest ComfyUI"
+else
+  git clone https://github.com/comfyanonymous/ComfyUI.git "$COMFYUI_DIR"
+  check_status "Cloning ComfyUI"
+  cd "$COMFYUI_DIR" || check_status "cd to ${COMFYUI_DIR}"
+fi
+
+# --- Set up Python Virtual Environment ---
+echo ""
+echo ">>> STEP 3: Settin' up a clean room (venv) for ComfyUI..."
+# Using a specific venv name like 'comfy_venv' to avoid conflicts if other apps use 'venv'
+COMFYUI_VENV_DIR="${COMFYUI_DIR}/comfy_venv"
+if [ -d "${COMFYUI_VENV_DIR}" ]; then
+  echo "[*] Virtual environment '${COMFYUI_VENV_DIR}' already exists. Skippin' creation."
+else
+  # Use the explicit python version command to create the venv
+  /usr/bin/${PYTHON_VERSION} -m venv "${COMFYUI_VENV_DIR}"
+  check_status "Creating Python virtual environment at ${COMFYUI_VENV_DIR}"
+fi
+
+source "${COMFYUI_VENV_DIR}/bin/activate"
+check_status "Activating virtual environment for ComfyUI"
+echo "[*] Python interpreter in use: $(which python)"
+
+# --- Install ComfyUI Dependencies ---
+echo ""
+echo ">>> STEP 4: Loadin' up ComfyUI's ammo (Python dependencies)..."
+pip install --upgrade pip
+check_status "Upgrading pip"
+
+echo "[*] Installin' required PyTorch version with CUDA support..."
+# IMPORTANT: Adjust --index-url based on your Runpod's CUDA version!
+# Common: cu118 or cu121. If unsure, check Runpod template or use the base image details.
+# If this fails, you NEED to find the correct PyTorch install command for your specific Runpod CUDA version.
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+check_status "PyTorch installation (ensure CUDA version matches your Runpod - cu118 assumed)"
+
+pip install -r "${COMFYUI_DIR}/requirements.txt"
+check_status "Installing ComfyUI Python dependencies from requirements.txt"
+
+# Install huggingface_hub needed for downloading models
+pip install huggingface_hub
+check_status "Installing huggingface_hub"
+
+# --- Create Standard Model Directories ---
+echo ""
+echo ">>> STEP 5: Preppin' the stash spots for your models..."
+mkdir -p "${COMFYUI_DIR}/models/checkpoints"
+mkdir -p "${COMFYUI_DIR}/models/vae"
+mkdir -p "${COMFYUI_DIR}/models/loras"
+mkdir -p "${COMFYUI_DIR}/models/controlnet"
+mkdir -p "${COMFYUI_DIR}/models/clip_vision"
+mkdir -p "${COMFYUI_DIR}/models/gligen"
+mkdir -p "${COMFYUI_DIR}/models/upscale_models"
+mkdir -p "${COMFYUI_DIR}/custom_nodes" # Ensure custom_nodes dir exists
+check_status "Creating standard ComfyUI model directories"
+
+# --- Install AnimateDiff-Evolved Custom Node ---
+ANIMATEDIFF_NODE_DIR="${COMFYUI_DIR}/custom_nodes/ComfyUI-AnimateDiff-Evolved"
+echo ""
+echo ">>> STEP 6: Grabbin' AnimateDiff-Evolved, the motion plug..."
+if [ -d "$ANIMATEDIFF_NODE_DIR" ]; then
+  echo "[*] AnimateDiff-Evolved directory already exists. Skippin' clone, my G. Pullin' latest..."
+  cd "$ANIMATEDIFF_NODE_DIR" || check_status "cd to ${ANIMATEDIFF_NODE_DIR}"
+  git pull
+  check_status "Pulling latest AnimateDiff-Evolved"
+  cd "$COMFYUI_DIR" || check_status "cd back to ${COMFYUI_DIR}" # Go back to ComfyUI base
+else
+  git clone https://github.com/Kosinkadink/ComfyUI-AnimateDiff-Evolved.git "$ANIMATEDIFF_NODE_DIR"
+  check_status "Cloning AnimateDiff-Evolved"
+  cd "$COMFYUI_DIR" || check_status "cd back to ${COMFYUI_DIR}"
+fi
+
+# --- Create AnimateDiff Model Directory (Official Recommended Spot) ---
+# The node also looks in ./models/animatediff_models relative to ComfyUI root
+ANIMATEDIFF_MODELS_DIR="${COMFYUI_DIR}/models/animatediff_models"
+echo ""
+echo ">>> STEP 7: Makin' space for AnimateDiff's motion packs (official spot)..."
+mkdir -p "$ANIMATEDIFF_MODELS_DIR"
+check_status "Creating AnimateDiff model directory (${ANIMATEDIFF_MODELS_DIR})"
+
+
+# --- Download AnimateDiff Motion Models (The ones we pinpointed) ---
+echo ""
+echo ">>> STEP 8: Snaggin' the core AnimateDiff motion models (using hf-cli)..."
+# We use the huggingface-cli tool with the exact filenames we found in the repo listing
+
+echo "[*] Downloading mm_sd_v15_v2.ckpt..."
+huggingface-cli download guoyww/animatediff mm_sd_v15_v2.ckpt --local-dir "${ANIMATEDIFF_MODELS_DIR}/" --local-dir-use-symlinks False
+check_status "Downloading mm_sd_v15_v2.ckpt"
+
+echo "[*] Downloading v3_sd15_mm.ckpt..."
+huggingface-cli download guoyww/animatediff v3_sd15_mm.ckpt --local-dir "${ANIMATEDIFF_MODELS_DIR}/" --local-dir-use-symlinks False
+check_status "Downloading v3_sd15_mm.ckpt"
+
+echo "[*] You got the core AnimateDiff models now, my boy."
+echo "[*] Peep ${ANIMATEDIFF_MODELS_DIR}/ to see 'em."
+ls -lh "${ANIMATEDIFF_MODELS_DIR}/"
+
+
+echo ""
+echo "========================================================================"
+echo "  ComfyUI & AnimateDiff Installation Complete!"
+echo "========================================================================"
+echo ""
+echo "--- MANUAL STEPS STILL NEEDED, PLAYA ---"
+echo ""
+echo "1.  DOWNLOAD YOUR *OTHER* MODELS (Checkpoints, VAEs, etc.):"
+echo "    ----------------------------------------------------------"
+echo "    You still gotta get your base Stable Diffusion checkpoints (like SD1.5, SDXL) and VAEs."
+echo "    Place checkpoints (.safetensors) in -> ${COMFYUI_DIR}/models/checkpoints/"
+echo "    Place VAEs (.safetensors or .pt) in -> ${COMFYUI_DIR}/models/vae/"
+echo "    Use 'huggingface-cli download' or another method you prefer."
+echo ""
+echo "    EXAMPLE hf-cli DOWNLOAD (uncomment and run these MANUALLY AFTER ACTIVATING VENV):"
+echo '    # To run these examples, first activate the venv: source ${COMFYUI_VENV_DIR}/bin/activate'
+echo '    # Checkpoint SD 1.5 (example repo/file):'
+echo '    # huggingface-cli download runwayml/stable-diffusion-v1-5 v1-5-pruned-emaonly.safetensors --local-dir "${COMFYUI_DIR}/models/checkpoints/" --local-dir-use-symlinks False'
+echo '    # Checkpoint SDXL Base 1.0:'
+echo '    # huggingface-cli download stabilityai/stable-diffusion-xl-base-1.0 sd_xl_base_1.0.safetensors --local-dir "${COMFYUI_DIR}/models/checkpoints/" --local-dir-use-symlinks False'
+echo '    # VAE for SD 1.5/SDXL:'
+echo '    # huggingface-cli download stabilityai/sd-vae-ft-mse-original vae-ft-mse-840000-ema-pruned.safetensors --local-dir "${COMFYUI_DIR}/models/vae/" --local-dir-use-symlinks False'
+echo ""
+echo "2.  START COMFYUI:"
+echo "    ------------------------"
+echo "    To start ComfyUI, you need to activate its environment and run the main script."
+echo "    The master installer script can create a helper script for this."
+echo ""
+echo "Script done. Run the master installer script for next steps and helper scripts."
+echo "---"
+
+# Note: Deactivation of the venv is handled by the master script or left to the user's shell
+EOF
+
+# --- Create install_oobabooga.sh (FIXED requirements.txt path) ---
+cat << 'EOF' > /workspace/install_oobabooga.sh
+#!/bin/bash
+
+# ##############################################################################
+# #    Oobabooga Text Generation WebUI Installer for Runpod - Street Setup   #
+# ##############################################################################
+# This script gets Oobabooga's web UI ready for action on your Runpod.
+# Run this from /workspace.
+
+# --- Configuration ---
+OOBABOOGA_DIR="/workspace/text-generation-webui"
+PYTHON_VERSION="python3.10" # Match ComfyUI's Python version
+
+# --- Helper: Check command status ---
+check_status() {
+  if [ \$? -eq 0 ]; then
+    echo "[+] \$1... 4sho, that's locked in, G."
+  else
+    echo "[!] YO, HOLD UP! \$1... FAILED. Peep the errors, fucker. Script's out." >&2 # Send to stderr
+    exit 1
+  fi
+}
+
+echo "======================================================"
+echo "  Starting Oobabooga Text Generation WebUI Setup"
+echo "  Target Dir: ${OOBABOOGA_DIR}"
+echo "======================================================"
+
+# --- Prerequisites (Should be covered by master, but belt and suspenders) ---
+echo ""
+echo ">>> STEP 1: Gettin' basic system tools..."
+# apt-get update -y # Assuming master script handles this
+# Use explicit package names for clarity with apt-get
+# apt-get install -y git python3.10 python3.10-venv libgl1 libglib2.0-0 # Assuming master script handles this
+check_status "Basic system dependencies (assuming master script covered update/install)" # Placeholder check
+
+# --- Clone Oobabooga ---
+echo ""
+echo ">>> STEP 2: Grabbin' Oobabooga, the text artillery..."
+if [ -d "$OOBABOOGA_DIR" ]; then
+  echo "[*] Oobabooga directory already exists at ${OOBABOOGA_DIR}. Skippin' clone, playa. Pullin' latest..."
+  cd "$OOBABOOGA_DIR" || check_status "cd to ${OOBABOOGA_DIR}"
+  git pull
+  check_status "Pulling latest Oobabooga"
+else
+  git clone https://github.com/oobabooga/text-generation-webui.git "$OOBABOOGA_DIR"
+  check_status "Cloning Oobabooga"
+  cd "$OOBABOOGA_DIR" || check_status "cd to ${OOBABOOGA_DIR}"
+fi
+
+# --- Set up Python Virtual Environment ---
+echo ""
+echo ">>> STEP 3: Settin' up a clean room (venv) for Oobabooga..."
+# Using a specific venv name like 'ooba_venv' to avoid conflicts
+OOBABOOGA_VENV_DIR="${OOBABOOGA_DIR}/ooba_venv"
+if [ -d "${OOBABOOGA_VENV_DIR}" ]; then
+  echo "[*] Virtual environment '${OOBABOOGA_VENV_DIR}' already exists. Skippin' creation."
+else
+  # Use the explicit python version command to create the venv
+  /usr/bin/${PYTHON_VERSION} -m venv "${OOBABOOGA_VENV_DIR}"
+  check_status "Creating Python virtual environment at ${OOBABOOGA_VENV_DIR}"
+fi
+
+source "${OOBABOOGA_VENV_DIR}/bin/activate"
+check_status "Activating virtual environment for Oobabooga"
+echo "[*] Python interpreter in use: $(which python)"
+
+# --- Install Oobabooga Dependencies ---
+echo ""
+echo ">>> STEP 4: Loadin' up Oobabooga's ammo (Python dependencies)..."
+pip install --upgrade pip
+check_status "Upgrading pip"
+
+echo "[*] Installin' Oobabooga requirements..."
+# FIX: Corrected path to the primary requirements.txt file.
+# This should pull torch with CUDA if available based on environment.
+# If this fails, you MAY need to manually install PyTorch with CUDA via the helper script.
+pip install -r "${OOBABOOGA_DIR}/requirements/full/requirements.txt"
+check_status "Installing Oobabooga Python dependencies from requirements/full/requirements.txt"
+
+# Install huggingface_hub needed for downloading models via Ooba UI (belt and suspenders)
+pip install huggingface_hub
+check_status "Installing huggingface_hub"
+
+# --- Create Model Directories (Ooba defaults) ---
+echo ""
+echo ">>> STEP 5: Preppin' the stash spots for your LLM models..."
+mkdir -p "${OOBABOOGA_DIR}/models"
+mkdir -p "${OOBABOOGA_DIR}/characters"
+mkdir -p "${OOBABOOGA_DIR}/prompts"
+check_status "Creating standard Oobabooga directories"
+
+echo ""
+echo "========================================================================"
+echo "  Oobabooga Text Generation WebUI Installation Complete!"
+echo "========================================================================"
+echo ""
+echo "--- MANUAL STEPS STILL NEEDED, PLAYA ---"
+echo ""
+echo "1.  DOWNLOAD YOUR LLM MODELS:"
+echo "    -----------------------------"
+echo "    You need to download your LLM models (like GGUF files)."
+echo "    You can do this easily *AFTER* you start Oobabooga for the first time."
+echo "    Use the 'Model' tab in the WebUI to download models directly."
+echo "    Models will go into -> ${OOBABOOGA_DIR}/models/"
+echo "    (Remember, you were usin' lmstudio-community/DeepSeek-R1-Distill-Qwen-7B-GGUF - you can download that via the UI)."
+echo ""
+echo "2.  START OOBABOOGA WEBUI:"
+echo "    ------------------------"
+echo "    To start Oobabooga, you need to activate its environment and run the server script."
+echo "    The master installer script can create a helper script for this."
+echo ""
+echo "Script done. Run the master installer script for next steps and helper scripts."
+echo "---"
+
+# Note: Deactivation of the venv is handled by the master script or left to the user's shell
+EOF
+
+# --- Create master_installer.sh (No change needed for master script itself) ---
+cat << 'EOF' > /workspace/master_installer.sh
+#!/bin/bash
+
+# ##############################################################################
+# #        Runpod AI Environment Master Installer - The Whole Play           #
+# ##############################################################################
+# This script updates the system, installs ComfyUI, Oobabooga, or both,
+# and creates helper scripts for easy launching.
+# Run this from /workspace.
+
+# --- Configuration ---
+COMFYUI_INSTALL_SCRIPT="/workspace/install_comfyui.sh"
+OOBABOOGA_INSTALL_SCRIPT="/workspace/install_oobabooga.sh"
+COMFYUI_DIR="/workspace/ComfyUI"
+OOBABOOGA_DIR="/workspace/text-generation-webui"
+COMFYUI_VENV_DIR="${COMFYUI_DIR}/comfy_venv" # Must match install_comfyui.sh
+OOBABOOGA_VENV_DIR="${OOBABOOGA_DIR}/ooba_venv" # Must match install_oobabooga.sh
+
+# --- Helper: Check command status ---
+check_status() {
+  if [ \$? -eq 0 ]; then
+    echo "[+] \$1... 4sho, that's locked in, G."
+  else
+    echo "[!] YO, HOLD UP! \$1... FAILED. Peep the errors, fucker. Script's out." >&2 # Send to stderr
+    exit 1
+  fi
+}
+
+# --- Helper: Generate Start Scripts ---
+generate_start_scripts() {
+  echo ""
+  echo ">>> Creatin' easy launch scripts, my boy..."
+
+  # --- ComfyUI Start Script ---
+  COMFYUI_START_SCRIPT="/workspace/start_comfyui.sh"
+  cat << EOF_COMFY_START > "${COMFYUI_START_SCRIPT}"
+#!/bin/bash
+# Start ComfyUI with its virtual environment activated
+
+echo "Activating ComfyUI environment and launching server..."
+source "${COMFYUI_VENV_DIR}/bin/activate"
+check_status "Activating ComfyUI venv"
+
+if [ \$? -eq 0 ]; then
+  cd "${COMFYUI_DIR}" || { echo "[-] Can't change directory to ${COMFYUI_DIR}. Aborting." >&2; exit 1; }
+  echo "Changed directory to $(pwd)"
+  echo "Starting ComfyUI server..."
+  # --listen makes it accessible externally (via Runpod proxy)
+  # --port 8188 matches the SSH forward you planned
+  # Add --enable-cors if you need browser-based API access from other domains
+  python main.py --listen --port 8188 \$@
+else
+  echo "[-] Failed to activate ComfyUI venv. Cannot start server." >&2
+  exit 1
+fi
+EOF_COMFY_START
+  chmod +x "${COMFYUI_START_SCRIPT}"
+  check_status "Generating ${COMFYUI_START_SCRIPT}"
+  echo "[*] ComfyUI launch script created at ${COMFYUI_START_SCRIPT}"
+
+
+  # --- Oobabooga Start Script ---
+  OOBABOOGA_START_SCRIPT="/workspace/start_oobabooga.sh"
+  cat << EOF_OOBA_START > "${OOBABOOGA_START_SCRIPT}"
+#!/bin/bash
+# Start Oobabooga Text Generation WebUI with its virtual environment activated
+
+echo "Activating Oobabooga environment and launching server..."
+source "${OOBABOOGA_VENV_DIR}/bin/activate"
+check_status "Activating Oobabooga venv"
+
+if [ \$? -eq 0 ]; then
+  cd "${OOBABOOGA_DIR}" || { echo "[-] Can't change directory to ${OOBABOOGA_DIR}. Aborting." >&2; exit 1; }
+  echo "Changed directory to $(pwd)"
+  echo "Starting Oobabooga server..."
+  # --listen for external access (via Runpod proxy)
+  # --port 7860 matches the SSH forward you planned
+  # --api enables the API endpoint
+  # Add --share to get a public gradio link (not needed for server-to-server Runpod proxy)
+  python server.py --listen --api --port 7860 \$@
+else
+  echo "[-] Failed to activate Oobabooga venv. Cannot start server." >&2
+  exit 1
+fi
+EOF_OOBA_START
+  chmod +x "${OOBABOOGA_START_SCRIPT}"
+  check_status "Generating ${OOBABOOGA_START_SCRIPT}"
+  echo "[*] Oobabooga launch script created at ${OOBABOOGA_START_SCRIPT}"
+
+  echo ""
+  echo "========================================================================"
+  echo "  Helper launch scripts are ready, my boy!"
+  echo "========================================================================"
+  echo "To start ComfyUI:"
+  echo "  bash ${COMFYUI_START_SCRIPT}"
+  echo "To start Oobabooga:"
+  echo "  bash ${OOBABOOGA_START_SCRIPT}"
+  echo ""
+  echo "NOTE: You can only run ONE server process per terminal session."
+  echo "      You'll need to open TWO separate terminal sessions to run both at the same time."
+  echo "      In each session, run the bash command for the server you want to start."
+  echo "---"
+}
+
+echo "======================================================"
+echo "  Runpod AI Environment Master Setup - Let's Go!    "
+echo "======================================================"
+echo ""
+
+# --- System Update & Upgrade ---
+echo ">>> STEP 1: Runnin' system updates and upgrades..."
+apt-get update -y
+check_status "System update"
+apt-get upgrade -y
+check_status "System upgrade"
+apt-get autoremove -y
+check_status "System autoremove"
+apt-get clean -y
+check_status "System clean"
+echo "[*] System is updated and cleaned up. 4sho."
+
+# --- Prerequisite System Packages (Ensure they are there for both installs) ---
+echo ""
+echo ">>> STEP 2: Installin' prerequisite packages for both apps..."
+# Use explicit package names for clarity with apt-get
+apt-get install -y git python3.10 python3.10-venv libgl1 libglib2.0-0 wget
+check_status "Prerequisite system packages"
+
+# --- Menu ---
+echo ""
+echo ">>> STEP 3: What you wanna install, G?"
+echo "-----------------------------------------"
+echo "1) Install Oobabooga Text Generation WebUI only"
+echo "2) Install ComfyUI (with AnimateDiff) only"
+echo "3) Install ALL (Oobabooga then ComfyUI)"
+echo "-----------------------------------------"
+read -r -p "Enter choice [1-3]: " choice
+
+case $choice in
+  1)
+    echo ">>> You chose: Install Oobabooga only."
+    bash "${OOBABOOGA_INSTALL_SCRIPT}"
+    check_status "Oobabooga installation script"
+    ;;
+  2)
+    echo ">>> You chose: Install ComfyUI only."
+    bash "${COMFYUI_INSTALL_SCRIPT}"
+    check_status "ComfyUI installation script"
+    ;;
+  3)
+    echo ">>> You chose: Install ALL."
+    echo ""
+    echo "======================================================"
+    echo "  Runnin' Oobabooga Setup First..."
+    echo "======================================================"
+    bash "${OOBABOOGA_INSTALL_SCRIPT}"
+    check_status "Oobabooga installation script"
+    echo ""
+    echo "======================================================"
+    echo "  Oobabooga setup done. Press ENTER to start ComfyUI setup..."
+    echo "======================================================"
+    read -r # Wait for user input
+
+    echo ""
+    echo "======================================================"
+    echo "  Runnin' ComfyUI Setup Now..."
+    echo "======================================================"
+    bash "${COMFYUI_INSTALL_SCRIPT}"
+    check_status "ComfyUI installation script"
+    ;;
+  *)
+    echo "[!] Invalid choice, playa. Script's out." >&2
+    exit 1
+    ;;
+esac
+
+# --- Generate Start Scripts After Installation(s) ---
+echo ""
+echo "======================================================"
+echo "  Installation(s) complete. Gettin' launch scripts ready."
+echo "======================================================"
+generate_start_scripts
+
+echo ""
+echo "========================================================================"
+echo "  MASTER INSTALLER FINISHED. You're armed!"
+echo "========================================================================"
+echo "Manual Steps Recap:"
+echo ""
+echo "1.  UPDATE YOUR SSH FORWARDING (if your IP/Port changed):"
+echo "    ----------------------------------------------------"
+echo "    You need TWO separate SSH tunnels for ComfyUI and Oobabooga."
+echo "    Replace IP/Port with your NEW Runpod IP and Port:"
+echo "    -> For Oobabooga WebUI (port 7860): ssh -L 7860:localhost:7860 root@YOUR.NEW.IP -p YOUR_NEW_PORT -i ~/runpod"
+echo "    -> For ComfyUI WebUI/API (port 8188): ssh -L 8188:localhost:8188 root@YOUR.NEW.IP -p YOUR_NEW_PORT -i ~/runpod"
+echo ""
+echo "2.  DOWNLOAD YOUR LLM MODELS (Oobabooga):"
+echo "    -----------------------------------"
+echo "    Start Oobabooga using the helper script, then use its WebUI Model tab to download."
+echo "    Models go into: ${OOBABOOGA_DIR}/models/"
+echo ""
+echo "3.  DOWNLOAD YOUR *OTHER* AI MODELS (ComfyUI - Checkpoints, VAEs, etc.):"
+echo "    -----------------------------------------------------------------"
+echo "    You already got AnimateDiff models via the install script, but need base SD models."
+echo "    Use 'huggingface-cli download' *after* activating the ComfyUI env, or SFTP/Runpod file manager."
+echo "    Checkpoints -> ${COMFYUI_DIR}/models/checkpoints/"
+echo "    VAEs -> ${COMFYUI_DIR}/models/vae/"
+echo "    LORAs/ControlNets etc. go in their respective directories."
+echo ""
+echo "4.  LAUNCH YOUR SERVERS:"
+echo "    --------------------"
+echo "    Use the generated helper scripts in /workspace."
+echo "    Remember you need a separate terminal for each server you run simultaneously."
+echo "    -> To start ComfyUI: bash /workspace/start_comfyui.sh"
+# Ensure the example also shows the correct helper script path
+echo "    -> To start Oobabooga: bash /workspace/start_oobabooga.sh"
+echo ""
+echo "That's the blueprint, my boy. Go build that shit."
+echo "---"
+EOF
+
+# --- Make master_installer.sh executable ---
+chmod +x /workspace/master_installer.sh
+check_status "Made master_installer.sh executable"
+
+# --- Run the master_installer.sh ---
+echo ""
+echo "======================================================"
+echo "  Executing the Master Installer Script now..."
+echo "======================================================"
+bash /workspace/master_installer.sh
+
+# FINISH ### RUNPOD_AI_SETUP_BUNDLE_CLEAN_PASTE ###

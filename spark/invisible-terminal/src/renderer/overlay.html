@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Invisible Terminal Overlay</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: transparent;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            color: #ffffff;
+            overflow: hidden;
+            user-select: none;
+            -webkit-app-region: no-drag;
+        }
+
+        #overlay-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 999999;
+        }
+
+        .cursor-mode {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.05);
+            padding: 8px;
+            min-width: 200px;
+            pointer-events: auto;
+        }
+
+        .fullview-mode {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            background: rgba(0, 0, 0, 0.03);
+            padding: 16px;
+            pointer-events: auto;
+            overflow-y: auto;
+        }
+
+        .input-line {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .prompt {
+            color: #00ccff;
+            margin-right: 8px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .command-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: inherit;
+            flex: 1;
+            caret-color: #00ccff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .command-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .command-output {
+            margin-bottom: 4px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .stdout {
+            color: #ffffff;
+        }
+
+        .stderr {
+            color: #ff6b6b;
+        }
+
+        .command-line {
+            color: #00ccff;
+            margin-bottom: 4px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .cursor-blink {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .fade-out {
+            animation: fadeOut 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-10px); }
+        }
+
+        .output-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .output-container::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+    </style>
+</head>
+<body>
+    <div id="overlay-container"></div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        class OverlayRenderer {
+            constructor() {
+                this.container = document.getElementById('overlay-container');
+                this.currentMode = null;
+                this.currentInput = null;
+                this.outputContainer = null;
+                this.autoHideTimer = null;
+                this.keystrokeTimer = null;
+                this.isCommandExecuting = false;
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                ipcRenderer.on('show-cursor-mode', (event, data) => {
+                    this.showCursorMode(data.mode, data.position);
+                });
+
+                ipcRenderer.on('show-fullview-mode', (event, data) => {
+                    this.showFullViewMode(data.history);
+                });
+
+                ipcRenderer.on('command-output', (event, data) => {
+                    this.displayOutput(data.type, data.data);
+                });
+
+                ipcRenderer.on('command-complete', (event, data) => {
+                    this.handleCommandComplete(data);
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    this.handleKeyDown(e);
+                });
+            }
+
+            showCursorMode(mode, position) {
+                this.clearOverlay();
+                this.currentMode = mode;
+                this.isCommandExecuting = false;
+
+                const overlay = document.createElement('div');
+                overlay.className = 'cursor-mode fade-in';
+                overlay.style.left = position.x + 'px';
+                overlay.style.top = position.y + 'px';
+
+                const inputLine = document.createElement('div');
+                inputLine.className = 'input-line';
+
+                const prompt = document.createElement('span');
+                prompt.className = 'prompt';
+                prompt.textContent = '$ ';
+
+                const input = document.createElement('input');
+                input.className = 'command-input cursor-blink';
+                input.type = 'text';
+                input.placeholder = 'Enter command...';
+                input.autofocus = true;
+
+                inputLine.appendChild(prompt);
+                inputLine.appendChild(input);
+                overlay.appendChild(inputLine);
+
+                const outputContainer = document.createElement('div');
+                outputContainer.className = 'output-container';
+                overlay.appendChild(outputContainer);
+
+                this.container.appendChild(overlay);
+                this.currentInput = input;
+                this.outputContainer = outputContainer;
+
+                setTimeout(() => {
+                    input.focus();
+                }, 100);
+
+                if (mode === 'quick') {
+                    this.startAutoHideTimer(8000);
+                }
+            }
+
+            showFullViewMode(history) {
+                this.clearOverlay();
+                this.currentMode = 'fullview';
+                this.isCommandExecuting = false;
+
+                const overlay = document.createElement('div');
+                overlay.className = 'fullview-mode fade-in';
+
+                history.slice(0, 20).forEach(entry => {
+                    this.addHistoryEntry(overlay, entry);
+                });
+
+                const inputLine = document.createElement('div');
+                inputLine.className = 'input-line';
+
+                const prompt = document.createElement('span');
+                prompt.className = 'prompt';
+                prompt.textContent = '$ ';
+
+                const input = document.createElement('input');
+                input.className = 'command-input cursor-blink';
+                input.type = 'text';
+                input.placeholder = 'Enter command...';
+
+                inputLine.appendChild(prompt);
+                inputLine.appendChild(input);
+                overlay.appendChild(inputLine);
+
+                this.container.appendChild(overlay);
+                this.currentInput = input;
+                this.outputContainer = overlay;
+
+                setTimeout(() => {
+                    input.focus();
+                    overlay.scrollTop = overlay.scrollHeight;
+                }, 100);
+            }
+
+            addHistoryEntry(container, entry) {
+                const commandLine = document.createElement('div');
+                commandLine.className = 'command-line';
+                commandLine.textContent = '$ ' + entry.command;
+                container.appendChild(commandLine);
+
+                if (entry.output) {
+                    const output = document.createElement('div');
+                    output.className = 'command-output stdout';
+                    output.textContent = entry.output;
+                    container.appendChild(output);
+                }
+
+                if (entry.error) {
+                    const error = document.createElement('div');
+                    error.className = 'command-output stderr';
+                    error.textContent = entry.error;
+                    container.appendChild(error);
+                }
+            }
+
+            displayOutput(type, data) {
+                if (!this.outputContainer) return;
+
+                const output = document.createElement('div');
+                output.className = 'command-output ' + type;
+                output.textContent = data;
+                
+                if (this.currentMode === 'fullview') {
+                    const inputLine = this.outputContainer.querySelector('.input-line');
+                    this.outputContainer.insertBefore(output, inputLine);
+                    this.outputContainer.scrollTop = this.outputContainer.scrollHeight;
+                } else {
+                    this.outputContainer.appendChild(output);
+                    this.outputContainer.scrollTop = this.outputContainer.scrollHeight;
+                }
+            }
+
+            handleCommandComplete(data) {
+                this.isCommandExecuting = false;
+                
+                if (this.currentMode === 'quick') {
+                    this.startAutoHideTimer(8000);
+                } else if (this.currentMode === 'persistent' || this.currentMode === 'fullview') {
+                    if (this.currentInput) {
+                        this.currentInput.focus();
+                    }
+                }
+            }
+
+            handleKeyDown(e) {
+                if (!this.currentInput) return;
+
+                if (this.currentMode === 'quick' && !this.isCommandExecuting) {
+                    this.clearAutoHideTimer();
+                    this.startKeystrokeTimer();
+                }
+
+                ipcRenderer.send('user-activity');
+
+                if (e.key === 'Enter') {
+                    const command = this.currentInput.value.trim();
+                    if (command) {
+                        this.isCommandExecuting = true;
+                        this.clearAutoHideTimer();
+                        
+                        ipcRenderer.send('execute-command', command);
+                        ipcRenderer.send('command-entered');
+                        
+                        if (this.currentMode === 'persistent' || this.currentMode === 'fullview') {
+                            this.addCurrentCommand(command);
+                            this.currentInput.value = '';
+                        } else if (this.currentMode === 'quick') {
+                            this.currentInput.value = '';
+                            this.currentInput.placeholder = 'Executing...';
+                        }
+                    }
+                    e.preventDefault();
+                } else if (e.key === 'Escape') {
+                    this.clearOverlay();
+                    e.preventDefault();
+                }
+            }
+
+            addCurrentCommand(command) {
+                if (this.currentMode === 'fullview') {
+                    const commandLine = document.createElement('div');
+                    commandLine.className = 'command-line';
+                    commandLine.textContent = '$ ' + command;
+                    
+                    const inputLine = this.outputContainer.querySelector('.input-line');
+                    this.outputContainer.insertBefore(commandLine, inputLine);
+                    this.outputContainer.scrollTop = this.outputContainer.scrollHeight;
+                }
+            }
+
+            startAutoHideTimer(delay) {
+                this.clearAutoHideTimer();
+                this.autoHideTimer = setTimeout(() => {
+                    this.fadeAndHide();
+                }, delay);
+            }
+
+            startKeystrokeTimer() {
+                this.clearKeystrokeTimer();
+                this.keystrokeTimer = setTimeout(() => {
+                    if (this.currentMode === 'quick' && !this.isCommandExecuting) {
+                        this.startAutoHideTimer(8000);
+                    }
+                }, 1000);
+            }
+
+            clearAutoHideTimer() {
+                if (this.autoHideTimer) {
+                    clearTimeout(this.autoHideTimer);
+                    this.autoHideTimer = null;
+                }
+            }
+
+            clearKeystrokeTimer() {
+                if (this.keystrokeTimer) {
+                    clearTimeout(this.keystrokeTimer);
+                    this.keystrokeTimer = null;
+                }
+            }
+
+            fadeAndHide() {
+                const overlay = this.container.querySelector('.cursor-mode, .fullview-mode');
+                if (overlay) {
+                    overlay.className += ' fade-out';
+                    setTimeout(() => {
+                        this.clearOverlay();
+                    }, 500);
+                }
+            }
+
+            clearOverlay() {
+                this.container.innerHTML = '';
+                this.currentMode = null;
+                this.currentInput = null;
+                this.outputContainer = null;
+                this.isCommandExecuting = false;
+                this.clearAutoHideTimer();
+                this.clearKeystrokeTimer();
+            }
+        }
+
+        const overlayRenderer = new OverlayRenderer();
+    </script>
+</body>
+</html>

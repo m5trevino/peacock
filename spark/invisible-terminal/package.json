@@ -1,0 +1,17 @@
+{
+  "name": "invisible-terminal",
+  "version": "2.0.0",
+  "description": "True invisible terminal overlay",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev --enable-logging"
+  },
+  "keywords": ["terminal", "overlay", "invisible"],
+  "author": "NorCal Tech Strategist",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {
+    "electron": "^28.0.0"
+  }
+}

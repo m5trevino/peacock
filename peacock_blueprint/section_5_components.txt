@@ -1,0 +1,3 @@
+# SECTION 5: SYSTEM COMPONENTS
+# Purpose: Detail the technical implementation of the core pieces.
+# Status: High-level components identified (EIP, MCP, LLMs, AIP). MCP payload (JSON) and LLM output parsing (structured text) strategy defined. Needs detailed blueprinting of specific API interactions, data structures, module implementations.

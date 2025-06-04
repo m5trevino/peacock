@@ -1,0 +1,224 @@
+# START ### LOCAL_SCRIPT_MASTER ###
+cat << 'EOF' > /home/flintx/runpod1/master.sh
+#!/bin/bash
+
+# ##############################################################################
+# #        Runpod AI Environment Master Installer - The Whole Play           #
+# ##############################################################################
+# This script updates the system, installs ComfyUI, Oobabooga, or both,
+# and creates helper scripts for easy launching.
+# Run this from /workspace.
+
+# --- Configuration ---
+COMFYUI_INSTALL_SCRIPT="/workspace/install_comfyui.sh"
+OOBABOOGA_INSTALL_SCRIPT="/workspace/install_oobabooga.sh"
+COMFYUI_DIR="/workspace/ComfyUI"
+OOBABOOGA_DIR="/workspace/text-generation-webui"
+COMFYUI_VENV_DIR="${COMFYUI_DIR}/comfy_venv" # Must match install_comfyui.sh
+OOBABOOGA_VENV_DIR="${OOBABOOGA_DIR}/ooba_venv" # Must match install_oobabooga.sh
+
+# --- Helper: Check command status ---
+check_status() {
+  if [ $? -eq 0 ]; then
+    echo "[+] \$1... 4sho, that's locked in, G."
+  else
+    echo "[!] YO, HOLD UP! \$1... FAILED. Peep the errors, fucker. Script's out." >&2 # Send to stderr
+    exit 1
+  fi
+}
+
+# --- Helper: Generate Start Scripts ---
+generate_start_scripts() {
+  echo ""
+  echo ">>> Creatin' easy launch scripts, my boy..."
+
+  # --- ComfyUI Start Script ---
+  COMFYUI_START_SCRIPT="/workspace/start_comfyui.sh"
+  cat << EOF_COMFY_START > "${COMFYUI_START_SCRIPT}"
+#!/bin/bash
+# Start ComfyUI with its virtual environment activated
+
+echo "Activating ComfyUI environment and launching server..."
+source "${COMFYUI_VENV_DIR}/bin/activate"
+check_status "Activating ComfyUI venv"
+
+if [ \$? -eq 0 ]; then
+  cd "${COMFYUI_DIR}" || { echo "[-] Can't change directory to ${COMFYUI_DIR}. Aborting." >&2; exit 1; }
+  echo "Changed directory to $(pwd)"
+  echo "Starting ComfyUI server..."
+  # --listen makes it accessible externally (via Runpod proxy)
+  # --port 8188 matches the SSH forward you planned
+  # Add --enable-cors if you need browser-based API access from other domains
+  python main.py --listen --port 8188 \$@
+else
+  echo "[-] Failed to activate ComfyUI venv. Cannot start server." >&2
+  exit 1
+fi
+EOF_COMFY_START
+  chmod +x "${COMFYUI_START_SCRIPT}"
+  check_status "Generating ${COMFYUI_START_SCRIPT}"
+  echo "[*] ComfyUI launch script created at ${COMFYUI_START_SCRIPT}"
+
+
+  # --- Oobabooga Start Script ---
+  OOBABOOGA_START_SCRIPT="/workspace/start_oobabooga.sh"
+  cat << EOF_OOBA_START > "${OOBABOOGA_START_SCRIPT}"
+#!/bin/bash
+# Start Oobabooga Text Generation WebUI with its virtual environment activated
+
+echo "Activating Oobabooga environment and launching server..."
+source "${OOBABOOGA_VENV_DIR}/bin/activate"
+check_status "Activating Oobabooga venv"
+
+if [ \$? -eq 0 ]; then
+  cd "${OOBABOOGA_DIR}" || { echo "[-] Can't change directory to ${OOBABOOGA_DIR}. Aborting." >&2; exit 1; }
+  echo "Changed directory to $(pwd)"
+  echo "Starting Oobabooga server..."
+  # --listen for external access (via Runpod proxy)
+  # --port 7860 matches the SSH forward you planned
+  # --api enables the API endpoint
+  # Add --share to get a public gradio link (not needed for server-to-server Runpod proxy)
+  python server.py --listen --api --port 7860 \$@
+else
+  echo "[-] Failed to activate Oobabooga venv. Cannot start server." >&2
+  exit 1
+fi
+EOF_OOBA_START
+  chmod +x "${OOBABOOGA_START_SCRIPT}"
+  check_status "Generating ${OOBABOOGA_START_SCRIPT}"
+  echo "[*] Oobabooga launch script created at ${OOBABOOGA_START_SCRIPT}"
+
+  echo ""
+  echo "========================================================================"
+  echo "  Helper launch scripts are ready, my boy!"
+  echo "========================================================================"
+  echo "To start ComfyUI:"
+  echo "  bash ${COMFYUI_START_SCRIPT}"
+  echo "To start Oobabooga:"
+  echo "  bash ${OOBABOOGA_START_SCRIPT}"
+  echo ""
+  echo "NOTE: You can only run ONE server process per terminal session."
+  echo "      You'll need to open TWO separate terminal sessions to run both at the same time."
+  echo "      In each session, run the bash command for the server you want to start."
+  echo "---"
+}
+
+echo "======================================================"
+echo "  Runpod AI Environment Master Setup - Let's Go!    "
+echo "======================================================"
+echo ""
+
+# --- System Update & Upgrade ---
+echo ">>> STEP 1: Runnin' system updates and upgrades..."
+apt-get update -y
+check_status "System update"
+apt-get upgrade -y
+check_status "System upgrade"
+apt-get autoremove -y
+check_status "System autoremove"
+apt-get clean -y
+check_status "System clean"
+echo "[*] System is updated and cleaned up. 4sho."
+
+# --- Prerequisite System Packages (Ensure they are there for both installs) ---
+echo ""
+echo ">>> STEP 2: Installin' prerequisite packages for both apps..."
+# Use explicit package names for clarity with apt-get
+apt-get install -y git python3.10 python3.10-venv libgl1 libglib2.0-0 wget
+check_status "Prerequisite system packages"
+
+# --- Menu ---
+echo ""
+echo ">>> STEP 3: What you wanna install, G?"
+echo "-----------------------------------------"
+echo "1) Install Oobabooga Text Generation WebUI only"
+echo "2) Install ComfyUI (with AnimateDiff) only"
+echo "3) Install ALL (Oobabooga then ComfyUI)"
+echo "-----------------------------------------"
+read -r -p "Enter choice [1-3]: " choice
+
+case $choice in
+  1)
+    echo ">>> You chose: Install Oobabooga only."
+    bash "${OOBABOOGA_INSTALL_SCRIPT}"
+    check_status "Oobabooga installation script"
+    ;;
+  2)
+    echo ">>> You chose: Install ComfyUI only."
+    bash "${COMFYUI_INSTALL_SCRIPT}"
+    check_status "ComfyUI installation script"
+    ;;
+  3)
+    echo ">>> You chose: Install ALL."
+    echo ""
+    echo "======================================================"
+    echo "  Runnin' Oobabooga Setup First..."
+    echo "======================================================"
+    bash "${OOBABOOGA_INSTALL_SCRIPT}"
+    check_status "Oobabooga installation script"
+    echo ""
+    echo "======================================================"
+    echo "  Oobabooga setup done. Press ENTER to start ComfyUI setup..."
+    echo "======================================================"
+    read -r # Wait for user input
+
+    echo ""
+    echo "======================================================"
+    echo "  Runnin' ComfyUI Setup Now..."
+    echo "======================================================"
+    bash "${COMFYUI_INSTALL_SCRIPT}"
+    check_status "ComfyUI installation script"
+    ;;
+  *)
+    echo "[!] Invalid choice, playa. Script's out." >&2
+    exit 1
+    ;;
+esac
+
+# --- Generate Start Scripts After Installation(s) ---
+echo ""
+echo "======================================================"
+echo "  Installation(s) complete. Gettin' launch scripts ready."
+echo "======================================================"
+generate_start_scripts
+
+echo ""
+echo "========================================================================"
+echo "  MASTER INSTALLER FINISHED. You're armed!"
+echo "========================================================================"
+echo "Manual Steps Recap:"
+echo ""
+echo "1.  UPDATE YOUR SSH FORWARDING (if your IP/Port changed):"
+echo "    ----------------------------------------------------"
+echo "    You need TWO separate SSH tunnels for ComfyUI and Oobabooga."
+echo "    Replace IP/Port with your NEW Runpod IP and Port:"
+echo "    -> For Oobabooga WebUI (port 7860): ssh -L 7860:localhost:7860 root@YOUR.NEW.IP -p YOUR_NEW_PORT -i ~/runpod"
+# Example corrected to match the expected local key path format
+echo "    -> For ComfyUI WebUI/API (port 8188): ssh -L 8188:localhost:8188 root@YOUR.NEW.IP -p YOUR_NEW_PORT -i /home/flintx/runpod/runpod_key.pem"
+echo ""
+echo "2.  DOWNLOAD YOUR LLM MODELS (Oobabooga):"
+echo "    -----------------------------------"
+echo "    Start Oobabooga using the helper script, then use its WebUI Model tab to download."
+echo "    Models go into: ${OOBABOOGA_DIR}/models/"
+echo ""
+echo "3.  DOWNLOAD YOUR *OTHER* AI MODELS (ComfyUI - Checkpoints, VAEs, etc.):"
+echo "    -----------------------------------------------------------------"
+echo "    You already got AnimateDiff models via the install script, but need base SD models."
+echo "    Use 'huggingface-cli download' *after* activating the ComfyUI env, or SFTP/Runpod file manager."
+echo "    Checkpoints -> ${COMFYUI_DIR}/models/checkpoints/"
+echo "    VAEs -> ${COMFYUI_DIR}/models/vae/"
+echo "    LORAs/ControlNets etc. go in their respective directories."
+echo ""
+echo "4.  LAUNCH YOUR SERVERS:"
+echo "    --------------------"
+echo "    Use the generated helper scripts in /workspace."
+echo "    Remember you need a separate terminal for each server you run simultaneously."
+# Ensure the example also shows the correct helper script path
+echo "    -> To start ComfyUI: bash /workspace/start_comfyui.sh"
+echo "    -> To start Oobabooga: bash /workspace/start_oobabooga.sh"
+echo ""
+echo "That's the blueprint, my boy. Go build that shit."
+echo "---"
+EOF
+echo "[*] Created /home/flintx/runpod1/master.sh"
+# FINISH ### LOCAL_SCRIPT_MASTER ###

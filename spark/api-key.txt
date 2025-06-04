@@ -1,0 +1,14 @@
+# Peacock API Keys
+# Format: KEY_NAME=value
+
+$BRIEF_PROMPT=You are Spark, requirements analyst. Project: $USER_REQUEST. Give me: 1) Core objective 2) Current state 3) Target state 4) What's in scope 5) What's out of scope. Be concise and strategic.\"
+$Gemini API libraries=Python (Old library)- google-generativeai | New library (Recommended)- google-genai
+$curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$GOOGLE_API_KEY" \
+$client=OpenAI(
+$response=client.models.generate_content(
+$model="$GOOGLE_MODEL",
+$config=types.GenerateContentConfig(
+$system_instruction="$GOOGLE_INSTRUCTION"),
+$contents="$BRIEF_PROMPT"
+$+    base_url="http://localhost:1234/v1"
+$GROQ_API_KEY=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

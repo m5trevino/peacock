@@ -1,0 +1,25 @@
+# PEACOCK PRODUCT SPECIFICATION: EXECUTIVE SUMMARY
+
+# Problem:
+Existing AI coding tools ("Peacocks") frustrate developers by focusing on human-like chat over functional reliability. They get lost, skip crucial planning, produce unreliable outputs (formatting errors), and fail to manage project scope, leading to wasted time and stalled progress.
+
+# Solution:
+Peacock (PKC) is a systematic, discipline-oriented AI system designed for reliable code development. It introduces a structured workflow with distinct modes for planning (PIM) and code refinement (CRM), guided by an intelligent MCP.
+
+# Value Proposition:
+Peacock (PKC) offers a magnitude improvement (potentially 3x better or more) over current tools by providing:
+*   Reliable, structured communication (AIP).
+*   Automatic planning and objective setting (PIM).
+*   Effective scope management (SMF).
+*   Persistent, external memory via a PKB of structured reports.
+*   Precise, actionable code suggestions and analysis.
+*   Safeguards against common human and AI inefficiencies.
+
+# Key Differentiator:
+Unlike "yes man" chatbots, Peacock (PKC) focuses on process integrity and project completion over conversational fluff, ensuring a clear path from idea to working code.
+
+# Target User:
+Software developers and learners frustrated with the unreliability and inefficiency of current AI coding assistants, seeking a disciplined tool to accelerate progress and deepen understanding.
+
+# Goal:
+To enable developers to reliably plan, build, and refine projects using AI, transforming AI from a frustrating novelty into a predictable, powerful tool for project completion.

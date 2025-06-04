@@ -1,0 +1,47 @@
+{
+  "scan_timestamp": "2025-06-03T17:09:04.330397",
+  "total_apks_analyzed": 121,
+  "vendor_distribution": {
+    "guardsquare": 57,
+    "unknown": 62,
+    "liapp": 2
+  },
+  "pattern_analysis": {
+    "security_features": {},
+    "protection_mechanisms": {
+      "Security library: lib/arm64-v8a/libprotect.so": 2,
+      "Security library: lib/armeabi-v7a/libprotect.so": 2,
+      "Security library: lib/arm64-v8a/libdexprotector.so": 1,
+      "Security library: lib/armeabi-v7a/libdexprotector.so": 1,
+      "Security library: lib/x86/libdexprotector.so": 1,
+      "Security library: lib/x86_64/libdexprotector.so": 1,
+      "Security library: lib/arm64-v8a/libmtprotect.so": 1,
+      "Security library: lib/armeabi-v7a/libmtprotect.so": 1,
+      "Security library: lib/x86/libmtprotect.so": 1,
+      "Security library: lib/x86_64/libmtprotect.so": 1,
+      "Security library: lib/armeabi-v7a/libmip_protection_sdk.so": 1
+    },
+    "attack_surface": {
+      "Multiple DEX files - potential code injection points": 60
+    },
+    "bypass_opportunities": {},
+    "vendor_patterns": {
+      "common_bypasses": 57,
+      "weak_points": 57
+    }
+  },
+  "top_vendors": [
+    [
+      "unknown",
+      62
+    ],
+    [
+      "guardsquare",
+      57
+    ],
+    [
+      "liapp",
+      2
+    ]
+  ]
+}

@@ -1,0 +1,3 @@
+# SECTION 4: PROJECT KNOWLEDGE BASE (PKB) MANAGEMENT & USAGE
+# Purpose: Store and manage project-related AI-generated intel and plans.
+# Status: Core concept defined (saved plans/reports as external memory). Needs detailed blueprinting of storage structure, lookup logic, loading/parsing saved data for context.
