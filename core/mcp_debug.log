@@ -1,0 +1,11 @@
+Enhanced MCP: Starting Peacock server on 127.0.0.1:8000
+Enhanced MCP: Peacock stages ready - Spark/Falcon/Eagle/Hawk
+Enhanced MCP: Press Ctrl+C to stop.
+Enhanced MCP: Received data from EIP:
+---
+Command: spark_analysis
+Language: project_analysis
+File: A
+---
+MCP: Calling Groq API (qwen-2.5-32b)...
+MCP ERROR: Groq API call failed: HTTP Error 403: Forbidden

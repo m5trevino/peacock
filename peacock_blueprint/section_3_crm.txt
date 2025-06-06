@@ -1,3 +1,0 @@
-# SECTION 3: CODE REFINEMENT MODE (CRM)
-# Purpose: Provide structured AI assistance for editing, analyzing, and debugging code within the editor.
-# Status: Core concept defined (EIP -> MCP -> LLM -> PKB -> EIP). Key pieces like structured commands, HTML reports, reliable parsing (IRP) proposed. Needs detailed blueprinting of input capture (location), output parsing (IRP specs), output display in editor.
