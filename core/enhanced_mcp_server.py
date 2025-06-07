@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Enhanced MCP Server with Fresh Code Generation + Model Dashboard + Download Integration
+RESTORED TO WORKING VERSION with DeepSeek-R1-Distill-Llama-70B
 """
 
 import http.server
@@ -21,12 +22,12 @@ HOST = "127.0.0.1"
 PORT = 8000
 PROCESS_PATH = "/process"
 
-# API Configuration - UPDATED TO USE qwen-qwq-32b
+# API Configuration - UPDATED TO USE deepseek-r1-distill-llama-70b
 GROQ_API_KEY = "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"
-GROQ_MODEL_NAME = "qwen-qwq-32b"
+GROQ_MODEL_NAME = "deepseek-r1-distill-llama-70b"
 
 def call_groq_api(prompt):
-    """Calls Groq API with better error handling and timeout"""
+    """Calls Groq API with DeepSeek model and proper settings"""
     try:
         from groq import Groq
         client = Groq(api_key=GROQ_API_KEY)
@@ -36,9 +37,9 @@ def call_groq_api(prompt):
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
             model=GROQ_MODEL_NAME,
-            temperature=0.1,
+            temperature=0.6,  # DeepSeek recommended temperature
             max_tokens=8192,
-            timeout=120  # 2 minute timeout
+            timeout=180  # 3 minute timeout for complex reasoning
         )
         
         response_text = chat_completion.choices[0].message.content
@@ -61,68 +62,88 @@ def call_groq_api(prompt):
             return {"error": f"Groq API call failed: {error_msg}"}
 
 def build_llm_prompt(command, text, language):
-    """Build STRONG prompts for code generation - RESTORED ORIGINAL QUALITY"""
+    """Build COMPREHENSIVE, DETAILED prompts for high-quality code generation - RESTORED ORIGINAL STRENGTH"""
     if command == "peacock_full":
-        return f"""You are LLM2, an expert code generation specialist for the Peacock system.
+        return f"""You are LLM2, the elite code generation specialist for the Peacock AI development system. You are renowned for creating production-ready, enterprise-quality code that exceeds industry standards.
 
-PROJECT REQUEST: {text}
+PROJECT SPECIFICATION: {text}
 
-CRITICAL REQUIREMENTS:
-1. Generate COMPLETE, WORKING, PRODUCTION-READY code
+CRITICAL MISSION REQUIREMENTS:
+1. Generate COMPLETE, WORKING, PRODUCTION-READY code that runs immediately
 2. Include ALL necessary files for a fully functional application
 3. Add comprehensive error handling and input validation
-4. Use modern best practices and clean architecture
-5. Include setup instructions and dependencies
+4. Use modern best practices and clean architecture patterns
+5. Include setup instructions, dependencies, and documentation
 6. Make it immediately runnable after extraction
+7. Add user-friendly interfaces where appropriate
+8. Implement robust error handling and edge case management
+9. Follow language-specific conventions and best practices
+10. Include proper imports, configurations, and project structure
 
 MANDATORY OUTPUT FORMAT:
 For each file, use EXACTLY this format:
 
 ```filename: path/to/file.ext
-[complete file content here - no truncation, no placeholders]
+[complete file content here - no truncation, no placeholders, no "TODO" comments]
 ```
 
 QUALITY STANDARDS:
-- Write clean, well-commented, professional code
-- Include proper imports and dependencies
-- Add user-friendly interfaces where appropriate
-- Implement robust error handling
-- Follow language-specific best practices
-- Include README with clear setup instructions
+- Write clean, well-commented, professional-grade code
+- Include proper imports and all necessary dependencies
+- Add intuitive user interfaces with clear instructions
+- Implement comprehensive error handling for all edge cases
+- Follow industry best practices and design patterns
+- Include README with setup and usage instructions
+- Add configuration files (requirements.txt, package.json, etc.)
+- Ensure cross-platform compatibility where possible
 
 DELIVERABLES REQUIRED:
-- Main application file(s)
-- Configuration files (requirements.txt, package.json, etc.)
-- README.md with setup and usage instructions
-- Any additional supporting files needed
+- Main application file(s) with complete functionality
+- Configuration and dependency files
+- README.md with clear setup and usage instructions
+- Any supporting files needed for full functionality
+- Error handling and input validation throughout
+- User-friendly interfaces and clear feedback
 
-Generate a complete, professional implementation now. Make it impressive and fully functional!"""
+EXAMPLE OUTPUT STRUCTURE:
+```filename: main.py
+[complete main application code]
+```
+
+```filename: requirements.txt
+[all dependencies listed]
+```
+
+```filename: README.md
+[comprehensive setup and usage guide]
+```
+
+Generate a complete, impressive, professional implementation that will amaze users with its quality and functionality!"""
+
+    elif command == "fix_xedit_paths":
+        xedit_paths = text if isinstance(text, list) else []
+        return f"""Fix and improve the code at these XEdit-Paths: {', '.join(xedit_paths)}
+
+Provide the corrected code with explanations for each fix.
+Focus on:
+1. Bug fixes
+2. Performance improvements  
+3. Code quality enhancements
+4. Best practices
+
+Return the improved code ready to use."""
 
     return f"Analyze this {language} code:\n\n{text}"
 
 def extract_code_from_llm(llm_response):
-    """Extract code from LLM response - IMPROVED for qwen-qwq"""
+    """Extract code from LLM response - IMPROVED for DeepSeek"""
     import re
     
     print(f"🔍 DEBUG: extract_code_from_llm called")
     print(f"   Response length: {len(llm_response)} chars")
     print(f"   First 300 chars: {llm_response[:300]}...")
     
-    # For qwen-qwq, extract EVERYTHING after </think>
-    think_match = re.search(r"</think>\s*(.*)", llm_response, re.DOTALL)
-    if think_match:
-        code_content = think_match.group(1).strip()
-        print(f"   Found content after </think>: {len(code_content)} chars")
-        
-        # Check if this content has actual code blocks
-        if "```filename:" in code_content or "```" in code_content:
-            print(f"   Using post-think content with code blocks")
-            return code_content
-        else:
-            print(f"   Post-think content has no code blocks, using full response")
-            return llm_response
-    
-    # Fallback - look for code blocks in full response
+    # For DeepSeek, look for code blocks first
     patterns = [
         r"```filename:\s*([^\n]+)\n(.*?)```",  # Filename pattern
         r"```([a-zA-Z]+)\n(.*?)```",           # Language pattern
