@@ -26,45 +26,82 @@ GROQ_API_KEY = "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"
 GROQ_MODEL_NAME = "qwen-qwq-32b"
 
 def call_groq_api(prompt):
-    """Calls Groq API"""
+    """Calls Groq API with better error handling and timeout"""
     try:
         from groq import Groq
         client = Groq(api_key=GROQ_API_KEY)
+        
+        print(f"🔄 Calling Groq API with {GROQ_MODEL_NAME}...")
+        
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
             model=GROQ_MODEL_NAME,
-            temperature=0.1
+            temperature=0.1,
+            max_tokens=8192,
+            timeout=120  # 2 minute timeout
         )
-        return {"success": True, "text": chat_completion.choices[0].message.content}
+        
+        response_text = chat_completion.choices[0].message.content
+        print(f"✅ Groq API success - {len(response_text)} chars received")
+        
+        return {"success": True, "text": response_text}
+        
     except Exception as e:
-        return {"error": f"Groq API call failed: {str(e)}"}
+        error_msg = str(e)
+        print(f"❌ Groq API Error: {error_msg}")
+        
+        # Provide more specific error messages
+        if "timeout" in error_msg.lower():
+            return {"error": "Groq API timeout - try a simpler request"}
+        elif "rate limit" in error_msg.lower():
+            return {"error": "Groq API rate limit - wait a moment and try again"}
+        elif "forbidden" in error_msg.lower():
+            return {"error": "Groq API key issue - check your API key"}
+        else:
+            return {"error": f"Groq API call failed: {error_msg}"}
 
 def build_llm_prompt(command, text, language):
-    """Build prompts for code generation"""
+    """Build STRONG prompts for code generation - RESTORED ORIGINAL QUALITY"""
     if command == "peacock_full":
-        return f"""
-You are LLM2 - expert code generator for Peacock.
+        return f"""You are LLM2, an expert code generation specialist for the Peacock system.
 
-Generate COMPLETE, WORKING code for this project:
-{text}
+PROJECT REQUEST: {text}
 
-Requirements:
-1. Make it ACTUALLY functional and ready to run
-2. Include ALL necessary files
-3. Add proper error handling
-4. Use modern best practices
+CRITICAL REQUIREMENTS:
+1. Generate COMPLETE, WORKING, PRODUCTION-READY code
+2. Include ALL necessary files for a fully functional application
+3. Add comprehensive error handling and input validation
+4. Use modern best practices and clean architecture
+5. Include setup instructions and dependencies
+6. Make it immediately runnable after extraction
 
-Format each file as:
+MANDATORY OUTPUT FORMAT:
+For each file, use EXACTLY this format:
+
 ```filename: path/to/file.ext
-[complete file content here]
+[complete file content here - no truncation, no placeholders]
 ```
 
-Generate a complete implementation now:
-"""
+QUALITY STANDARDS:
+- Write clean, well-commented, professional code
+- Include proper imports and dependencies
+- Add user-friendly interfaces where appropriate
+- Implement robust error handling
+- Follow language-specific best practices
+- Include README with clear setup instructions
+
+DELIVERABLES REQUIRED:
+- Main application file(s)
+- Configuration files (requirements.txt, package.json, etc.)
+- README.md with setup and usage instructions
+- Any additional supporting files needed
+
+Generate a complete, professional implementation now. Make it impressive and fully functional!"""
+
     return f"Analyze this {language} code:\n\n{text}"
 
 def extract_code_from_llm(llm_response):
-    """Extract code from LLM response - FIXED for qwen-qwq"""
+    """Extract code from LLM response - IMPROVED for qwen-qwq"""
     import re
     
     print(f"🔍 DEBUG: extract_code_from_llm called")
@@ -76,27 +113,41 @@ def extract_code_from_llm(llm_response):
     if think_match:
         code_content = think_match.group(1).strip()
         print(f"   Found content after </think>: {len(code_content)} chars")
-        print(f"   Using full post-think content as code")
-        return code_content
+        
+        # Check if this content has actual code blocks
+        if "```filename:" in code_content or "```" in code_content:
+            print(f"   Using post-think content with code blocks")
+            return code_content
+        else:
+            print(f"   Post-think content has no code blocks, using full response")
+            return llm_response
     
-    # Fallback - look for code blocks
+    # Fallback - look for code blocks in full response
     patterns = [
-        r"```(?:filename:\s*)?[^\n]*\n(.*?)```",  # Original pattern
-        r"```python\n(.*?)```",                     # Python specific
-        r"```\n(.*?)```",                           # Simple pattern
+        r"```filename:\s*([^\n]+)\n(.*?)```",  # Filename pattern
+        r"```([a-zA-Z]+)\n(.*?)```",           # Language pattern
+        r"```\n(.*?)```",                      # Simple pattern
     ]
     
     for i, pattern in enumerate(patterns):
         matches = re.findall(pattern, llm_response, re.DOTALL)
         print(f"   Pattern {i+1} found {len(matches)} matches")
         if matches:
-            # Take ALL matches, not just first one
-            all_code = "\n\n".join(matches)
-            print(f"   Using combined matches: {len(all_code)} chars")
-            return all_code
+            if i == 0:  # filename pattern
+                # Reconstruct with filename format
+                reconstructed = ""
+                for filename, content in matches:
+                    reconstructed += f"```filename: {filename}\n{content}\n```\n\n"
+                print(f"   Using reconstructed filename blocks: {len(reconstructed)} chars")
+                return reconstructed
+            else:
+                # Take ALL matches, not just first one
+                all_code = "\n\n".join([match[1] if isinstance(match, tuple) else match for match in matches])
+                print(f"   Using combined matches: {len(all_code)} chars")
+                return all_code
     
     print("   ❌ NO CODE BLOCKS FOUND! Using full response")
-    # Return the whole damn response if nothing else works
+    # Return the whole response if nothing else works
     return llm_response
 
 def process_llm_response(command, llm_raw_text, location_info, original_request=None):
@@ -105,7 +156,14 @@ def process_llm_response(command, llm_raw_text, location_info, original_request=
         try:
             from mockup_xedit_generator import generate_enhanced_html_interface
             from peacock_model_dashboard import generate_model_dashboard
-            from peacock_download_interface import generate_download_interface
+            
+            # Try to import download interface
+            try:
+                from peacock_download_interface import generate_download_interface
+                download_available = True
+            except ImportError as e:
+                print(f"⚠️  Download interface not available: {e}")
+                download_available = False
             
             # Extract code from LLM response
             fresh_code = extract_code_from_llm(llm_raw_text)
@@ -149,11 +207,18 @@ def process_llm_response(command, llm_raw_text, location_info, original_request=
             else:
                 print(f"✅ Dashboard already in correct location: {dashboard_reports_path}")
             
-            # Generate Download Interface with ZIP package
-            print("📦 Generating Download Package...")
-            download_result = generate_download_interface(llm_raw_text, original_request)
+            # Generate Download Interface with ZIP package (if available)
+            download_result = None
+            if download_available:
+                try:
+                    print("📦 Generating Download Package...")
+                    download_result = generate_download_interface(llm_raw_text, original_request)
+                    print("✅ Download package generated successfully")
+                except Exception as e:
+                    print(f"❌ Download package generation failed: {e}")
+                    download_available = False
             
-            # Auto-open BOTH files in browser
+            # Auto-open interfaces in browser
             try:
                 webbrowser.open(f"file://{xedit_reports_path.absolute()}")
                 print(f"🌐 Opened XEdit interface: {xedit_reports_path}")
@@ -168,21 +233,28 @@ def process_llm_response(command, llm_raw_text, location_info, original_request=
             except Exception as e:
                 print(f"⚠️  Could not auto-open browsers: {e}")
             
-            return {
+            # Build response
+            response_data = {
                 "analysis_type": "peacock_fresh_interface",
                 "result_text": llm_raw_text,
                 "xedit_html": str(xedit_reports_path),
                 "dashboard_html": str(dashboard_reports_path),
-                "download_html": download_result['html_path'] if download_result else None,
-                "download_zip": download_result['zip_path'] if download_result else None,
                 "file_count": len(re.findall(r'```filename:', llm_raw_text)),
                 "pipeline_stages": {
                     "fresh_code_generation": "✅ Complete",
                     "interface_generation": "✅ Complete",
                     "model_dashboard_generation": "✅ Complete",
-                    "download_package_generation": "✅ Complete" if download_result else "❌ Failed"
+                    "download_package_generation": "✅ Complete" if download_result else "⚠️  Unavailable"
                 }
             }
+            
+            # Add download info if available
+            if download_result:
+                response_data["download_html"] = download_result['html_path']
+                response_data["download_zip"] = download_result['zip_path']
+            
+            return response_data
+            
         except Exception as e:
             print(f"❌ ERROR: {e}")
             traceback.print_exc()
@@ -230,11 +302,14 @@ class EnhancedMCPRequestHandler(http.server.BaseHTTPRequestHandler):
                     
                     with open(zip_path, 'rb') as f:
                         self.wfile.write(f.read())
+                    
+                    print(f"📦 Served ZIP download: {zip_path.name}")
                 else:
+                    print(f"❌ ZIP file not found: {zip_path}")
                     self.send_response(404)
                     self.end_headers()
             except Exception as e:
-                print(f"Error serving ZIP file: {e}")
+                print(f"❌ Error serving ZIP file: {e}")
                 self.send_response(500)
                 self.end_headers()
         else:
@@ -257,10 +332,14 @@ class EnhancedMCPRequestHandler(http.server.BaseHTTPRequestHandler):
                 print(f"🦚 MCP: Processing {command} - {original_request[:50] if original_request else 'N/A'}...")
 
                 llm_prompt = build_llm_prompt(command, text_to_process, language)
+                print(f"📝 Generated prompt: {len(llm_prompt)} chars")
+                
                 llm_response = call_groq_api(llm_prompt)
 
                 if llm_response.get("success"):
                     llm_raw_text = llm_response.get("text", "")
+                    print(f"✅ LLM Response received: {len(llm_raw_text)} chars")
+                    
                     internal_data = process_llm_response(command, llm_raw_text, location_info, original_request)
 
                     response_payload = {
@@ -279,8 +358,13 @@ class EnhancedMCPRequestHandler(http.server.BaseHTTPRequestHandler):
                     self.send_header("Access-Control-Allow-Origin", "*")
                     self.end_headers()
                     self.wfile.write(json.dumps(response_payload).encode('utf-8'))
+                    
+                    print("✅ Response sent successfully")
+                    
                 else:
                     error_message = llm_response.get("error", "Unknown error")
+                    print(f"❌ LLM Error: {error_message}")
+                    
                     self.send_response(500)
                     self.send_header('Content-type', 'application/json')
                     self.send_header("Access-Control-Allow-Origin", "*")
@@ -307,12 +391,19 @@ class EnhancedMCPRequestHandler(http.server.BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     print("🦚 Enhanced MCP Server starting...")
+    print(f"🔥 Using GROQ {GROQ_MODEL_NAME}")
+    print("📦 Download functionality enabled")
+    print("🌐 Health check: http://127.0.0.1:8000/health")
+    print()
+    
     with socketserver.TCPServer((HOST, PORT), EnhancedMCPRequestHandler, bind_and_activate=False) as httpd:
         httpd.allow_reuse_address = True
         httpd.server_bind()
         httpd.server_activate()
-        print(f"🔥 Server running on {HOST}:{PORT} with GROQ {GROQ_MODEL_NAME}")
-        print("📦 Download functionality enabled")
+        print(f"🚀 Server running on {HOST}:{PORT}")
+        print("Press Ctrl+C to stop.")
+        print()
+        
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
