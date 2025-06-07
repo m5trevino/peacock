@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Clean XEdit Interface Generator with Deploy Button + Download Integration
+Clean XEdit Interface Generator with Deploy Button + Download Integration + FIXED XEdit Path Population
 """
 
 import json
@@ -10,53 +10,106 @@ from datetime import datetime
 from pathlib import Path
 
 def parse_code_structure(code_content):
-    """Parse code to extract functions, classes, and structure"""
+    """Parse code to extract functions, classes, and structure - ENHANCED for better detection"""
     functions = []
     classes = []
     
-    # Simple regex patterns for common languages
+    # Enhanced regex patterns for multiple languages
     function_patterns = [
-        r'def\s+(\w+)\s*\(',  # Python
-        r'function\s+(\w+)\s*\(',  # JavaScript
-        r'fn\s+(\w+)\s*\(',  # Rust
-        r'func\s+(\w+)\s*\(',  # Go
+        (r'def\s+(\w+)\s*\(', 'python'),      # Python functions
+        (r'function\s+(\w+)\s*\(', 'javascript'), # JavaScript functions
+        (r'fn\s+(\w+)\s*\(', 'rust'),         # Rust functions
+        (r'func\s+(\w+)\s*\(', 'go'),         # Go functions
+        (r'public\s+\w+\s+(\w+)\s*\(', 'java'), # Java methods
+        (r'(\w+)\s*:\s*function\s*\(', 'javascript'), # JS object methods
+        (r'(\w+)\s*=>\s*{', 'javascript'),    # Arrow functions
+        (r'async\s+def\s+(\w+)\s*\(', 'python'), # Python async functions
+        (r'@app\.route.*\ndef\s+(\w+)\s*\(', 'python'), # Flask routes
     ]
     
     class_patterns = [
-        r'class\s+(\w+)',  # Python/JS
-        r'struct\s+(\w+)',  # Rust/C++
-        r'impl\s+(\w+)',   # Rust impl blocks
+        (r'class\s+(\w+)', 'python'),         # Python/JS classes
+        (r'struct\s+(\w+)', 'rust'),          # Rust structs
+        (r'impl\s+(\w+)', 'rust'),            # Rust impl blocks
+        (r'interface\s+(\w+)', 'typescript'), # TypeScript interfaces
+        (r'type\s+(\w+)\s+struct', 'go'),     # Go structs
+        (r'public\s+class\s+(\w+)', 'java'),  # Java classes
     ]
     
     lines = code_content.split('\n')
     
     for i, line in enumerate(lines, 1):
+        line_stripped = line.strip()
+        
+        # Skip comments and empty lines
+        if not line_stripped or line_stripped.startswith('#') or line_stripped.startswith('//'):
+            continue
+        
         # Check for functions
-        for pattern in function_patterns:
+        for pattern, lang in function_patterns:
             match = re.search(pattern, line)
             if match:
+                func_name = match.group(1)
+                # Calculate approximate end line (look ahead for next function/class or end)
+                end_line = min(i + 15, len(lines))  # Default span
+                
+                # Try to find actual end by looking for next def/function/class
+                for j in range(i, min(i + 50, len(lines))):
+                    if j >= len(lines):
+                        break
+                    next_line = lines[j].strip()
+                    if j > i and (next_line.startswith('def ') or 
+                                  next_line.startswith('function ') or 
+                                  next_line.startswith('class ') or
+                                  next_line.startswith('fn ') or
+                                  next_line.startswith('func ') or
+                                  next_line.startswith('@app.route')):
+                        end_line = j
+                        break
+                
                 functions.append({
-                    "name": match.group(1),
+                    "name": func_name,
                     "type": "function",
                     "line": i,
-                    "lines": f"{i}-{i+10}"
+                    "lines": f"{i}-{end_line}",
+                    "language": lang
                 })
+                break  # Only match first pattern per line
         
         # Check for classes/structs/impls
-        for pattern in class_patterns:
+        for pattern, lang in class_patterns:
             match = re.search(pattern, line)
             if match:
+                class_name = match.group(1)
+                # Calculate approximate end line
+                end_line = min(i + 25, len(lines))  # Default span for classes
+                
+                # Try to find actual end by looking for next class/major block
+                for j in range(i, min(i + 100, len(lines))):
+                    if j >= len(lines):
+                        break
+                    next_line = lines[j].strip()
+                    if j > i and (next_line.startswith('class ') or 
+                                  next_line.startswith('struct ') or
+                                  next_line.startswith('impl ') or
+                                  next_line.startswith('public class ')):
+                        end_line = j
+                        break
+                
                 classes.append({
-                    "name": match.group(1),
-                    "type": "class", 
+                    "name": class_name,
+                    "type": "class",
                     "line": i,
-                    "lines": f"{i}-{i+20}"
+                    "lines": f"{i}-{end_line}",
+                    "language": lang
                 })
+                break  # Only match first pattern per line
     
+    print(f"🔍 Parsed code structure: {len(functions)} functions, {len(classes)} classes")
     return functions + classes
 
 def generate_xedit_paths(parsed_code):
-    """Generate clean minimal XEdit-Path IDs (7x001 style)"""
+    """Generate clean minimal XEdit-Path IDs (7x001 style) - ENHANCED"""
     xedit_paths = {}
     path_counter = 1
     
@@ -64,43 +117,62 @@ def generate_xedit_paths(parsed_code):
         # Generate clean minimal ID
         clean_id = f"7x{path_counter:03d}"
         
-        # Store mapping
+        # Store mapping with enhanced metadata
         xedit_paths[clean_id] = {
             "display_name": item["name"],
             "type": item["type"],
             "lines": item.get("lines", ""),
-            "technical_path": f"{item['type']}.{item['name']}/lines[{item.get('lines', 'unknown')}]"
+            "technical_path": f"{item['type']}.{item['name']}/lines[{item.get('lines', 'unknown')}]",
+            "language": item.get("language", "unknown"),
+            "start_line": int(item.get("lines", "1-1").split('-')[0]),
+            "end_line": int(item.get("lines", "1-1").split('-')[1])
         }
         
         path_counter += 1
     
+    print(f"✅ Generated {len(xedit_paths)} XEdit paths")
     return xedit_paths
 
 def generate_enhanced_html_interface(code_content, project_name="Untitled", file_count=1):
-    """Generate XEdit interface with deploy button and download integration"""
+    """Generate XEdit interface with deploy button, download integration, and WORKING XEdit paths"""
     
+    print(f"🔧 Generating XEdit interface for: {project_name}")
+    print(f"📄 Code content length: {len(code_content)} chars")
+    
+    # Parse code structure with enhanced detection
     parsed_code = parse_code_structure(code_content)
     xedit_paths = generate_xedit_paths(parsed_code)
     
-    # Build functions list HTML
+    # Build functions list HTML with proper data
     functions_html = ""
-    for xedit_id, data in xedit_paths.items():
-        icon = "🏗️" if data["type"] == "class" else "⚡"
-        functions_html += f"""
+    if xedit_paths:
+        for xedit_id, data in xedit_paths.items():
+            icon = "🏗️" if data["type"] == "class" else "⚡"
+            display_name = data["display_name"]
+            item_type = data["type"]
+            
+            functions_html += f"""
         <div class="function-item" onclick="highlightFunction('{xedit_id}')">
             <div class="function-info">
                 <span class="function-icon">{icon}</span>
-                <span class="function-name">{data['display_name']}()</span>
-                <span class="function-type">{data['type']}</span>
+                <span class="function-name">{display_name}()</span>
+                <span class="function-type">{item_type}</span>
             </div>
             <button class="add-btn" onclick="addToPayload('{xedit_id}')" title="Add to payload">+</button>
         </div>"""
+    else:
+        functions_html = """
+        <div style="padding: 40px; text-align: center; color: #8b949e;">
+            <p>No functions or classes detected</p>
+            <p style="font-size: 12px; margin-top: 10px;">Code may be in a format not yet supported</p>
+        </div>"""
     
-    # Format code with line numbers
+    # Format code with line numbers - ENHANCED
     code_lines = code_content.split('\n')
     code_html = ""
     for i, line in enumerate(code_lines, 1):
-        escaped_line = line.replace('<', '&lt;').replace('>', '&gt;')
+        # Escape HTML characters properly
+        escaped_line = line.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
         code_html += f'<div class="code-line" data-line="{i}"><span class="line-number">{i:2d}</span><span class="line-content">{escaped_line}</span></div>\n'
     
     html_content = f"""
@@ -588,7 +660,11 @@ def generate_enhanced_html_interface(code_content, project_name="Untitled", file
     </div>
 
     <script>
+        // XEdit path mappings - PROPERLY POPULATED
         const xeditPaths = {json.dumps(xedit_paths)};
+        
+        console.log('🔍 XEdit Paths loaded:', Object.keys(xeditPaths).length, 'paths');
+        console.log('📋 XEdit Paths data:', xeditPaths);
         
         function deployCode() {{
             alert("🚀 Code ready to deploy!\\n\\nTo run your app:\\n1. Save the code to main.py\\n2. Run: python main.py\\n\\nFull deployment coming soon!");
@@ -599,6 +675,9 @@ def generate_enhanced_html_interface(code_content, project_name="Untitled", file
         }}
         
         function highlightFunction(xeditId) {{
+            console.log('🎯 Highlighting function:', xeditId);
+            
+            // Clear previous highlights
             document.querySelectorAll('.code-line').forEach(line => {{
                 line.classList.remove('highlighted');
             }});
@@ -607,11 +686,17 @@ def generate_enhanced_html_interface(code_content, project_name="Untitled", file
                 item.classList.remove('selected');
             }});
             
+            // Highlight selected function
             event.currentTarget.classList.add('selected');
             
+            // Get line range and highlight code
             const pathData = xeditPaths[xeditId];
+            console.log('📍 Path data:', pathData);
+            
             if (pathData && pathData.lines) {{
                 const [start, end] = pathData.lines.split('-').map(n => parseInt(n));
+                console.log(`🔢 Highlighting lines ${{start}} to ${{end}}`);
+                
                 for (let i = start; i <= end; i++) {{
                     const line = document.querySelector(`[data-line="${{i}}"]`);
                     if (line) {{
@@ -619,26 +704,35 @@ def generate_enhanced_html_interface(code_content, project_name="Untitled", file
                     }}
                 }}
                 
+                // Scroll to highlighted section
                 const firstHighlighted = document.querySelector('.code-line.highlighted');
                 if (firstHighlighted) {{
                     firstHighlighted.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
                 }}
+            }} else {{
+                console.warn('⚠️  No line data for XEdit path:', xeditId);
             }}
         }}
 
         function addToPayload(xeditId) {{
+            console.log('➕ Adding to payload:', xeditId);
+            
             const payloadList = document.getElementById("payload-list");
             const sendButton = document.getElementById("send-button");
             
+            // Check if already added
             if (document.getElementById(`payload-${{xeditId}}`)) {{
+                console.log('⚠️  Already in payload:', xeditId);
                 return;
             }}
             
+            // Remove empty message
             const emptyMsg = payloadList.querySelector('.payload-empty');
             if (emptyMsg) {{
                 emptyMsg.remove();
             }}
             
+            // Create payload item
             const payloadItem = document.createElement("div");
             payloadItem.className = "payload-item";
             payloadItem.id = `payload-${{xeditId}}`;
@@ -649,10 +743,12 @@ def generate_enhanced_html_interface(code_content, project_name="Untitled", file
             
             payloadList.appendChild(payloadItem);
             
+            // Update send button
             const count = payloadList.children.length;
             sendButton.textContent = `🚀 Send ${{count}} to LLM2`;
             sendButton.disabled = false;
             
+            // Visual feedback
             const addBtn = event.target;
             const originalBg = addBtn.style.backgroundColor;
             const originalText = addBtn.innerHTML;
@@ -670,6 +766,7 @@ def generate_enhanced_html_interface(code_content, project_name="Untitled", file
                 payloadItem.remove();
             }}
             
+            // Update send button
             const payloadList = document.getElementById("payload-list");
             const sendButton = document.getElementById("send-button");
             const count = payloadList.children.length;
