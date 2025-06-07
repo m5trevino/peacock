@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Clean XEdit Interface Generator with Deploy Button
+Clean XEdit Interface Generator with Deploy Button + Download Integration
 """
 
 import json
@@ -77,7 +77,7 @@ def generate_xedit_paths(parsed_code):
     return xedit_paths
 
 def generate_enhanced_html_interface(code_content, project_name="Untitled", file_count=1):
-    """Generate XEdit interface with deploy button"""
+    """Generate XEdit interface with deploy button and download integration"""
     
     parsed_code = parse_code_structure(code_content)
     xedit_paths = generate_xedit_paths(parsed_code)
@@ -387,6 +387,7 @@ def generate_enhanced_html_interface(code_content, project_name="Untitled", file
             background: rgba(46, 204, 113, 0.1);
             border: 1px solid #2ecc71;
             border-radius: 8px;
+            margin-bottom: 15px;
         }}
 
         .deploy-title {{
@@ -414,10 +415,39 @@ def generate_enhanced_html_interface(code_content, project_name="Untitled", file
             color: white;
             font-weight: 600;
             cursor: pointer;
+            margin-bottom: 8px;
         }}
 
         .deploy-button:hover {{
             background: linear-gradient(45deg, #27ae60, #219a52);
+        }}
+
+        .download-section {{
+            padding: 15px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid #667eea;
+            border-radius: 8px;
+        }}
+
+        .download-title {{
+            color: #667eea;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }}
+
+        .download-button {{
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }}
+
+        .download-button:hover {{
+            background: linear-gradient(45deg, #5a67d8, #6b46c1);
         }}
 
         .right-panel {{
@@ -506,7 +536,7 @@ def generate_enhanced_html_interface(code_content, project_name="Untitled", file
         <div class="nav-links">
             <a href="#" class="nav-link active">📝 XEdit</a>
             <a href="peacock_model_dashboard.html" class="nav-link">🤖 Models</a>
-            <a href="#" class="nav-link">💬 Senior Dev</a>
+            <a href="peacock_download_interface.html" class="nav-link">📦 Download</a>
         </div>
         <div class="project-info">Project: {project_name} • {file_count} files</div>
     </div>
@@ -539,6 +569,11 @@ def generate_enhanced_html_interface(code_content, project_name="Untitled", file
                     </div>
                     <button class="deploy-button" onclick="deployCode()">🔥 Deploy Code</button>
                 </div>
+
+                <div class="download-section">
+                    <div class="download-title">📦 Download Package</div>
+                    <button class="download-button" onclick="openDownloadInterface()">📥 Download ZIP</button>
+                </div>
             </div>
         </div>
 
@@ -557,6 +592,10 @@ def generate_enhanced_html_interface(code_content, project_name="Untitled", file
         
         function deployCode() {{
             alert("🚀 Code ready to deploy!\\n\\nTo run your app:\\n1. Save the code to main.py\\n2. Run: python main.py\\n\\nFull deployment coming soon!");
+        }}
+        
+        function openDownloadInterface() {{
+            window.open("peacock_download_interface.html", "_blank");
         }}
         
         function highlightFunction(xeditId) {{
@@ -692,4 +731,4 @@ if __name__ == "__main__":
     print("Calculator started")'''
     
     html_output = generate_enhanced_html_interface(sample_code, "Calculator App", 1)
-    print("🔥 XEdit interface with deploy button ready!")
+    print("🔥 XEdit interface with deploy button and download integration ready!")
