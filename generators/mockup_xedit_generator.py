@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Clean XEdit Interface Generator with Deploy Button + Download Integration + FIXED XEdit Path Population
+Clean XEdit Interface Generator with Deploy Button + FIXED XEdit Path Population
 """
 
 import json
@@ -13,6 +13,8 @@ def parse_code_structure(code_content):
     """Parse code to extract functions, classes, and structure - ENHANCED for better detection"""
     functions = []
     classes = []
+    
+    print(f"🔍 Parsing code structure from {len(code_content)} chars")
     
     # Enhanced regex patterns for multiple languages
     function_patterns = [
@@ -825,7 +827,18 @@ def generate_enhanced_html_interface(code_content, project_name="Untitled", file
 
 if __name__ == "__main__":
     sample_code = '''def main():
-    print("Calculator started")'''
+    print("Calculator started")
+    calculator = Calculator()
+    calculator.run()
+
+class Calculator:
+    def __init__(self):
+        self.result = 0
+    
+    def run(self):
+        print("Calculator started")
+        # Add your logic here
+'''
     
     html_output = generate_enhanced_html_interface(sample_code, "Calculator App", 1)
     print("🔥 XEdit interface with deploy button and download integration ready!")

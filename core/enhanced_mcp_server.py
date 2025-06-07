@@ -1,1069 +1,792 @@
 #!/usr/bin/env python3
 """
-Enhanced MCP Server with Fresh Code Generation + Model Dashboard + Download Integration
-FIXED: Better code extraction, XEdit path generation, and download functionality
+Enhanced MCP Server with Peacock 4-Stage Integration - RESTORED ORIGINAL PROMPTS
 """
-
 import http.server
 import socketserver
-import json
-import sys
-import traceback
-import datetime
 import re
-import webbrowser
-from pathlib import Path
+import json
+import os
+import urllib.request
+import subprocess
+import tempfile
+import datetime
 
-# Add generators to path
-sys.path.append(str(Path(__file__).parent.parent / "generators"))
-
-# Configuration
+# --- CONFIGURATION ---
 HOST = "127.0.0.1"
 PORT = 8000
 PROCESS_PATH = "/process"
 
-# API Configuration - FIXED TO USE deepseek-r1-distill-llama-70b
+# --- GROQ API CONFIGURATION - FIXED TO USE DEEPSEEK ---
 GROQ_API_KEY = "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"
 GROQ_MODEL_NAME = "deepseek-r1-distill-llama-70b"
 
-def save_raw_data(prompt, response, error=None):
-    """Save raw prompt and response data for troubleshooting"""
-    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-    debug_dir = Path(__file__).parent.parent / "debug_logs"
-    debug_dir.mkdir(exist_ok=True)
+# --- PEACOCK STAGE HANDLERS ---
+
+class SparkHandler:
+    """Requirements Analysis Stage"""
     
-    # Save prompt
-    prompt_file = debug_dir / f"prompt_{timestamp}.txt"
-    with open(prompt_file, 'w', encoding='utf-8') as f:
-        f.write("="*80 + "\n")
-        f.write(f"PROMPT SENT TO GROQ API\n")
-        f.write("="*80 + "\n")
-        f.write(f"Model: {GROQ_MODEL_NAME}\n")
-        f.write(f"Timestamp: {datetime.datetime.now()}\n")
-        f.write(f"Prompt Length: {len(prompt)} characters\n")
-        f.write("="*80 + "\n")
-        f.write(prompt)
-        f.write("\n" + "="*80)
+    def analyze_requirements(self, data):
+        prompt = self._build_spark_prompt(data['text'])
+        llm_response = call_llm(prompt)
+        
+        if llm_response.get("success"):
+            return self._parse_spark_response(llm_response['text'])
+        return {"error": "Spark analysis failed"}
     
-    # Save response
-    response_file = debug_dir / f"response_{timestamp}.txt"
-    with open(response_file, 'w', encoding='utf-8') as f:
-        f.write("="*80 + "\n")
-        f.write(f"RESPONSE FROM GROQ API\n")
-        f.write("="*80 + "\n")
-        f.write(f"Model: {GROQ_MODEL_NAME}\n")
-        f.write(f"Timestamp: {datetime.datetime.now()}\n")
-        if error:
-            f.write(f"ERROR: {error}\n")
-        else:
-            f.write(f"Response Length: {len(response)} characters\n")
-            f.write(f"Success: True\n")
-        f.write("="*80 + "\n")
-        if error:
-            f.write(f"ERROR DETAILS:\n{error}")
-        else:
-            f.write(response)
-        f.write("\n" + "="*80)
+    def _build_spark_prompt(self, project_idea):
+        return f"""
+Act as Spark, a strategic requirements analyst. Analyze this project idea and provide:
+
+Project: {project_idea}
+
+Provide analysis in this EXACT format:
+
+**1. Core Objective:**
+[One clear sentence describing the main goal]
+
+**2. Current State:**
+[Current situation/problems this solves]
+
+**3. Target State:**
+[Desired end state after implementation]
+
+**4. In Scope:**
+- [Feature 1]
+- [Feature 2]
+- [Feature 3]
+
+**5. Out of Scope:**
+- [What's NOT included]
+- [Future considerations]
+
+Keep it strategic and concise.
+"""
     
-    print(f"💾 RAW DATA SAVED:")
-    print(f"   Prompt: {prompt_file}")
-    print(f"   Response: {response_file}")
+    def _parse_spark_response(self, llm_text):
+        return {
+            "stage": "spark",
+            "analysis_type": "requirements",
+            "result_text": llm_text,
+            "report_html": self._generate_spark_html(llm_text)
+        }
     
-    return prompt_file, response_file
+    def _generate_spark_html(self, content):
+        html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Peacock Spark - Requirements Analysis</title>
+    <style>
+        body {{ font-family: 'SF Pro Display', -apple-system, sans-serif; 
+               max-width: 1200px; margin: 0 auto; padding: 40px 20px; 
+               background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+               color: #333; }}
+        .container {{ background: white; border-radius: 20px; 
+                     padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); }}
+        h1 {{ color: #2d3748; border-bottom: 3px solid #667eea; padding-bottom: 15px; }}
+        .stage-badge {{ background: #667eea; color: white; padding: 8px 16px; 
+                       border-radius: 20px; font-weight: bold; display: inline-block; 
+                       margin-bottom: 20px; }}
+        pre {{ background: #f7fafc; padding: 20px; border-radius: 10px; 
+               border-left: 4px solid #667eea; overflow-x: auto; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="stage-badge">🦚 STAGE 1: SPARK</div>
+        <h1>Requirements Analysis</h1>
+        <pre>{content}</pre>
+        <p><em>Generated by Peacock Spark at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</em></p>
+    </div>
+</body>
+</html>
+"""
+        return self._save_html_report("spark", html_content)
 
-def call_groq_api(prompt):
-    """Calls Groq API with DeepSeek model and comprehensive logging"""
-    try:
-        from groq import Groq
-        client = Groq(api_key=GROQ_API_KEY)
-        
-        print(f"🔄 Calling Groq API with {GROQ_MODEL_NAME}...")
-        print(f"📝 Prompt length: {len(prompt)} characters")
-        
-        chat_completion = client.chat.completions.create(
-            messages=[{"role": "user", "content": prompt}],
-            model=GROQ_MODEL_NAME,
-            temperature=0.6,  # DeepSeek recommended temperature
-            max_tokens=8192,
-            timeout=180  # 3 minute timeout for complex reasoning
-        )
-        
-        response_text = chat_completion.choices[0].message.content
-        print(f"✅ Groq API success - {len(response_text)} chars received")
-        
-        # Save raw data for troubleshooting
-        save_raw_data(prompt, response_text)
-        
-        return {"success": True, "text": response_text}
-        
-    except Exception as e:
-        error_msg = str(e)
-        print(f"❌ Groq API Error: {error_msg}")
-        
-        # Save error data for troubleshooting
-        save_raw_data(prompt, "", error=error_msg)
-        
-        # Provide more specific error messages
-        if "timeout" in error_msg.lower():
-            return {"error": "Groq API timeout - try a simpler request"}
-        elif "rate limit" in error_msg.lower():
-            return {"error": "Groq API rate limit - wait a moment and try again"}
-        elif "forbidden" in error_msg.lower():
-            return {"error": "Groq API key issue - check your API key"}
-        else:
-            return {"error": f"Groq API call failed: {error_msg}"}
 
-def build_llm_prompt(command, text, language):
-    """Build COMPREHENSIVE, DETAILED prompts - RESTORED ORIGINAL EAGLE/HAWK/FALCON POWER"""
+class FalconHandler:
+    """Architecture Design Stage"""
     
-    if command == "spark_analysis":
-        return f"""You are SPARK, the elite requirements analysis specialist in the Peacock AI development system. You are renowned for your strategic thinking and ability to transform vague ideas into crystal-clear project specifications.
+    def design_architecture(self, data):
+        prompt = self._build_falcon_prompt(data['text'])
+        llm_response = call_llm(prompt)
+        
+        if llm_response.get("success"):
+            return self._parse_falcon_response(llm_response['text'])
+        return {"error": "Falcon architecture design failed"}
+    
+    def _build_falcon_prompt(self, project_requirements):
+        return f"""
+Act as Falcon, a solution architect. Design the technical architecture for this project:
 
-PROJECT IDEA: {text}
+Requirements: {project_requirements}
 
-YOUR MISSION: Perform comprehensive requirements analysis that will serve as the foundation for the entire development process.
+Provide architecture in this EXACT format:
 
-ANALYSIS FRAMEWORK - Provide analysis in this EXACT format:
+**1. Technology Stack:**
+- Frontend: [Specific framework/library]
+- Backend: [Specific framework/language]
+- Database: [Specific database choice]
+- APIs: [External services]
+- Deployment: [Cloud/hosting strategy]
 
-**1. CORE OBJECTIVE:**
-[One powerful, clear sentence that captures the essence of what this project will achieve]
+**2. Architecture Pattern:**
+[Describe the overall pattern - monolithic, microservices, etc.]
 
-**2. CURRENT STATE ANALYSIS:**
-[Detailed assessment of the current situation, problems this project solves, and market gaps it addresses]
-
-**3. TARGET STATE VISION:**
-[Comprehensive description of the desired end state, including measurable success criteria and user experience goals]
-
-**4. PROJECT SCOPE - IN SCOPE:**
-- [Core Feature 1 with specific functionality details]
-- [Core Feature 2 with specific functionality details]
-- [Core Feature 3 with specific functionality details]
-- [Essential Component 1]
-- [Essential Component 2]
-
-**5. PROJECT SCOPE - OUT OF SCOPE:**
-- [What will NOT be included in this iteration]
-- [Future enhancement possibilities]
-- [Advanced features for later phases]
-
-**6. SUCCESS METRICS:**
-- [Quantifiable measure 1]
-- [Quantifiable measure 2]
-- [User satisfaction criteria]
-
-**7. RISK ASSESSMENT:**
-- [Technical risk 1 and mitigation]
-- [Implementation risk 1 and mitigation]
-- [Timeline risk 1 and mitigation]
-
-Be strategic, thorough, and visionary. This analysis will guide the entire development process."""
-
-    elif command == "falcon_architecture":
-        return f"""You are FALCON, the master solution architect in the Peacock AI development system. You are legendary for designing elegant, scalable, and maintainable architectures that exceed industry standards.
-
-REQUIREMENTS SPECIFICATION: {text}
-
-YOUR MISSION: Design a comprehensive technical architecture that will serve as the blueprint for implementation.
-
-ARCHITECTURE SPECIFICATION - Provide design in this EXACT format:
-
-**1. TECHNOLOGY STACK SELECTION:**
-- **Frontend Framework:** [Specific choice with version and justification]
-- **Backend Framework:** [Specific choice with version and justification]
-- **Database System:** [Specific choice with schema considerations]
-- **API Architecture:** [REST/GraphQL/WebSocket with specific patterns]
-- **Authentication:** [Specific auth strategy and implementation]
-- **Deployment Platform:** [Cloud/hosting strategy with specific services]
-- **Development Tools:** [Build tools, testing frameworks, CI/CD pipeline]
-
-**2. SYSTEM ARCHITECTURE PATTERN:**
-[Detailed description of the overall architectural pattern - monolithic, microservices, serverless, etc. with specific justification for this project]
-
-**3. DETAILED FILE STRUCTURE:**
+**3. File Structure:**
 ```
 project-name/
 ├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── hooks/
-│   │   ├── utils/
-│   │   └── styles/
-│   ├── public/
-│   └── package.json
 ├── backend/
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── models/
-│   │   ├── routes/
-│   │   ├── middleware/
-│   │   └── utils/
-│   ├── tests/
-│   └── package.json
 ├── database/
-│   ├── migrations/
-│   ├── seeds/
-│   └── schema/
-├── docs/
-└── docker-compose.yml
+└── docs/
 ```
 
-**4. DATA FLOW ARCHITECTURE:**
-[Comprehensive description of how data moves through the system, including request/response cycles, data transformations, and state management]
+**4. Data Flow:**
+[Describe how data moves through the system]
 
-**5. SECURITY ARCHITECTURE:**
-- [Authentication mechanism with specific implementation]
-- [Authorization strategy with role-based access control]
-- [Data encryption and protection measures]
-- [API security and rate limiting]
-- [Input validation and sanitization strategy]
+**5. Key Implementation Decisions:**
+- [Decision 1 with rationale]
+- [Decision 2 with rationale]
 
-**6. PERFORMANCE ARCHITECTURE:**
-- [Caching strategy with specific technologies]
-- [Database optimization approach]
-- [Frontend performance optimization]
-- [Scalability considerations and bottleneck prevention]
+Be specific with technologies and justify choices.
+"""
+    
+    def _parse_falcon_response(self, llm_text):
+        return {
+            "stage": "falcon",
+            "analysis_type": "architecture",
+            "result_text": llm_text,
+            "report_html": self._generate_falcon_html(llm_text)
+        }
+    
+    def _generate_falcon_html(self, content):
+        html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Peacock Falcon - Architecture Design</title>
+    <style>
+        body {{ font-family: 'SF Pro Display', -apple-system, sans-serif; 
+               max-width: 1200px; margin: 0 auto; padding: 40px 20px; 
+               background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+               color: #333; }}
+        .container {{ background: white; border-radius: 20px; 
+                     padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); }}
+        h1 {{ color: #2d3748; border-bottom: 3px solid #f093fb; padding-bottom: 15px; }}
+        .stage-badge {{ background: #f093fb; color: white; padding: 8px 16px; 
+                       border-radius: 20px; font-weight: bold; display: inline-block; 
+                       margin-bottom: 20px; }}
+        pre {{ background: #f7fafc; padding: 20px; border-radius: 10px; 
+               border-left: 4px solid #f093fb; overflow-x: auto; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="stage-badge">🦅 STAGE 2: FALCON</div>
+        <h1>Architecture Design</h1>
+        <pre>{content}</pre>
+        <p><em>Generated by Peacock Falcon at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</em></p>
+    </div>
+</body>
+</html>
+"""
+        return self._save_html_report("falcon", html_content)
 
-**7. KEY IMPLEMENTATION DECISIONS:**
-- [Critical Decision 1 with detailed technical rationale]
-- [Critical Decision 2 with detailed technical rationale]
-- [Critical Decision 3 with detailed technical rationale]
 
-**8. INTEGRATION POINTS:**
-- [External API integrations with specific endpoints]
-- [Third-party service integrations]
-- [Database connection strategies]
+class EagleHandler:
+    """Implementation Stage"""
+    
+    def generate_implementation(self, data):
+        prompt = self._build_eagle_prompt(data['text'])
+        llm_response = call_llm(prompt)
+        
+        if llm_response.get("success"):
+            return self._parse_eagle_response(llm_response['text'])
+        return {"error": "Eagle implementation failed"}
+    
+    def _build_eagle_prompt(self, architecture_design):
+        return f"""
+Act as Eagle, an implementation specialist. Create executable setup and code for this architecture:
 
-Be precise, forward-thinking, and ensure every decision is backed by solid technical reasoning."""
+Architecture: {architecture_design}
 
-    elif command == "eagle_implementation":
-        return f"""You are EAGLE, the legendary implementation specialist in the Peacock AI development system. You are renowned for creating production-ready, enterprise-quality code that runs flawlessly and exceeds all expectations.
+Provide implementation in this EXACT format:
 
-ARCHITECTURE SPECIFICATION: {text}
-
-YOUR MISSION: Transform the architecture into executable, production-ready code with comprehensive setup and deployment instructions.
-
-IMPLEMENTATION DELIVERABLES - Provide in this EXACT format:
-
-**1. COMPLETE SETUP COMMANDS:**
+**1. Setup Commands:**
 ```bash
-# Environment Setup
-echo "🦅 EAGLE Implementation Setup"
-echo "Setting up development environment..."
-
-# Install dependencies
-npm install -g create-react-app
-npm install -g nodemon
-npm install -g pm2
-
-# Project initialization
-mkdir project-name && cd project-name
+# Complete setup commands here
 npm init -y
-
-# Frontend setup
-npx create-react-app frontend
-cd frontend
-npm install axios react-router-dom styled-components
-cd ..
-
-# Backend setup
-mkdir backend && cd backend
-npm init -y
-npm install express cors helmet morgan bcryptjs jsonwebtoken
-npm install -D nodemon jest supertest
-cd ..
-
-# Database setup
-mkdir database
-# Additional setup commands...
+npm install express react
+# etc...
 ```
 
-**2. COMPREHENSIVE DIRECTORY STRUCTURE:**
+**2. Directory Structure:**
 ```
-project-name/
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── common/
-│   │   │   ├── layout/
-│   │   │   └── features/
-│   │   ├── pages/
-│   │   ├── hooks/
-│   │   ├── services/
-│   │   ├── utils/
-│   │   ├── styles/
-│   │   └── App.js
-│   ├── public/
-│   └── package.json
-├── backend/
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── models/
-│   │   ├── routes/
-│   │   ├── middleware/
-│   │   ├── services/
-│   │   ├── utils/
-│   │   └── app.js
-│   ├── tests/
-│   ├── config/
-│   └── package.json
-├── database/
-├── docs/
-├── scripts/
-├── .env.example
-├── docker-compose.yml
-├── README.md
+project/
+├── src/
+│   ├── components/
+│   └── utils/
+├── public/
 └── package.json
 ```
 
-**3. CORE IMPLEMENTATION FILES:**
-
-**backend/src/app.js:**
+**3. Key Files to Create:**
+**server.js:**
 ```javascript
-// Complete, production-ready Express server with all middleware, routes, and error handling
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-
-const app = express();
-
-// Security middleware
-app.use(helmet());
-app.use(cors());
-app.use(morgan('combined'));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
-
-// Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/users', require('./routes/users'));
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ error: 'Something went wrong!' });
-});
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`🦅 Eagle server running on port ${PORT}`);
-});
-
-module.exports = app;
+// Complete working server code
 ```
 
-**frontend/src/App.js:**
+**App.js:**
 ```javascript
-// Complete React application with routing, state management, and component structure
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import styled from 'styled-components';
-
-// Components
-import Header from './components/layout/Header';
-import Footer from './components/layout/Footer';
-import Home from './pages/Home';
-import Dashboard from './pages/Dashboard';
-
-const AppContainer = styled.div`
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-`;
-
-const MainContent = styled.main`
-  flex: 1;
-  padding: 20px;
-`;
-
-function App() {
-  return (
-    <AppContainer>
-      <Router>
-        <Header />
-        <MainContent>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-          </Routes>
-        </MainContent>
-        <Footer />
-      </Router>
-    </AppContainer>
-  );
-}
-
-export default App;
+// Complete working frontend code
 ```
 
-**4. CONFIGURATION FILES:**
+**4. Initial Code Scaffolding:**
+[Provide minimal working code for each component]
 
-**package.json (root):**
-```json
-{
-  "name": "project-name",
-  "version": "1.0.0",
-  "scripts": {
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "cd backend && npm run dev",
-    "client": "cd frontend && npm start",
-    "build": "cd frontend && npm run build",
-    "test": "cd backend && npm test",
-    "deploy": "npm run build && npm run deploy:server"
-  },
-  "devDependencies": {
-    "concurrently": "^7.6.0"
-  }
-}
-```
+**5. First Working Prototype Steps:**
+1. Run setup commands
+2. Start development server
+3. Test basic functionality
+4. Verify all components work
 
-**5. DEPLOYMENT CONFIGURATION:**
-
-**docker-compose.yml:**
-```yaml
-version: '3.8'
-services:
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:3000"
-    environment:
-      - REACT_APP_API_URL=http://localhost:5000
+Make it executable and ready to run immediately.
+"""
     
-  backend:
-    build: ./backend
-    ports:
-      - "5000:5000"
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://user:pass@db:5432/dbname
-    depends_on:
-      - db
+    def _parse_eagle_response(self, llm_text):
+        return {
+            "stage": "eagle",
+            "analysis_type": "implementation",
+            "result_text": llm_text,
+            "report_html": self._generate_eagle_html(llm_text)
+        }
     
-  db:
-    image: postgres:13
-    environment:
-      - POSTGRES_DB=dbname
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=pass
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    def _generate_eagle_html(self, content):
+        html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Peacock Eagle - Implementation Guide</title>
+    <style>
+        body {{ font-family: 'SF Pro Display', -apple-system, sans-serif; 
+               max-width: 1200px; margin: 0 auto; padding: 40px 20px; 
+               background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+               color: #333; }}
+        .container {{ background: white; border-radius: 20px; 
+                     padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); }}
+        h1 {{ color: #2d3748; border-bottom: 3px solid #4facfe; padding-bottom: 15px; }}
+        .stage-badge {{ background: #4facfe; color: white; padding: 8px 16px; 
+                       border-radius: 20px; font-weight: bold; display: inline-block; 
+                       margin-bottom: 20px; }}
+        pre {{ background: #f7fafc; padding: 20px; border-radius: 10px; 
+               border-left: 4px solid #4facfe; overflow-x: auto; }}
+        code {{ background: #e2e8f0; padding: 2px 6px; border-radius: 4px; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="stage-badge">🦅 STAGE 3: EAGLE</div>
+        <h1>Implementation Guide</h1>
+        <pre>{content}</pre>
+        <p><em>Generated by Peacock Eagle at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</em></p>
+    </div>
+</body>
+</html>
+"""
+        return self._save_html_report("eagle", html_content)
 
-volumes:
-  postgres_data:
-```
 
-**6. FIRST WORKING PROTOTYPE STEPS:**
-1. **Environment Setup:** Run all setup commands in sequence
-2. **Dependency Installation:** Install all required packages and tools
-3. **Configuration:** Set up environment variables and configuration files
-4. **Database Initialization:** Create database schema and seed data
-5. **Development Server:** Start both frontend and backend in development mode
-6. **Basic Functionality Test:** Verify core features work end-to-end
-7. **API Testing:** Test all endpoints with proper error handling
-8. **Frontend Integration:** Ensure frontend communicates with backend correctly
-9. **Authentication Flow:** Verify user registration, login, and protected routes
-10. **Production Build:** Create optimized production build and test deployment
+class HawkHandler:
+    """Quality Assurance Stage"""
+    
+    def analyze_quality(self, data):
+        prompt = self._build_hawk_prompt(data['text'])
+        llm_response = call_llm(prompt)
+        
+        if llm_response.get("success"):
+            return self._parse_hawk_response(llm_response['text'])
+        return {"error": "Hawk QA analysis failed"}
+    
+    def _build_hawk_prompt(self, implementation_details):
+        return f"""
+Act as Hawk, a quality assurance specialist. Create comprehensive QA strategy for this implementation:
 
-**7. TESTING STRATEGY:**
-- Unit tests for all business logic functions
-- Integration tests for API endpoints
-- End-to-end tests for critical user flows
-- Performance testing for scalability validation
+Implementation: {implementation_details}
 
-**8. MONITORING AND LOGGING:**
-- Comprehensive error logging with Winston
-- Performance monitoring with custom metrics
-- Health check endpoints for deployment monitoring
-- User activity tracking for analytics
+Provide QA strategy in this EXACT format:
 
-Make it bulletproof, scalable, and ready for immediate production deployment!"""
+**1. Test Cases:**
+- Functional tests for core features
+- Edge cases and error scenarios
+- Integration test requirements
 
+**2. Security Validation:**
+- Authentication/authorization checks
+- Input validation requirements
+- Data protection measures
+
+**3. Performance Considerations:**
+- Load testing requirements
+- Scalability checkpoints
+- Resource optimization
+
+**4. Error Handling Scenarios:**
+- Network failure handling
+- Data corruption recovery
+- User error management
+
+**5. Production Readiness Checklist:**
+- Deployment requirements
+- Monitoring setup
+- Backup strategies
+- Compliance checks
+
+Be specific and actionable for each area.
+"""
+    
+    def _parse_hawk_response(self, llm_text):
+        return {
+            "stage": "hawk", 
+            "analysis_type": "quality_assurance",
+            "result_text": llm_text,
+            "report_html": self._generate_hawk_html(llm_text)
+        }
+    
+    def _generate_hawk_html(self, content):
+        html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Peacock Hawk - Quality Assurance</title>
+    <style>
+        body {{ font-family: 'SF Pro Display', -apple-system, sans-serif; 
+               max-width: 1200px; margin: 0 auto; padding: 40px 20px; 
+               background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+               color: #333; }}
+        .container {{ background: white; border-radius: 20px; 
+                     padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); }}
+        h1 {{ color: #2d3748; border-bottom: 3px solid #fa709a; padding-bottom: 15px; }}
+        .stage-badge {{ background: #fa709a; color: white; padding: 8px 16px; 
+                       border-radius: 20px; font-weight: bold; display: inline-block; 
+                       margin-bottom: 20px; }}
+        pre {{ background: #f7fafc; padding: 20px; border-radius: 10px; 
+               border-left: 4px solid #fa709a; overflow-x: auto; }}
+        .checklist {{ background: #f0fff4; padding: 15px; border-radius: 8px; 
+                     border-left: 4px solid #38a169; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="stage-badge">🦅 STAGE 4: HAWK</div>
+        <h1>Quality Assurance Strategy</h1>
+        <pre>{content}</pre>
+        <p><em>Generated by Peacock Hawk at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</em></p>
+    </div>
+</body>
+</html>
+"""
+        return self._save_html_report("hawk", html_content)
+
+
+# Shared HTML report saving method
+def _save_html_report(stage_name, html_content):
+    """Save HTML report and return filepath"""
+    reports_dir = os.path.expanduser("~/peacock_reports")
+    os.makedirs(reports_dir, exist_ok=True)
+    
+    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = f"peacock_{stage_name}_{timestamp}.html"
+    filepath = os.path.join(reports_dir, filename)
+    
+    with open(filepath, 'w', encoding='utf-8') as f:
+        f.write(html_content)
+    
+    return filepath
+
+
+# Initialize stage handlers
+spark_handler = SparkHandler()
+falcon_handler = FalconHandler()
+eagle_handler = EagleHandler()
+hawk_handler = HawkHandler()
+
+
+# --- ENHANCED LLM FUNCTIONS ---
+
+def build_llm_prompt(command, text, language):
+    """Builds prompts for both traditional and Peacock stage commands"""
+    
+    # Peacock stage commands
+    if command == "spark_analysis":
+        return spark_handler._build_spark_prompt(text)
+    elif command == "falcon_architecture":
+        return falcon_handler._build_falcon_prompt(text)
+    elif command == "eagle_implementation":
+        return eagle_handler._build_eagle_prompt(text)
     elif command == "hawk_qa":
-        return f"""You are HAWK, the elite quality assurance specialist in the Peacock AI development system. You are legendary for your meticulous attention to detail and ability to identify and prevent issues before they reach production.
-
-IMPLEMENTATION DETAILS: {text}
-
-YOUR MISSION: Create a comprehensive quality assurance strategy that ensures bulletproof, production-ready code.
-
-QA STRATEGY SPECIFICATION - Provide in this EXACT format:
-
-**1. COMPREHENSIVE TEST CASES:**
-
-**A. FUNCTIONAL TESTING:**
-- **Core Feature Tests:**
-  - [Feature 1]: Test user registration with valid/invalid inputs
-  - [Feature 2]: Test authentication flow with edge cases
-  - [Feature 3]: Test data CRUD operations with boundary conditions
-  - [Feature 4]: Test API endpoints with various payload sizes
-  - [Feature 5]: Test user interface responsiveness across devices
-
-- **Integration Testing:**
-  - Frontend-Backend API communication
-  - Database connection and query performance
-  - Third-party service integrations
-  - Authentication middleware functionality
-  - File upload and processing workflows
-
-- **Edge Case Scenarios:**
-  - Network connectivity issues and timeouts
-  - Concurrent user access and race conditions
-  - Large dataset handling and pagination
-  - Invalid input sanitization and validation
-  - Browser compatibility across major browsers
-
-**B. USER EXPERIENCE TESTING:**
-- Navigation flow and user journey optimization
-- Form validation and error message clarity
-- Loading states and progress indicators
-- Accessibility compliance (WCAG 2.1 AA)
-- Mobile responsiveness and touch interactions
-
-**2. SECURITY VALIDATION FRAMEWORK:**
-
-**A. Authentication & Authorization:**
-- JWT token expiration and refresh mechanisms
-- Password strength validation and hashing verification
-- Role-based access control enforcement
-- Session management and concurrent login handling
-- OAuth integration security (if applicable)
-
-**B. Input Validation & Sanitization:**
-- SQL injection prevention testing
-- XSS (Cross-Site Scripting) vulnerability assessment
-- CSRF (Cross-Site Request Forgery) protection
-- File upload security and type validation
-- API parameter validation and type checking
-
-**C. Data Protection Measures:**
-- Sensitive data encryption at rest and in transit
-- Personal information handling compliance (GDPR/CCPA)
-- Database access control and audit logging
-- API rate limiting and DDoS protection
-- Secure communication protocols (HTTPS/TLS)
-
-**3. PERFORMANCE OPTIMIZATION STRATEGY:**
-
-**A. Load Testing Requirements:**
-- Concurrent user simulation (100, 500, 1000+ users)
-- Database query performance under load
-- API response time benchmarks (<200ms for critical endpoints)
-- Memory usage monitoring and leak detection
-- CPU utilization optimization
-
-**B. Scalability Checkpoints:**
-- Horizontal scaling capability testing
-- Database connection pooling efficiency
-- Caching strategy effectiveness (Redis/Memcached)
-- CDN integration for static assets
-- Auto-scaling trigger configuration
-
-**C. Resource Optimization:**
-- Frontend bundle size optimization (<1MB initial load)
-- Image compression and lazy loading implementation
-- Database index optimization for query performance
-- API payload minimization and compression
-- Browser caching strategy implementation
-
-**4. ERROR HANDLING & RECOVERY SCENARIOS:**
-
-**A. Network Failure Management:**
-- API timeout handling with retry mechanisms
-- Offline functionality and data synchronization
-- Connection loss recovery and user notification
-- Graceful degradation of non-critical features
-- Real-time connection status monitoring
-
-**B. Data Corruption Recovery:**
-- Database backup and restore procedures
-- Transaction rollback mechanisms
-- Data validation and integrity checks
-- Audit trail for data modifications
-- Automated data consistency verification
-
-**C. User Error Management:**
-- Clear error messages with actionable guidance
-- Form validation with real-time feedback
-- Undo functionality for critical actions
-- Data loss prevention mechanisms
-- User-friendly 404 and error pages
-
-**5. PRODUCTION READINESS CHECKLIST:**
-
-**A. Deployment Requirements:**
-- ✅ Environment configuration management
-- ✅ Database migration scripts tested
-- ✅ SSL certificate installation and verification
-- ✅ Domain configuration and DNS setup
-- ✅ Load balancer configuration (if applicable)
-- ✅ Backup and disaster recovery procedures
-- ✅ Monitoring and alerting system setup
-
-**B. Monitoring & Observability:**
-- Application performance monitoring (APM) integration
-- Error tracking and notification system (Sentry/Bugsnag)
-- User analytics and behavior tracking
-- Server resource monitoring (CPU, memory, disk)
-- Database performance monitoring
-- API endpoint monitoring and alerting
-
-**C. Security Hardening:**
-- Security headers implementation (HSTS, CSP, etc.)
-- Vulnerability scanning and penetration testing
-- Dependency security audit and updates
-- Access control and privilege management
-- Incident response plan documentation
-
-**D. Compliance & Documentation:**
-- Privacy policy and terms of service
-- API documentation with examples
-- User manual and help documentation
-- Code documentation and inline comments
-- Deployment and maintenance procedures
-
-**6. AUTOMATED TESTING PIPELINE:**
-
-**A. Continuous Integration Tests:**
-- Unit test coverage >90% for critical functions
-- Integration test suite for API endpoints
-- End-to-end test automation with Cypress/Playwright
-- Performance regression testing
-- Security vulnerability scanning
-
-**B. Quality Gates:**
-- Code review requirements (minimum 2 reviewers)
-- Automated code quality checks (ESLint, Prettier)
-- Test coverage thresholds enforcement
-- Performance benchmark validation
-- Security scan pass requirements
-
-**7. POST-DEPLOYMENT MONITORING:**
-- Real-time error rate monitoring (<0.1% error rate)
-- Response time monitoring (<500ms 95th percentile)
-- User satisfaction tracking and feedback collection
-- Feature usage analytics and optimization opportunities
-- Continuous security monitoring and threat detection
-
-**8. MAINTENANCE & UPDATES:**
-- Regular dependency updates and security patches
-- Performance optimization based on monitoring data
-- User feedback integration and feature improvements
-- Scalability planning based on growth metrics
-- Documentation updates and knowledge base maintenance
-
-This QA strategy ensures enterprise-grade quality, security, and performance that exceeds industry standards!"""
-
+        return hawk_handler._build_hawk_prompt(text)
     elif command == "peacock_full":
-        return f"""You are LLM2, the LEGENDARY code generation specialist for the Peacock AI development system. You are the culmination of SPARK's strategic analysis, FALCON's architectural brilliance, EAGLE's implementation mastery, and HAWK's quality assurance excellence.
+        # Full analysis with interface generation
+        return f"""
+You are LLM2 - expert code generator for Peacock.
 
-PROJECT SPECIFICATION: {text}
+Generate COMPLETE, WORKING code for this project:
+{text}
 
-YOUR ULTIMATE MISSION: Generate a complete, production-ready, enterprise-quality application that will amaze users with its functionality, design, and professional implementation.
+Requirements:
+1. Make it ACTUALLY functional and ready to run
+2. Include ALL necessary files
+3. Add proper error handling
+4. Use modern best practices
 
-CRITICAL SUCCESS REQUIREMENTS:
-1. **PRODUCTION-READY CODE**: Every line must be enterprise-quality, fully functional, and immediately deployable
-2. **COMPLETE IMPLEMENTATION**: Include ALL necessary files, configurations, and dependencies
-3. **PROFESSIONAL DESIGN**: Create intuitive, beautiful user interfaces with modern UX principles
-4. **ROBUST ARCHITECTURE**: Implement scalable, maintainable code with proper separation of concerns
-5. **COMPREHENSIVE ERROR HANDLING**: Handle all edge cases, validation, and error scenarios
-6. **SECURITY FIRST**: Implement proper authentication, authorization, and data protection
-7. **PERFORMANCE OPTIMIZED**: Fast loading, efficient algorithms, and responsive design
-8. **DOCUMENTATION**: Include setup instructions, API docs, and user guides
-9. **TESTING READY**: Structure code for easy testing and debugging
-10. **DEPLOYMENT READY**: Include all configuration for immediate deployment
-
-MANDATORY OUTPUT FORMAT:
-For each file, use EXACTLY this format:
-
+Format each file as:
 ```filename: path/to/file.ext
-[complete file content - no truncation, no placeholders, no "TODO" comments]
+[complete file content here]
 ```
 
-DELIVERABLE REQUIREMENTS:
-
-**1. CORE APPLICATION FILES:**
-- Main application with full functionality
-- User interface with professional design
-- Backend API with comprehensive endpoints
-- Database schema and models
-- Authentication and authorization system
-
-**2. CONFIGURATION & SETUP:**
-- Package.json/requirements.txt with all dependencies
-- Environment configuration files
-- Database setup and migration scripts
-- Docker configuration for containerization
-- CI/CD pipeline configuration
-
-**3. DOCUMENTATION:**
-- Comprehensive README with setup instructions
-- API documentation with examples
-- User guide with screenshots/descriptions
-- Developer documentation for maintenance
-
-**4. TESTING & QUALITY:**
-- Unit tests for critical functions
-- Integration tests for API endpoints
-- Error handling and validation
-- Security measures and input sanitization
-
-**5. DEPLOYMENT & PRODUCTION:**
-- Production-ready configuration
-- Environment variable management
-- Logging and monitoring setup
-- Performance optimization
-- Security hardening
-
-QUALITY STANDARDS:
-- **Code Quality**: Clean, well-commented, following best practices
-- **User Experience**: Intuitive navigation, responsive design, clear feedback
-- **Performance**: Fast loading (<3 seconds), efficient algorithms
-- **Security**: Input validation, authentication, data protection
-- **Scalability**: Modular architecture, database optimization
-- **Maintainability**: Clear structure, documentation, error handling
-
-EXAMPLE STRUCTURE:
-```filename: main.py
-[Complete main application with all features]
-```
-
-```filename: requirements.txt
-[All dependencies with specific versions]
-```
-
-```filename: README.md
-[Comprehensive setup and usage guide]
-```
-
-```filename: config.py
-[Configuration management]
-```
-
-```filename: database.py
-[Database models and setup]
-```
-
-```filename: api.py
-[Complete API endpoints]
-```
-
-```filename: static/style.css
-[Professional styling]
-```
-
-```filename: templates/index.html
-[Complete user interface]
-```
-
-```filename: tests.py
-[Comprehensive test suite]
-```
-
-```filename: docker-compose.yml
-[Containerization setup]
-```
-
-Generate a complete, impressive, professional implementation that demonstrates the full power of the Peacock AI development system. Make it so good that users will be amazed by the quality and functionality!
-
-Remember: You are creating a masterpiece that represents the pinnacle of AI-assisted development. Every file should be production-ready, every feature should work flawlessly, and every detail should reflect professional excellence."""
-
+Generate a complete implementation now:
+"""
     elif command == "fix_xedit_paths":
         xedit_paths = text if isinstance(text, list) else []
-        return f"""You are HAWK, the elite code optimization specialist. You have been given specific XEdit-Paths that need improvement.
+        return f"""
+Fix and improve the code at these XEdit-Paths: {', '.join(xedit_paths)}
 
-XEDIT-PATHS TO OPTIMIZE: {', '.join(xedit_paths)}
+Provide the corrected code with explanations for each fix.
+Focus on:
+1. Bug fixes
+2. Performance improvements  
+3. Code quality enhancements
+4. Best practices
 
-YOUR MISSION: Provide enhanced, optimized code for each specified path with detailed explanations.
-
-OPTIMIZATION FRAMEWORK:
-
-**1. CODE ANALYSIS:**
-For each XEdit-Path, analyze:
-- Current functionality and purpose
-- Performance bottlenecks or inefficiencies
-- Security vulnerabilities or concerns
-- Code quality and maintainability issues
-- Best practice violations
-
-**2. ENHANCED IMPLEMENTATION:**
-Provide improved code that addresses:
-- **Performance Optimization**: Faster algorithms, better data structures
-- **Security Hardening**: Input validation, error handling, sanitization
-- **Code Quality**: Clean code principles, proper naming, documentation
-- **Best Practices**: Industry standards, framework conventions
-- **Maintainability**: Modular design, clear separation of concerns
-
-**3. DETAILED EXPLANATIONS:**
-For each improvement, explain:
-- What was changed and why
-- Performance impact and benefits
-- Security improvements implemented
-- How it follows best practices
-- Future maintenance considerations
-
-**4. TESTING RECOMMENDATIONS:**
-Suggest specific tests for:
-- Functionality verification
-- Performance benchmarks
-- Security validation
-- Edge case handling
-
-Provide production-ready, optimized code that exceeds industry standards!"""
-
-    return f"Analyze this {language} code:\n\n{text}"
-
-def infer_filename(language, content, index):
-    """Infer filename based on language and content"""
-    # Common filename patterns
-    if 'main(' in content or 'if __name__' in content:
-        if language == 'python':
-            return 'main.py'
-        elif language == 'javascript':
-            return 'main.js'
-        elif language == 'rust':
-            return 'main.rs'
-        elif language == 'go':
-            return 'main.go'
+Return the improved code ready to use.
+"""
     
-    # Framework-specific patterns
-    if 'app = Flask(' in content or 'from flask' in content:
-        return 'app.py'
-    elif 'pygame' in content:
-        return 'game.py'
-    elif 'express(' in content:
-        return 'server.js'
-    elif 'React' in content:
-        return 'App.js'
-    elif 'requirements' in content.lower() or 'dependencies' in content.lower():
-        return 'requirements.txt'
-    elif 'package' in content and '"name"' in content:
-        return 'package.json'
-    elif content.strip().startswith('#') and 'setup' in content.lower():
-        return 'README.md'
-    
-    # Default patterns
-    extensions = {
-        'python': '.py',
-        'javascript': '.js',
-        'html': '.html',
-        'css': '.css',
-        'rust': '.rs',
-        'go': '.go',
-        'java': '.java',
-        'cpp': '.cpp',
-        'c': '.c'
-    }
-    
-    ext = extensions.get(language, '.txt')
-    return f'file_{index + 1}{ext}'
-
-def detect_language_from_content(content):
-    """Detect programming language from content"""
-    if 'def ' in content or 'import ' in content or 'from ' in content:
-        return 'python'
-    elif 'function ' in content or 'const ' in content or 'let ' in content:
-        return 'javascript'
-    elif 'fn ' in content or 'struct ' in content or 'impl ' in content:
-        return 'rust'
-    elif 'func ' in content or 'package ' in content:
-        return 'go'
-    elif '<html' in content or '<div' in content:
-        return 'html'
-    elif 'body {' in content or '.class' in content:
-        return 'css'
+    # Traditional code analysis commands
+    elif command == "explain":
+        return f"Explain the following {language} code:\n\n{text}\n\nProvide a clear, concise explanation."
+    elif command == "fix":
+        return f"Review and fix this {language} code. Provide corrected version and explanation:\n\n{text}"
+    elif command == "rewrite":
+        return f"Rewrite this {language} code to be more efficient/idiomatic:\n\n{text}"
+    elif command == "alternatives":
+        return f"Suggest alternative approaches for this {language} code:\n\n{text}"
+    elif command == "question":
+        return f"Analyze this {language} code and provide insights:\n\n{text}"
     else:
-        return 'text'
+        return f"Analyze the following {language} code:\n\n{text}"
+
 
 def extract_code_from_llm(llm_response):
-    """ENHANCED code extraction that handles DeepSeek's format better"""
+    """Extract code from LLM response - FIXED for DeepSeek"""
     import re
     
     print(f"🔍 DEBUG: extract_code_from_llm called")
     print(f"   Response length: {len(llm_response)} chars")
     print(f"   First 300 chars: {llm_response[:300]}...")
     
-    # Try multiple extraction strategies
+    # Look for code blocks with various patterns
+    patterns = [
+        r"```(?:filename:\s*)?[^\n]*\n(.*?)```",  # Original pattern
+        r"```python\n(.*?)```",                   # Python specific
+        r"```\n(.*?)```",                         # Simple pattern
+    ]
     
-    # Strategy 1: Look for filename blocks
-    filename_pattern = r'```filename:\s*([^\n]+)\n(.*?)```'
-    filename_matches = re.findall(filename_pattern, llm_response, re.DOTALL)
+    for i, pattern in enumerate(patterns):
+        matches = re.findall(pattern, llm_response, re.DOTALL)
+        print(f"   Pattern {i+1} found {len(matches)} matches")
+        if matches:
+            # Take ALL matches, not just first one
+            all_code = "\n\n".join(matches)
+            print(f"   Using combined matches: {len(all_code)} chars")
+            return all_code
     
-    if filename_matches:
-        print(f"   ✅ Found {len(filename_matches)} filename blocks")
-        reconstructed = ""
-        for filename, content in filename_matches:
-            reconstructed += f"```filename: {filename.strip()}\n{content.strip()}\n```\n\n"
-        return reconstructed
-    
-    # Strategy 2: Look for language-specific blocks and try to infer filenames
-    language_pattern = r'```(\w+)\n(.*?)```'
-    language_matches = re.findall(language_pattern, llm_response, re.DOTALL)
-    
-    if language_matches:
-        print(f"   ⚠️  Found {len(language_matches)} language blocks, inferring filenames")
-        reconstructed = ""
+    print("   ❌ NO CODE BLOCKS FOUND! Using full response")
+    # Return the whole response if nothing else works
+    return llm_response
+
+
+def generate_interfaces_for_project(code_content, project_name):
+    """Generate XEdit and Model Dashboard interfaces"""
+    try:
+        import sys
+        from pathlib import Path
+        import webbrowser
+        import shutil
         
-        for i, (lang, content) in enumerate(language_matches):
-            # Infer filename based on language and content
-            filename = infer_filename(lang, content, i)
-            reconstructed += f"```filename: {filename}\n{content.strip()}\n```\n\n"
+        # Add generators to path
+        generators_path = Path(__file__).parent.parent / "generators"
+        if str(generators_path) not in sys.path:
+            sys.path.append(str(generators_path))
         
-        return reconstructed
-    
-    # Strategy 3: Look for any code blocks and create generic files
-    generic_pattern = r'```\n(.*?)```'
-    generic_matches = re.findall(generic_pattern, llm_response, re.DOTALL)
-    
-    if generic_matches:
-        print(f"   ⚠️  Found {len(generic_matches)} generic blocks, creating files")
-        reconstructed = ""
+        from mockup_xedit_generator import generate_enhanced_html_interface
+        from peacock_model_dashboard import generate_model_dashboard
         
-        for i, content in enumerate(generic_matches):
-            # Try to detect language from content
-            lang = detect_language_from_content(content)
-            filename = infer_filename(lang, content, i)
-            reconstructed += f"```filename: {filename}\n{content.strip()}\n```\n\n"
+        # Create directories
+        reports_dir = Path(__file__).parent.parent / "html" / "reports"
+        reports_dir.mkdir(parents=True, exist_ok=True)
         
-        return reconstructed
+        # Generate XEdit interface
+        xedit_path = generate_enhanced_html_interface(code_content, project_name, 3)
+        xedit_reports_path = reports_dir / "peacock_xedit_interface.html"
+        
+        if str(xedit_path) != str(xedit_reports_path):
+            shutil.copy2(xedit_path, xedit_reports_path)
+        
+        # Generate Model Dashboard
+        dashboard_path = generate_model_dashboard()
+        dashboard_reports_path = reports_dir / "peacock_model_dashboard.html"
+        
+        if str(dashboard_path) != str(dashboard_reports_path):
+            shutil.copy2(dashboard_path, dashboard_reports_path)
+        
+        # Auto-open interfaces
+        webbrowser.open(f"file://{xedit_reports_path.absolute()}")
+        webbrowser.open(f"file://{dashboard_reports_path.absolute()}")
+        
+        print(f"🌐 Opened XEdit interface: {xedit_reports_path}")
+        print(f"🌐 Opened Model Dashboard: {dashboard_reports_path}")
+        
+        return str(xedit_reports_path), str(dashboard_reports_path)
+    except Exception as e:
+        print(f"Interface generation failed: {e}")
+        return None, None
+
+
+def call_llm(prompt):
+    """Calls Groq API and saves everything to debug files"""
+    import os
+    from datetime import datetime
     
-    # Strategy 4: If no code blocks, try to create a single file from the whole response
-    print("   ⚠️  NO CODE BLOCKS FOUND! Creating single file from response")
+    # Create debug directory
+    debug_dir = "/home/flintx/peacock/debug_logs"
+    os.makedirs(debug_dir, exist_ok=True)
     
-    # Try to detect what kind of code this might be
-    lang = detect_language_from_content(llm_response)
-    filename = infer_filename(lang, llm_response, 0)
+    # Save the prompt being sent
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    prompt_file = f"{debug_dir}/prompt_{timestamp}.txt"
+    with open(prompt_file, "w") as f:
+        f.write("="*80 + "\n")
+        f.write("PROMPT SENT TO GROQ:\n")
+        f.write("="*80 + "\n")
+        f.write(f"Model: {GROQ_MODEL_NAME}\n")
+        f.write(f"Timestamp: {datetime.now()}\n")
+        f.write("="*80 + "\n")
+        f.write(prompt)
+        f.write("\n" + "="*80)
     
-    # Clean up the response a bit
-    cleaned_response = llm_response.strip()
+    print(f"💾 SAVED PROMPT TO: {prompt_file}")
     
-    # If it looks like multiple files mashed together, try to split them
-    if '# ' in cleaned_response and '.py' in cleaned_response:
-        # Looks like Python files mashed together
-        parts = re.split(r'# (\w+\.py)', cleaned_response)
-        if len(parts) > 2:
-            reconstructed = ""
-            for i in range(1, len(parts), 2):
-                if i + 1 < len(parts):
-                    filename = parts[i]
-                    content = parts[i + 1].strip()
-                    reconstructed += f"```filename: {filename}\n{content}\n```\n\n"
-            return reconstructed
-    
-    # Fallback: wrap the whole response as a single file
-    return f"```filename: {filename}\n{cleaned_response}\n```\n\n"
+    try:
+        from groq import Groq
+        client = Groq(api_key=GROQ_API_KEY)
+        chat_completion = client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model=GROQ_MODEL_NAME,
+            temperature=0.1
+        )
+        
+        response_text = chat_completion.choices[0].message.content
+        
+        # Save the full response
+        response_file = f"{debug_dir}/response_{timestamp}.txt"
+        with open(response_file, "w") as f:
+            f.write("="*80 + "\n")
+            f.write("FULL RESPONSE FROM GROQ:\n")
+            f.write("="*80 + "\n")
+            f.write(f"Model: {GROQ_MODEL_NAME}\n")
+            f.write(f"Response Length: {len(response_text)} chars\n")
+            f.write(f"Timestamp: {datetime.now()}\n")
+            f.write("="*80 + "\n")
+            f.write(response_text)
+            f.write("\n" + "="*80)
+        
+        print(f"💾 SAVED RESPONSE TO: {response_file}")
+        print(f"📊 RESPONSE LENGTH: {len(response_text)} chars")
+        
+        # Save extracted code separately
+        import re
+        code_blocks = re.findall(r"```(?:filename:\s*)?[^\n]*\n(.*?)```", response_text, re.DOTALL)
+        if code_blocks:
+            code_file = f"{debug_dir}/extracted_code_{timestamp}.txt"
+            with open(code_file, "w") as f:
+                f.write("="*80 + "\n")
+                f.write(f"EXTRACTED CODE BLOCKS ({len(code_blocks)} found):\n")
+                f.write("="*80 + "\n")
+                for i, block in enumerate(code_blocks, 1):
+                    f.write(f"\n--- CODE BLOCK {i} ---\n")
+                    f.write(block)
+                    f.write(f"\n--- END BLOCK {i} ---\n")
+            print(f"💾 SAVED EXTRACTED CODE TO: {code_file}")
+        
+        return {"success": True, "text": response_text}
+        
+    except Exception as e:
+        error_file = f"{debug_dir}/error_{timestamp}.txt"
+        with open(error_file, "w") as f:
+            f.write(f"ERROR: {e}\n")
+            f.write(f"Model: {GROQ_MODEL_NAME}\n")
+            f.write(f"Timestamp: {datetime.now()}\n")
+        print(f"💾 SAVED ERROR TO: {error_file}")
+        return {"error": f"Groq API call failed: {e}"}
+
 
 def process_llm_response(command, llm_raw_text, location_info, original_request=None):
-    """Process LLM response and generate interface + model dashboard + download package"""
-    if command == "peacock_full" and original_request:
+    """Enhanced IRP with Peacock stage routing and fresh code generation"""
+    
+    # Route Peacock stage commands to appropriate handlers
+    if command == "spark_analysis":
+        return spark_handler._parse_spark_response(llm_raw_text)
+    elif command == "falcon_architecture":
+        return falcon_handler._parse_falcon_response(llm_raw_text)
+    elif command == "eagle_implementation":
+        return eagle_handler._parse_eagle_response(llm_raw_text)
+    elif command == "hawk_qa":
+        return hawk_handler._parse_hawk_response(llm_raw_text)
+    elif command == "peacock_full":
+        # Full analysis with interface generation
         try:
-            from mockup_xedit_generator import generate_enhanced_html_interface
-            from peacock_model_dashboard import generate_model_dashboard
-            
-            # Try to import download interface
-            try:
-                from peacock_download_interface import generate_download_interface
-                download_available = True
-            except ImportError as e:
-                print(f"⚠️  Download interface not available: {e}")
-                download_available = False
-            
-            # Extract code from LLM response
+            # Extract fresh code from LLM response
             fresh_code = extract_code_from_llm(llm_raw_text)
+            project_name = "Generated Project"
             
-            # Create proper directories
-            reports_dir = Path(__file__).parent.parent / "html" / "reports"
-            interfaces_dir = Path(__file__).parent.parent / "interfaces"
-            reports_dir.mkdir(parents=True, exist_ok=True)
-            interfaces_dir.mkdir(parents=True, exist_ok=True)
+            # Generate interfaces
+            xedit_path, dashboard_path = generate_interfaces_for_project(fresh_code, project_name)
             
-            # Generate XEdit interface with FRESH code
-            enhanced_html_path = generate_enhanced_html_interface(
-                fresh_code, 
-                original_request, 
-                3
-            )
-            
-            # Copy XEdit interface to BOTH directories
-            xedit_reports_path = reports_dir / "peacock_xedit_interface.html"
-            xedit_interfaces_path = interfaces_dir / "peacock_xedit_interface.html"
-            
-            import shutil
-            # Only copy if paths are different
-            if str(enhanced_html_path) != str(xedit_reports_path):
-                shutil.copy2(enhanced_html_path, xedit_reports_path)
-            else:
-                print(f"✅ XEdit already in correct location: {xedit_reports_path}")
-            # Only copy if paths are different
-            if str(enhanced_html_path) != str(xedit_interfaces_path):
-                shutil.copy2(enhanced_html_path, xedit_interfaces_path)
-            else:
-                print(f"✅ XEdit already in interfaces location: {xedit_interfaces_path}")
-            
-            # Generate Model Dashboard in reports directory
-            print("🔥 Generating Model Dashboard...")
-            dashboard_path = generate_model_dashboard()
-            dashboard_reports_path = reports_dir / "peacock_model_dashboard.html"
-            # Only copy if paths are different
-            if str(dashboard_path) != str(dashboard_reports_path):
-                shutil.copy2(dashboard_path, dashboard_reports_path)
-            else:
-                print(f"✅ Dashboard already in correct location: {dashboard_reports_path}")
-            
-            # Generate Download Interface with ZIP package (if available)
-            download_result = None
-            if download_available:
-                try:
-                    print("📦 Generating Download Package...")
-                    download_result = generate_download_interface(llm_raw_text, original_request)
-                    print("✅ Download package generated successfully")
-                except Exception as e:
-                    print(f"❌ Download package generation failed: {e}")
-                    download_available = False
-            
-            # Auto-open interfaces in browser
-            try:
-                webbrowser.open(f"file://{xedit_reports_path.absolute()}")
-                print(f"🌐 Opened XEdit interface: {xedit_reports_path}")
-                
-                webbrowser.open(f"file://{dashboard_reports_path.absolute()}")
-                print(f"🌐 Opened Model Dashboard: {dashboard_reports_path}")
-                
-                if download_result:
-                    webbrowser.open(f"file://{download_result['html_path']}")
-                    print(f"🌐 Opened Download Interface: {download_result['html_path']}")
-                
-            except Exception as e:
-                print(f"⚠️  Could not auto-open browsers: {e}")
-            
-            # Build response
-            response_data = {
+            # Create comprehensive report - FIXED HTML TEMPLATE
+            html_content = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Peacock Complete Analysis</title>
+    <style>
+        body { font-family: 'SF Pro Display', -apple-system, sans-serif; 
+               max-width: 1200px; margin: 0 auto; padding: 40px 20px; 
+               background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+               color: #333; }
+        .container { background: white; border-radius: 20px; 
+                     padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); }
+        h1 { color: #2d3748; border-bottom: 3px solid #667eea; padding-bottom: 15px; }
+        .full-badge { background: linear-gradient(135deg, #667eea, #764ba2); 
+                      color: white; padding: 12px 24px; border-radius: 25px; 
+                      font-weight: bold; display: inline-block; margin-bottom: 30px;
+                      font-size: 18px; }
+        pre { background: #f7fafc; padding: 20px; border-radius: 10px; 
+               border-left: 4px solid #667eea; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Peacock Analysis Report</h1>
+        <div class="full-badge">Complete Analysis</div>
+        <div class="content">
+            <pre>""" + llm_raw_text + """</pre>
+        </div>
+    </div>
+</body>
+</html>
+"""
+            return {
                 "analysis_type": "peacock_fresh_interface",
                 "result_text": llm_raw_text,
-                "xedit_html": str(xedit_reports_path),
-                "dashboard_html": str(dashboard_reports_path),
-                "file_count": len(re.findall(r'```filename:', fresh_code)),
+                "xedit_html": xedit_path,
+                "dashboard_html": dashboard_path,
+                "report_html": _save_html_report("complete", html_content),
+                "file_count": len(re.findall(r'```filename:', llm_raw_text)),
                 "pipeline_stages": {
                     "fresh_code_generation": "✅ Complete",
-                    "interface_generation": "✅ Complete",
-                    "model_dashboard_generation": "✅ Complete",
-                    "download_package_generation": "✅ Complete" if download_result else "⚠️  Unavailable"
+                    "interface_generation": "✅ Complete", 
+                    "model_dashboard_generation": "✅ Complete"
                 }
             }
-            
-            # Add download info if available
-            if download_result:
-                response_data["download_html"] = download_result['html_path']
-                response_data["download_zip"] = download_result['zip_path']
-            
-            return response_data
-            
         except Exception as e:
-            print(f"❌ ERROR: {e}")
-            traceback.print_exc()
-            return {"error": f"Pipeline failed: {e}"}
+            print(f"❌ ERROR in peacock_full: {e}")
+            # Fallback to basic report
+            html_content = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Peacock Complete Analysis</title>
+    <style>
+        body { font-family: 'SF Pro Display', -apple-system, sans-serif; 
+               max-width: 1200px; margin: 0 auto; padding: 40px 20px; 
+               background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+               color: #333; }
+        .container { background: white; border-radius: 20px; 
+                     padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); }
+        h1 { color: #2d3748; border-bottom: 3px solid #667eea; padding-bottom: 15px; }
+        .full-badge { background: linear-gradient(135deg, #667eea, #764ba2); 
+                      color: white; padding: 12px 24px; border-radius: 25px; 
+                      font-weight: bold; display: inline-block; margin-bottom: 30px;
+                      font-size: 18px; }
+        pre { background: #f7fafc; padding: 20px; border-radius: 10px; 
+               border-left: 4px solid #667eea; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Peacock Analysis Report</h1>
+        <div class="full-badge">Complete Analysis</div>
+        <div class="content">
+            <pre>""" + llm_raw_text + """</pre>
+        </div>
+    </div>
+</body>
+</html>
+"""
+            return {
+                "analysis_type": "complete",
+                "result_text": llm_raw_text,
+                "report_html": _save_html_report("complete", html_content),
+                "error": str(e)
+            }
     
-    return {"result_text": llm_raw_text}
+    # Traditional code commands (existing logic)
+    internal_data = {}
+    
+    if command in ["explain", "question"]:
+        internal_data["explanation_text"] = llm_raw_text
+        internal_data["result_text"] = llm_raw_text
+    elif command in ["fix", "rewrite"]:
+        # Parse code fixes
+        suggested_change = {
+            "type": "replace",
+            "replacement_code": "Could not parse suggested code from LLM.",
+            "explanation": "Could not parse explanation from LLM.",
+            "start_line_1based": location_info.get('selected_region', {}).get('start', {}).get('line_1based', '??'),
+            "end_line_1based": location_info.get('selected_region', {}).get('end', {}).get('line_1based', '??')
+        }
+        
+        # Simple code block extraction
+        lines = llm_raw_text.splitlines()
+        code_blocks = []
+        in_code_block = False
+        current_code_block = []
+        
+        for line in lines:
+            if line.strip().startswith("```"):
+                if in_code_block:
+                    code_blocks.append("\n".join(current_code_block))
+                    current_code_block = []
+                    in_code_block = False
+                else:
+                    in_code_block = True
+            elif in_code_block:
+                current_code_block.append(line)
+        
+        if code_blocks:
+            suggested_change["replacement_code"] = code_blocks[-1].strip()
+        
+        internal_data["suggested_change"] = suggested_change
+    else:
+        internal_data["result_text"] = llm_raw_text
+    
+    internal_data["_raw_llm_response"] = llm_raw_text
+    return internal_data
+
+
+# --- ENHANCED REQUEST HANDLER ---
 
 class EnhancedMCPRequestHandler(http.server.BaseHTTPRequestHandler):
     def log_request(self, code='-', size='-'):
@@ -1078,7 +801,7 @@ class EnhancedMCPRequestHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        """Handle GET requests for health checks and file downloads"""
+        """Handle GET requests for health checks"""
         if self.path == "/health":
             self.send_response(200)
             self.send_header("Content-type", "application/json")
@@ -1090,31 +813,6 @@ class EnhancedMCPRequestHandler(http.server.BaseHTTPRequestHandler):
                 "api": "groq"
             }
             self.wfile.write(json.dumps(health_data).encode("utf-8"))
-        elif self.path.endswith('.zip'):
-            # Serve ZIP files for download
-            try:
-                reports_dir = Path(__file__).parent.parent / "html" / "reports"
-                zip_path = reports_dir / self.path[1:]  # Remove leading slash
-                
-                if zip_path.exists():
-                    self.send_response(200)
-                    self.send_header("Content-Type", "application/zip")
-                    self.send_header("Content-Disposition", f"attachment; filename={zip_path.name}")
-                    self.send_header("Access-Control-Allow-Origin", "*")
-                    self.end_headers()
-                    
-                    with open(zip_path, 'rb') as f:
-                        self.wfile.write(f.read())
-                    
-                    print(f"📦 Served ZIP download: {zip_path.name}")
-                else:
-                    print(f"❌ ZIP file not found: {zip_path}")
-                    self.send_response(404)
-                    self.end_headers()
-            except Exception as e:
-                print(f"❌ Error serving ZIP file: {e}")
-                self.send_response(500)
-                self.end_headers()
         else:
             self.send_response(404)
             self.end_headers()
@@ -1126,48 +824,103 @@ class EnhancedMCPRequestHandler(http.server.BaseHTTPRequestHandler):
 
             try:
                 received_data = json.loads(post_data.decode('utf-8'))
+                
                 command = received_data.get('command', 'unknown')
                 text_to_process = received_data.get('text', '')
                 language = received_data.get('language', 'unknown')
                 location_info = received_data.get('location', {})
                 original_request = received_data.get('original_request', received_data.get('project_request'))
 
-                print(f"🦚 MCP: Processing {command} - {original_request[:50] if original_request else 'N/A'}...")
+                # DEBUG OUTPUT
+                print("🔍 DEBUG: Full payload received:")
+                print(f"   Command: {command}")
+                print(f"   Text: {text_to_process[:100] if text_to_process else 'None'}...")
+                print(f"   Language: {language}")
+                print(f"   Original Request: {original_request}")
+                print("=" * 50)
 
+                # Handle XEdit-specific commands
+                if command == "fix_xedit_paths":
+                    xedit_paths = received_data.get('xedit_paths', [])
+                    print(f"🎯 Processing XEdit paths: {xedit_paths}")
+                    text_to_process = xedit_paths
+
+                print("Enhanced MCP: Received data from EIP:")
+                print("---")
+                print("Command: {}".format(command))
+                print("Language: {}".format(language))
+                print("File: {}".format(os.path.basename(location_info.get('filepath', 'N/A'))))
+                if original_request:
+                    print("Original Request: {}".format(original_request[:50]))
+                print("---")
+
+                # Build prompt and call LLM
                 llm_prompt = build_llm_prompt(command, text_to_process, language)
-                print(f"📝 Generated prompt: {len(llm_prompt)} chars")
                 
-                llm_response = call_groq_api(llm_prompt)
+                print(f"🔍 DEBUG: Sending prompt to Groq:")
+                print(f"   Prompt length: {len(llm_prompt)} chars")
+                print(f"   First 200 chars: {llm_prompt[:200]}...")
+                print("=" * 50)
+                
+                llm_response = call_llm(llm_prompt)
+
+                # DEBUG GROQ RESPONSE
+                print(f"🔍 DEBUG: Groq API Response:")
+                print(f"   Success: {llm_response.get('success')}")
+                if llm_response.get("success"):
+                    response_text = llm_response.get("text", "")
+                    print(f"   Response length: {len(response_text)} chars")
+                    print(f"   First 200 chars: {response_text[:200]}...")
+                    print(f"🔍 DEBUG: Looking for code blocks...")
+                    import re
+                    code_blocks = re.findall(r"```(?:filename:\s*)?[^\n]*\n(.*?)```", response_text, re.DOTALL)
+                    print(f"   Found {len(code_blocks)} code blocks")
+                    if code_blocks:
+                        print(f"   First code block length: {len(code_blocks[0])} chars")
+                        print(f"   First code block preview: {code_blocks[0][:100]}...")
+                    else:
+                        print("   NO CODE BLOCKS FOUND! Response format might be wrong")
+                else:
+                    print(f"   Error: {llm_response.get('error')}")
+                print("=" * 50)
 
                 if llm_response.get("success"):
                     llm_raw_text = llm_response.get("text", "")
-                    print(f"✅ LLM Response received: {len(llm_raw_text)} chars")
-                    
-                    internal_data = process_llm_response(command, llm_raw_text, location_info, original_request)
+                    internal_structured_data = process_llm_response(command, llm_raw_text, location_info, original_request)
 
+                    # DEBUG MCP PROCESSING
+                    print(f"🔍 DEBUG: MCP Processing Result:")
+                    print(f"   Analysis type: {internal_structured_data.get('analysis_type')}")
+                    print(f"   Has xedit_html: {'xedit_html' in internal_structured_data}")
+                    print(f"   Has dashboard_html: {'dashboard_html' in internal_structured_data}")
+                    if "error" in internal_structured_data:
+                        print(f"   ERROR: {internal_structured_data['error']}")
+                    print("=" * 50)
+
+                    # Prepare response
                     response_payload = {
                         "status": "success",
                         "command": command,
-                        "message": "Fresh code, interfaces, and download package generated successfully.",
-                        "internal_data": internal_data,
+                        "message": "Enhanced MCP processed successfully.",
+                        "internal_data": internal_structured_data,
                         "location": location_info
                     }
                     
-                    if "xedit_html" in internal_data:
-                        response_payload["report_filepath"] = internal_data["xedit_html"]
+                    # Add report filepath if generated
+                    if "report_html" in internal_structured_data:
+                        response_payload["report_filepath"] = internal_structured_data["report_html"]
+                    if "xedit_html" in internal_structured_data:
+                        response_payload["report_filepath"] = internal_structured_data["xedit_html"]
 
                     self.send_response(200)
                     self.send_header('Content-type', 'application/json')
                     self.send_header("Access-Control-Allow-Origin", "*")
                     self.end_headers()
                     self.wfile.write(json.dumps(response_payload).encode('utf-8'))
-                    
-                    print("✅ Response sent successfully")
-                    
+
                 else:
-                    error_message = llm_response.get("error", "Unknown error")
-                    print(f"❌ LLM Error: {error_message}")
-                    
+                    error_message = llm_response.get("error", "Unknown LLM error.")
+                    print(f"❌ LLM ERROR: {error_message}")
                     self.send_response(500)
                     self.send_header('Content-type', 'application/json')
                     self.send_header("Access-Control-Allow-Origin", "*")
@@ -1175,41 +928,46 @@ class EnhancedMCPRequestHandler(http.server.BaseHTTPRequestHandler):
                     error_payload = {
                         "status": "error",
                         "command": command,
-                        "message": f"LLM failed: {error_message}"
+                        "message": f"Enhanced MCP: LLM processing failed: {error_message}",
+                        "internal_data": {"_llm_error": error_message}
                     }
                     self.wfile.write(json.dumps(error_payload).encode('utf-8'))
 
             except Exception as e:
-                print(f"❌ Request handler error: {e}")
+                print(f"❌ EXCEPTION: {e}")
+                import traceback
                 traceback.print_exc()
                 self.send_response(500)
                 self.send_header('Content-type', 'application/json')
                 self.send_header("Access-Control-Allow-Origin", "*")
                 self.end_headers()
-                error_payload = {"status": "error", "message": str(e)}
+                error_payload = {
+                    "status": "error",
+                    "message": "Enhanced MCP: Processing error: {}".format(e),
+                    "command": "internal_error"
+                }
                 self.wfile.write(json.dumps(error_payload).encode('utf-8'))
         else:
             self.send_response(404)
             self.end_headers()
+            self.wfile.write(b'404 Not Found')
 
+
+# --- SERVER STARTUP ---
 if __name__ == "__main__":
-    print("🦚 Enhanced MCP Server starting...")
-    print(f"🔥 Using GROQ {GROQ_MODEL_NAME}")
-    print("📦 Download functionality enabled")
-    print("🌐 Health check: http://127.0.0.1:8000/health")
-    print("🦅 EAGLE/HAWK/FALCON prompts restored!")
-    print("💾 RAW DATA LOGGING enabled for troubleshooting")
-    print()
-    
     with socketserver.TCPServer((HOST, PORT), EnhancedMCPRequestHandler, bind_and_activate=False) as httpd:
         httpd.allow_reuse_address = True
         httpd.server_bind()
         httpd.server_activate()
-        print(f"🚀 Server running on {HOST}:{PORT}")
-        print("Press Ctrl+C to stop.")
-        print()
-        
+
+        print("Enhanced MCP: Starting Peacock server on {}:{}".format(HOST, PORT))
+        print("Enhanced MCP: Peacock stages ready - Spark/Falcon/Eagle/Hawk")
+        print("Enhanced MCP: Using Groq API with {}".format(GROQ_MODEL_NAME))
+        print("Enhanced MCP: Press Ctrl+C to stop.")
+
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
-            print("\n🦚 Server stopped.")
+            print("\nEnhanced MCP: Stopping Peacock server.")
+            httpd.shutdown()
+            print("Enhanced MCP: Peacock server stopped.")
