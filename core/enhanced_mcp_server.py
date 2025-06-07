@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Enhanced MCP Server with Fresh Code Generation + Model Dashboard + Download Integration
-RESTORED TO WORKING VERSION with DeepSeek-R1-Distill-Llama-70B + POWERFUL PROMPTS
+FIXED: Using deepseek-r1-distill-llama-70b + RAW DATA LOGGING for troubleshooting
 """
 
 import http.server
@@ -22,17 +22,63 @@ HOST = "127.0.0.1"
 PORT = 8000
 PROCESS_PATH = "/process"
 
-# API Configuration - UPDATED TO USE deepseek-r1-distill-llama-70b
+# API Configuration - FIXED TO USE deepseek-r1-distill-llama-70b
 GROQ_API_KEY = "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"
 GROQ_MODEL_NAME = "deepseek-r1-distill-llama-70b"
 
+def save_raw_data(prompt, response, error=None):
+    """Save raw prompt and response data for troubleshooting"""
+    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    debug_dir = Path(__file__).parent.parent / "debug_logs"
+    debug_dir.mkdir(exist_ok=True)
+    
+    # Save prompt
+    prompt_file = debug_dir / f"prompt_{timestamp}.txt"
+    with open(prompt_file, 'w', encoding='utf-8') as f:
+        f.write("="*80 + "\n")
+        f.write(f"PROMPT SENT TO GROQ API\n")
+        f.write("="*80 + "\n")
+        f.write(f"Model: {GROQ_MODEL_NAME}\n")
+        f.write(f"Timestamp: {datetime.datetime.now()}\n")
+        f.write(f"Prompt Length: {len(prompt)} characters\n")
+        f.write("="*80 + "\n")
+        f.write(prompt)
+        f.write("\n" + "="*80)
+    
+    # Save response
+    response_file = debug_dir / f"response_{timestamp}.txt"
+    with open(response_file, 'w', encoding='utf-8') as f:
+        f.write("="*80 + "\n")
+        f.write(f"RESPONSE FROM GROQ API\n")
+        f.write("="*80 + "\n")
+        f.write(f"Model: {GROQ_MODEL_NAME}\n")
+        f.write(f"Timestamp: {datetime.datetime.now()}\n")
+        if error:
+            f.write(f"ERROR: {error}\n")
+        else:
+            f.write(f"Response Length: {len(response)} characters\n")
+            f.write(f"Success: True\n")
+        f.write("="*80 + "\n")
+        if error:
+            f.write(f"ERROR DETAILS:\n{error}")
+        else:
+            f.write(response)
+        f.write("\n" + "="*80)
+    
+    print(f"💾 RAW DATA SAVED:")
+    print(f"   Prompt: {prompt_file}")
+    print(f"   Response: {response_file}")
+    
+    return prompt_file, response_file
+
 def call_groq_api(prompt):
-    """Calls Groq API with DeepSeek model and proper settings"""
+    """Calls Groq API with DeepSeek model and comprehensive logging"""
     try:
         from groq import Groq
         client = Groq(api_key=GROQ_API_KEY)
         
         print(f"🔄 Calling Groq API with {GROQ_MODEL_NAME}...")
+        print(f"📝 Prompt length: {len(prompt)} characters")
         
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
@@ -45,11 +91,17 @@ def call_groq_api(prompt):
         response_text = chat_completion.choices[0].message.content
         print(f"✅ Groq API success - {len(response_text)} chars received")
         
+        # Save raw data for troubleshooting
+        save_raw_data(prompt, response_text)
+        
         return {"success": True, "text": response_text}
         
     except Exception as e:
         error_msg = str(e)
         print(f"❌ Groq API Error: {error_msg}")
+        
+        # Save error data for troubleshooting
+        save_raw_data(prompt, "", error=error_msg)
         
         # Provide more specific error messages
         if "timeout" in error_msg.lower():
@@ -1042,6 +1094,7 @@ if __name__ == "__main__":
     print("📦 Download functionality enabled")
     print("🌐 Health check: http://127.0.0.1:8000/health")
     print("🦅 EAGLE/HAWK/FALCON prompts restored!")
+    print("💾 RAW DATA LOGGING enabled for troubleshooting")
     print()
     
     with socketserver.TCPServer((HOST, PORT), EnhancedMCPRequestHandler, bind_and_activate=False) as httpd:
