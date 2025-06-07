@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Enhanced MCP Server with Fresh Code Generation + Model Dashboard + Download Integration
-FIXED: Using deepseek-r1-distill-llama-70b + RAW DATA LOGGING for troubleshooting
+FIXED: Better code extraction, XEdit path generation, and download functionality
 """
 
 import http.server
@@ -813,41 +813,145 @@ Provide production-ready, optimized code that exceeds industry standards!"""
 
     return f"Analyze this {language} code:\n\n{text}"
 
+def infer_filename(language, content, index):
+    """Infer filename based on language and content"""
+    # Common filename patterns
+    if 'main(' in content or 'if __name__' in content:
+        if language == 'python':
+            return 'main.py'
+        elif language == 'javascript':
+            return 'main.js'
+        elif language == 'rust':
+            return 'main.rs'
+        elif language == 'go':
+            return 'main.go'
+    
+    # Framework-specific patterns
+    if 'app = Flask(' in content or 'from flask' in content:
+        return 'app.py'
+    elif 'pygame' in content:
+        return 'game.py'
+    elif 'express(' in content:
+        return 'server.js'
+    elif 'React' in content:
+        return 'App.js'
+    elif 'requirements' in content.lower() or 'dependencies' in content.lower():
+        return 'requirements.txt'
+    elif 'package' in content and '"name"' in content:
+        return 'package.json'
+    elif content.strip().startswith('#') and 'setup' in content.lower():
+        return 'README.md'
+    
+    # Default patterns
+    extensions = {
+        'python': '.py',
+        'javascript': '.js',
+        'html': '.html',
+        'css': '.css',
+        'rust': '.rs',
+        'go': '.go',
+        'java': '.java',
+        'cpp': '.cpp',
+        'c': '.c'
+    }
+    
+    ext = extensions.get(language, '.txt')
+    return f'file_{index + 1}{ext}'
+
+def detect_language_from_content(content):
+    """Detect programming language from content"""
+    if 'def ' in content or 'import ' in content or 'from ' in content:
+        return 'python'
+    elif 'function ' in content or 'const ' in content or 'let ' in content:
+        return 'javascript'
+    elif 'fn ' in content or 'struct ' in content or 'impl ' in content:
+        return 'rust'
+    elif 'func ' in content or 'package ' in content:
+        return 'go'
+    elif '<html' in content or '<div' in content:
+        return 'html'
+    elif 'body {' in content or '.class' in content:
+        return 'css'
+    else:
+        return 'text'
+
 def extract_code_from_llm(llm_response):
-    """Extract code from LLM response - IMPROVED for DeepSeek"""
+    """ENHANCED code extraction that handles DeepSeek's format better"""
     import re
     
     print(f"🔍 DEBUG: extract_code_from_llm called")
     print(f"   Response length: {len(llm_response)} chars")
     print(f"   First 300 chars: {llm_response[:300]}...")
     
-    # For DeepSeek, look for code blocks first
-    patterns = [
-        r"```filename:\s*([^\n]+)\n(.*?)```",  # Filename pattern
-        r"```([a-zA-Z]+)\n(.*?)```",           # Language pattern
-        r"```\n(.*?)```",                      # Simple pattern
-    ]
+    # Try multiple extraction strategies
     
-    for i, pattern in enumerate(patterns):
-        matches = re.findall(pattern, llm_response, re.DOTALL)
-        print(f"   Pattern {i+1} found {len(matches)} matches")
-        if matches:
-            if i == 0:  # filename pattern
-                # Reconstruct with filename format
-                reconstructed = ""
-                for filename, content in matches:
+    # Strategy 1: Look for filename blocks
+    filename_pattern = r'```filename:\s*([^\n]+)\n(.*?)```'
+    filename_matches = re.findall(filename_pattern, llm_response, re.DOTALL)
+    
+    if filename_matches:
+        print(f"   ✅ Found {len(filename_matches)} filename blocks")
+        reconstructed = ""
+        for filename, content in filename_matches:
+            reconstructed += f"```filename: {filename.strip()}\n{content.strip()}\n```\n\n"
+        return reconstructed
+    
+    # Strategy 2: Look for language-specific blocks and try to infer filenames
+    language_pattern = r'```(\w+)\n(.*?)```'
+    language_matches = re.findall(language_pattern, llm_response, re.DOTALL)
+    
+    if language_matches:
+        print(f"   ⚠️  Found {len(language_matches)} language blocks, inferring filenames")
+        reconstructed = ""
+        
+        for i, (lang, content) in enumerate(language_matches):
+            # Infer filename based on language and content
+            filename = infer_filename(lang, content, i)
+            reconstructed += f"```filename: {filename}\n{content.strip()}\n```\n\n"
+        
+        return reconstructed
+    
+    # Strategy 3: Look for any code blocks and create generic files
+    generic_pattern = r'```\n(.*?)```'
+    generic_matches = re.findall(generic_pattern, llm_response, re.DOTALL)
+    
+    if generic_matches:
+        print(f"   ⚠️  Found {len(generic_matches)} generic blocks, creating files")
+        reconstructed = ""
+        
+        for i, content in enumerate(generic_matches):
+            # Try to detect language from content
+            lang = detect_language_from_content(content)
+            filename = infer_filename(lang, content, i)
+            reconstructed += f"```filename: {filename}\n{content.strip()}\n```\n\n"
+        
+        return reconstructed
+    
+    # Strategy 4: If no code blocks, try to create a single file from the whole response
+    print("   ⚠️  NO CODE BLOCKS FOUND! Creating single file from response")
+    
+    # Try to detect what kind of code this might be
+    lang = detect_language_from_content(llm_response)
+    filename = infer_filename(lang, llm_response, 0)
+    
+    # Clean up the response a bit
+    cleaned_response = llm_response.strip()
+    
+    # If it looks like multiple files mashed together, try to split them
+    if '# ' in cleaned_response and '.py' in cleaned_response:
+        # Looks like Python files mashed together
+        parts = re.split(r'# (\w+\.py)', cleaned_response)
+        if len(parts) > 2:
+            reconstructed = ""
+            for i in range(1, len(parts), 2):
+                if i + 1 < len(parts):
+                    filename = parts[i]
+                    content = parts[i + 1].strip()
                     reconstructed += f"```filename: {filename}\n{content}\n```\n\n"
-                print(f"   Using reconstructed filename blocks: {len(reconstructed)} chars")
-                return reconstructed
-            else:
-                # Take ALL matches, not just first one
-                all_code = "\n\n".join([match[1] if isinstance(match, tuple) else match for match in matches])
-                print(f"   Using combined matches: {len(all_code)} chars")
-                return all_code
+            return reconstructed
     
-    print("   ❌ NO CODE BLOCKS FOUND! Using full response")
-    # Return the whole response if nothing else works
-    return llm_response
+    # Fallback: wrap the whole response as a single file
+    return f"```filename: {filename}\n{cleaned_response}\n```\n\n"
 
 def process_llm_response(command, llm_raw_text, location_info, original_request=None):
     """Process LLM response and generate interface + model dashboard + download package"""
@@ -938,7 +1042,7 @@ def process_llm_response(command, llm_raw_text, location_info, original_request=
                 "result_text": llm_raw_text,
                 "xedit_html": str(xedit_reports_path),
                 "dashboard_html": str(dashboard_reports_path),
-                "file_count": len(re.findall(r'```filename:', llm_raw_text)),
+                "file_count": len(re.findall(r'```filename:', fresh_code)),
                 "pipeline_stages": {
                     "fresh_code_generation": "✅ Complete",
                     "interface_generation": "✅ Complete",
