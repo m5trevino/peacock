@@ -1,3 +1,0 @@
-# SECTION 2: PROJECT INITIALIZATION
-# Purpose: Transition the user from the Ideation plan to the Refinement workflow.
-# Status: High-level concept defined. Needs detailed blueprinting of how the plan and initial code are presented/opened for the user.
