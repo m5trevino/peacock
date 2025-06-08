@@ -1,3 +1,5 @@
+
+####START OF DOCUMENT####
 ####START OF DOCUMENT####
 #!/usr/bin/env python3
 """
@@ -199,6 +201,8 @@ def call_optimized_groq(prompt, command):
         PEACOCK_MODEL_STRATEGY["fallback_model"]
     ]
     
+
+####1/4 MARKER####
     # Build models to try (primary + fallbacks, avoid duplicates)
     models_to_try = [primary_model] + [m for m in fallback_models if m != primary_model]
     
@@ -400,6 +404,8 @@ Focus on practical, implementable architecture."""
     
     falcon_response = call_optimized_groq(falcon_prompt, "falcon_architecture")
     
+
+####1/2 MARKER####
     if not falcon_response.get("success"):
         return {"error": "Falcon stage failed", "stage": "FALCON", "details": falcon_response}
     
@@ -524,6 +530,48 @@ Be specific and actionable for each area."""
     print(f"✅ HAWK: {pipeline_results['hawk']['model_used']}")
     print(f"📝 SESSION: {SESSION_TIMESTAMP}")
     print("="*70)
+
+
+
+    # AUTO-GENERATE XEDIT INTERFACE WITH REAL CODE
+    try:
+        cli_progress("PIPELINE", "SUCCESS", "Auto-generating XEdit interface...")
+        
+        # Extract EAGLE code
+        eagle_response = pipeline_results.get("eagle", {})
+        eagle_text = eagle_response.get("text", "")
+        
+        if eagle_text:
+            # Extract actual code from EAGLE response
+            extracted_code = extract_code_from_eagle_response(eagle_text)
+            project_name = user_request[:50].strip() + " (Generated)"
+            
+            # Import and generate XEdit
+            import sys
+            xedit_path = "/home/flintx/peacock/core"
+            if xedit_path not in sys.path:
+                sys.path.insert(0, xedit_path)
+            
+            import xedit
+            import importlib
+            importlib.reload(xedit)
+            
+            # Generate XEdit interface
+            html_content = xedit.generate_xedit_interface(extracted_code, project_name)
+            
+            # Save XEdit file
+            html_dir = Path("/home/flintx/peacock/html")
+            html_dir.mkdir(exist_ok=True)
+            output_path = html_dir / f"xedit-{SESSION_TIMESTAMP}.html"
+            
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write(html_content)
+            
+            cli_progress("AUTO-XEDIT", "SUCCESS", f"XEdit generated: {output_path}")
+        else:
+            cli_progress("AUTO-XEDIT", "ERROR", "No EAGLE code found")
+    except Exception as e:
+        cli_progress("AUTO-XEDIT", "ERROR", "XEdit generation failed", str(e))
     
     return {
         "success": True,
@@ -641,7 +689,7 @@ class PeacockRequestHandler(http.server.SimpleHTTPRequestHandler):
                 if command == "peacock_full":
                     print(f"🦚 STARTING OPTIMIZED PEACOCK PIPELINE")
                     result = run_peacock_pipeline(text_to_process)
-                        
+                
                 elif command == "fix_xedit_paths":
                     xedit_paths = received_data.get('xedit_paths', [])
                     print(f"🎯 PROCESSING XEDIT PATHS: {xedit_paths}")
@@ -660,6 +708,45 @@ class PeacockRequestHandler(http.server.SimpleHTTPRequestHandler):
                         result = {
                             "success": False,
                             "error": llm_response.get('error')
+                        }
+                
+                elif command == "generate_xedit_with_code":
+                    code_content = received_data.get("code_content", "")
+                    project_name = received_data.get("project_name", "Generated Project")
+                    session = received_data.get("session", SESSION_TIMESTAMP)
+                    
+                    logger.debug("HTTP", "xedit_regen", f"Regenerating XEdit with {len(code_content)} chars of code")
+                    
+                    try:
+                        import sys
+                        xedit_path = "/home/flintx/peacock/core"
+                        if xedit_path not in sys.path:
+                            sys.path.insert(0, xedit_path)
+                        
+                        import xedit
+                        import importlib
+                        importlib.reload(xedit)
+                        
+                        html_content = xedit.generate_xedit_interface(code_content, project_name)
+                        
+                        html_dir = Path("/home/flintx/peacock/html")
+                        html_dir.mkdir(exist_ok=True)
+                        output_path = html_dir / f"xedit-{session}.html"
+                        
+                        with open(output_path, "w", encoding="utf-8") as f:
+                            f.write(html_content)
+                        
+                        result = {
+                            "success": True,
+                            "message": f"XEdit regenerated with {len(code_content)} chars",
+                            "file_path": str(output_path),
+                            "session": session
+                        }
+                        
+                    except Exception as e:
+                        result = {
+                            "success": False,
+                            "error": f"XEdit regeneration failed: {str(e)}"
                         }
                         
                 else:
@@ -764,3 +851,285 @@ def main():
 if __name__ == "__main__":
     main()
 ####END OF DOCUMENT####
+def extract_code_from_eagle_response(eagle_text):
+    """Extract actual code from EAGLE response"""
+    import re
+    
+    # Look for code blocks in EAGLE response
+    code_blocks = []
+    
+    # Pattern 1: **filename: path** followed by ```language
+    pattern1 = r'\*\*filename:\s*([^*]+)\*\*\s*```(\w+)?\s*(.*?)```'
+    matches1 = re.findall(pattern1, eagle_text, re.DOTALL | re.IGNORECASE)
+    
+    for filename, language, code in matches1:
+        code_blocks.append({
+            'filename': filename.strip(),
+            'language': language or 'python',
+            'code': code.strip()
+        })
+    
+    # Pattern 2: Simple code blocks
+    if not code_blocks:
+        pattern2 = r'```(\w+)?\s*(.*?)```'
+        matches2 = re.findall(pattern2, eagle_text, re.DOTALL)
+        
+        for i, (language, code) in enumerate(matches2):
+            code_blocks.append({
+                'filename': f'main.{language or "py"}',
+                'language': language or 'python', 
+                'code': code.strip()
+            })
+    
+    # Combine all code into single string for XEdit
+    if code_blocks:
+        combined_code = "\n\n".join([
+            f"# File: {block['filename']}\n{block['code']}" 
+            for block in code_blocks
+        ])
+        return combined_code
+    
+    # Fallback: return raw EAGLE text
+    return eagle_text
+
+def auto_generate_xedit_after_pipeline(pipeline_results, user_request, session_timestamp):
+    """Automatically generate XEdit interface after pipeline completion"""
+    try:
+        cli_progress("AUTO-XEDIT", "START", "Generating XEdit interface...")
+        
+        # Extract EAGLE code
+        eagle_response = pipeline_results.get('eagle', {})
+        eagle_text = eagle_response.get('text', '')
+        
+        if not eagle_text:
+            cli_progress("AUTO-XEDIT", "ERROR", "No EAGLE code found")
+            return False
+        
+        # Extract actual code from EAGLE response
+        extracted_code = extract_code_from_eagle_response(eagle_text)
+        
+        cli_progress("AUTO-XEDIT", "WORKING", f"Extracted {len(extracted_code)} chars of code")
+        
+        # Generate project name from user request
+        project_name = user_request[:50].strip() + " (Auto-Generated)"
+        
+        # Import and regenerate XEdit
+        import sys
+        xedit_path = "/home/flintx/peacock/core"
+        if xedit_path not in sys.path:
+            sys.path.insert(0, xedit_path)
+        
+        import xedit
+        import importlib
+        importlib.reload(xedit)
+        
+        # Generate XEdit interface with actual code
+        html_content = xedit.generate_xedit_interface(extracted_code, project_name)
+        
+        # Save to html directory
+        html_dir = Path("/home/flintx/peacock/html")
+        html_dir.mkdir(exist_ok=True)
+        output_path = html_dir / f"xedit-{session_timestamp}.html"
+        
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(html_content)
+        
+        cli_progress("AUTO-XEDIT", "SUCCESS", f"XEdit generated: {output_path}")
+        return True
+        
+    except Exception as e:
+        cli_progress("AUTO-XEDIT", "ERROR", "Generation failed", str(e))
+        return False
+
+# SESSION COORDINATOR INTEGRATION (Best Practice)
+def read_coordinated_session():
+    """Read session from coordinator if available"""
+    session_file = Path("/home/flintx/peacock/session_state.json")
+    if session_file.exists():
+        try:
+            with open(session_file, 'r') as f:
+                session_data = json.load(f)
+                return session_data.get('timestamp'), session_data
+        except (json.JSONDecodeError, FileNotFoundError):
+            pass
+    return None, None
+
+def update_session_component_status(component, status, details=None):
+    """Update component status in coordinated session"""
+    session_file = Path("/home/flintx/peacock/session_state.json")
+    if session_file.exists():
+        try:
+            with open(session_file, 'r') as f:
+                session_data = json.load(f)
+            
+            session_data["components"][component]["status"] = status
+            if details:
+                session_data["components"][component]["details"] = details
+            
+            # Atomic update
+            temp_file = session_file.with_suffix('.tmp')
+            with open(temp_file, 'w') as f:
+                json.dump(session_data, f, indent=2)
+            temp_file.rename(session_file)
+            
+            cli_progress("COORDINATOR", "SUCCESS", f"{component} status updated: {status}")
+        except Exception as e:
+            cli_progress("COORDINATOR", "ERROR", f"Failed to update {component} status", str(e))
+
+def coordinated_auto_generate_xedit(pipeline_results, user_request, coordinated_timestamp):
+    """Enhanced XEdit generation with session coordination"""
+    try:
+        cli_progress("COORDINATED-XEDIT", "START", "Generating XEdit with session coordination...")
+        
+        # Update session status
+        update_session_component_status("xedit", "generating")
+        
+        # Extract EAGLE code
+        eagle_response = pipeline_results.get('eagle', {})
+        eagle_text = eagle_response.get('text', '')
+        
+        if not eagle_text:
+            cli_progress("COORDINATED-XEDIT", "ERROR", "No EAGLE code found")
+            update_session_component_status("xedit", "failed", {"reason": "no_eagle_code"})
+            return False
+        
+        # Extract actual code from EAGLE response
+        extracted_code = extract_code_from_eagle_response(eagle_text)
+        
+        cli_progress("COORDINATED-XEDIT", "WORKING", f"Extracted {len(extracted_code)} chars of code")
+        
+        # Generate project name from user request
+        project_name = user_request[:50].strip() + " (Coordinated)"
+        
+        # Import and regenerate XEdit with COORDINATED timestamp
+        import sys
+        xedit_path = "/home/flintx/peacock/core"
+        if xedit_path not in sys.path:
+            sys.path.insert(0, xedit_path)
+        
+        import xedit
+        import importlib
+        importlib.reload(xedit)
+        
+        # CRITICAL: Override xedit's timestamp with coordinated one
+        original_get_session = xedit.get_session_timestamp
+        xedit.get_session_timestamp = lambda: coordinated_timestamp
+        
+        try:
+            # Generate XEdit interface with coordinated timestamp
+            html_content = xedit.generate_xedit_interface(extracted_code, project_name)
+            
+            # Save to html directory with COORDINATED timestamp
+            html_dir = Path("/home/flintx/peacock/html")
+            html_dir.mkdir(exist_ok=True)
+            output_path = html_dir / f"xedit-{coordinated_timestamp}.html"
+            
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write(html_content)
+            
+            # Update session status
+            update_session_component_status("xedit", "ready", {
+                "path": str(output_path),
+                "functions_found": len(extract_code_from_eagle_response(eagle_text).split('def ')),
+                "coordinated": True
+            })
+            
+            cli_progress("COORDINATED-XEDIT", "SUCCESS", f"XEdit coordinated: {output_path}")
+            return True
+            
+        finally:
+            # Restore original timestamp function
+            xedit.get_session_timestamp = original_get_session
+        
+    except Exception as e:
+        cli_progress("COORDINATED-XEDIT", "ERROR", "Coordinated generation failed", str(e))
+        update_session_component_status("xedit", "failed", {"error": str(e)})
+        return False
+
+# SESSION COORDINATOR INTEGRATION (Best Practice)
+def read_coordinated_session():
+    """Read session from coordinator if available"""
+    session_file = Path("/home/flintx/peacock/session_state.json")
+    if session_file.exists():
+        try:
+            with open(session_file, 'r') as f:
+                session_data = json.load(f)
+                return session_data.get('timestamp'), session_data
+        except (json.JSONDecodeError, FileNotFoundError):
+            pass
+    return None, None
+
+def update_session_component_status(component, status, details=None):
+    """Update component status in coordinated session"""
+    session_file = Path("/home/flintx/peacock/session_state.json")
+    if session_file.exists():
+        try:
+            with open(session_file, 'r') as f:
+                session_data = json.load(f)
+            
+            session_data["components"][component]["status"] = status
+            if details:
+                session_data["components"][component]["details"] = details
+            
+            # Atomic update
+            temp_file = session_file.with_suffix('.tmp')
+            with open(temp_file, 'w') as f:
+                json.dump(session_data, f, indent=2)
+            temp_file.rename(session_file)
+            
+            cli_progress("COORDINATOR", "SUCCESS", f"{component} status updated: {status}")
+        except Exception as e:
+            cli_progress("COORDINATOR", "ERROR", f"Failed to update {component} status", str(e))
+
+def coordinated_auto_generate_xedit(pipeline_results, user_request, coordinated_timestamp):
+    """Enhanced XEdit generation with session coordination"""
+    try:
+        cli_progress("COORDINATED-XEDIT", "START", "Generating XEdit with session coordination...")
+        
+        # Extract EAGLE code
+        eagle_response = pipeline_results.get('eagle', {})
+        eagle_text = eagle_response.get('text', '')
+        
+        if not eagle_text:
+            cli_progress("COORDINATED-XEDIT", "ERROR", "No EAGLE code found")
+            return False
+        
+        # Extract actual code from EAGLE response
+        extracted_code = extract_code_from_eagle_response(eagle_text)
+        
+        cli_progress("COORDINATED-XEDIT", "WORKING", f"Extracted {len(extracted_code)} chars of code")
+        
+        # Generate project name from user request
+        project_name = user_request[:50].strip() + " (Coordinated)"
+        
+        # Import and regenerate XEdit with COORDINATED timestamp
+        import sys
+        xedit_path = "/home/flintx/peacock/core"
+        if xedit_path not in sys.path:
+            sys.path.insert(0, xedit_path)
+        
+        import xedit
+        import importlib
+        importlib.reload(xedit)
+        
+        # Generate XEdit interface with coordinated timestamp override
+        # We'll manually set the timestamp in the function call
+        html_content = xedit.generate_xedit_interface(extracted_code, project_name)
+        
+        # Replace the timestamp in the generated HTML
+        html_content = html_content.replace(xedit.get_session_timestamp(), coordinated_timestamp)
+        
+        # Save to html directory with COORDINATED timestamp
+        html_dir = Path("/home/flintx/peacock/html")
+        html_dir.mkdir(exist_ok=True)
+        output_path = html_dir / f"xedit-{coordinated_timestamp}.html"
+        
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(html_content)
+        
+        cli_progress("COORDINATED-XEDIT", "SUCCESS", f"XEdit coordinated: {output_path}")
+        return True
+        
+    except Exception as e:
+        cli_progress("COORDINATED-XEDIT", "ERROR", "Coordinated generation failed", str(e))
+        return False
