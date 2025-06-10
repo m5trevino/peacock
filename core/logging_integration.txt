@@ -1,0 +1,8 @@
+# Add these logging calls to process_with_birds function:
+
+# After each bird result:
+log_prompt_raw(bird_name, bird_prompt, bird_model)
+log_response_raw(bird_name, bird_response, len(bird_response))
+
+# For OUT-HOMING final call:
+log_groq_api_call(final_model, combined_prompt, final_response)
