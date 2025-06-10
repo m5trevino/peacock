@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦚 Peacock XEdit Interface - Build a snake game.</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'SF Mono', monospace; background: #0d1117; color: #e6edf3; height: 100vh; overflow: hidden; }
+        
+        .header { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .peacock-logo { font-size: 18px; font-weight: bold; color: #ff6b35; }
+        .project-info { color: #8b949e; font-size: 14px; }
+        .session-info { background: rgba(0, 255, 136, 0.1); border: 1px solid #00ff88; border-radius: 6px; padding: 4px 8px; font-size: 12px; color: #00ff88; }
+        
+        .main-container { display: flex; height: calc(100vh - 60px); }
+        
+        .left-panel { width: 320px; background: #161b22; border-right: 1px solid #30363d; display: flex; flex-direction: column; }
+        .panel-header { background: #21262d; padding: 12px 16px; border-bottom: 1px solid #30363d; font-weight: 600; font-size: 13px; color: #7c3aed; }
+        
+        .functions-list { flex: 1; overflow-y: auto; padding: 8px; }
+        .function-item { background: #21262d; border: 1px solid #30363d; border-radius: 6px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; position: relative; }
+        .function-item:hover { border-color: #ff6b35; background: #2d333b; transform: translateX(3px); }
+        .function-item.selected { border-color: #ff6b35; background: #2d333b; box-shadow: 0 0 0 1px #ff6b35; }
+        
+        .function-info { display: flex; align-items: center; gap: 8px; }
+        .function-name { font-weight: 600; color: #79c0ff; }
+        .function-type { background: #30363d; color: #8b949e; padding: 2px 6px; border-radius: 3px; font-size: 10px; text-transform: uppercase; }
+        .xedit-id { font-family: 'SF Mono', monospace; background: #ff6b35; color: #0d1117; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: bold; }
+        
+        .add-btn { position: absolute; top: 8px; right: 8px; background: #238636; border: none; color: white; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 14px; opacity: 0; transition: opacity 0.2s; }
+        .function-item:hover .add-btn { opacity: 1; }
+        
+        .middle-panel { width: 340px; background: #161b22; border-right: 1px solid #30363d; display: flex; flex-direction: column; }
+        .payload-header { background: #238636; color: white; padding: 12px 16px; font-weight: 600; font-size: 14px; text-align: center; }
+        .payload-container { flex: 1; padding: 16px; display: flex; flex-direction: column; }
+        .payload-list { flex: 1; background: #21262d; border: 1px solid #30363d; border-radius: 8px; padding: 16px; margin-bottom: 16px; overflow-y: auto; min-height: 200px; }
+        .payload-empty { color: #6e7681; text-align: center; font-style: italic; margin-top: 50px; }
+        
+        .payload-item { background: #2d333b; border: 1px solid #30363d; border-radius: 6px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .remove-btn { background: #da3633; border: none; color: white; width: 20px; height: 20px; border-radius: 3px; cursor: pointer; font-size: 12px; }
+        
+        .send-button { width: 100%; background: #238636; border: none; color: white; padding: 15px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .send-button:disabled { background: #30363d; color: #8b949e; cursor: not-allowed; }
+        
+        .right-panel { flex: 1; background: #0d1117; display: flex; flex-direction: column; }
+        .code-header { background: #21262d; padding: 12px 16px; border-bottom: 1px solid #30363d; font-weight: 600; font-size: 13px; color: #f0883e; }
+        .code-container { flex: 1; overflow: auto; padding: 16px; }
+        .code-content { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 16px; font-family: 'SF Mono', monospace; font-size: 13px; line-height: 1.6; }
+        
+        .code-line { display: flex; min-height: 20px; }
+        .code-line.highlighted { background: #2d333b; border-left: 3px solid #ff6b35; padding-left: 13px; }
+        .line-number { color: #6e7681; user-select: none; margin-right: 16px; min-width: 30px; text-align: right; }
+        .line-content { color: #e6edf3; flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="peacock-logo">🦚 Peacock XEdit Interface</div>
+        <div class="project-info">
+            Project: Build a snake game. • Session: <span class="session-info">24-9-306</span>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <div class="panel-header">📋 Functions & Classes (17 items)</div>
+            <div class="functions-list">
+                
+            <div class="function-item" onclick="highlightFunction('7x001')">
+                <div class="function-info">
+                    <span>⚡</span>
+                    <span class="function-name">gameContainer</span>
+                    <span class="function-type">div_element</span>
+                    <span class="xedit-id">7x001</span>
+                </div>
+                <button class="add-btn" onclick="addToPayload('7x001')" title="Add to payload">+</button>
+            </div>
+            <div class="function-item" onclick="highlightFunction('7x002')">
+                <div class="function-info">
+                    <span>⚡</span>
+                    <span class="function-name">gameCanvas</span>
+                    <span class="function-type">canvas_element</span>
+                    <span class="xedit-id">7x002</span>
+                </div>
+                <button class="add-btn" onclick="addToPayload('7x002')" title="Add to payload">+</button>
+            </div>
+            <div class="function-item" onclick="highlightFunction('7x003')">
+                <div class="function-info">
+                    <span>⚡</span>
+                    <span class="function-name">scoreDisplay</span>
+                    <span class="function-type">div_element</span>
+                    <span class="xedit-id">7x003</span>
+                </div>
+                <button class="add-btn" onclick="addToPayload('7x003')" title="Add to payload">+</button>
+            </div>
+            <div class="function-item" onclick="highlightFunction('7x004')">
+                <div class="function-info">
+                    <span>⚡</span>
+                    <span class="function-name">gameControls</span>
+                    <span class="function-type">div_element</span>
+                    <span class="xedit-id">7x004</span>
+                </div>
+                <button class="add-btn" onclick="addToPayload('7x004')" title="Add to payload">+</button>
+            </div>
+            <div class="function-item" onclick="highlightFunction('7x005')">
+                <div class="function-info">
+                    <span>⚡</span>
+                    <span class="function-name">gameContainer</span>
+                    <span class="function-type">css_id</span>
+                    <span class="xedit-id">7x005</span>
+                </div>
+                <button class="add-btn" onclick="addToPayload('7x005')" title="Add to payload">+</button>
+            </div>
+            <div class="function-item" onclick="highlightFunction('7x006')">
+                <div class="function-info">
+                    <span>⚡</span>
+                    <span class="function-name">gameCanvas</span>
+                    <span class="function-type">css_id</span>
+                    <span class="xedit-id">7x006</span>
+                </div>
+                <button class="add-btn" onclick="addToPayload('7x006')" title="Add to payload">+</button>
+            </div>
+            <div class="function-item" onclick="highlightFunction('7x007')">
+                <div class="function-info">
+                    <span>⚡</span>
+                    <span class="function-name">scoreDisplay</span>
+                    <span class="function-type">css_id</span>
+                    <span class="xedit-id">7x007</span>
+                </div>
+                <button class="add-btn" onclick="addToPayload('7x007')" title="Add to payload">+</button>
+            </div>
+            <div class="function-item" onclick="highlightFunction('7x008')">
+                <div class="function-info">
+                    <span>⚡</span>
+                    <span class="function-name">startGame</span>
+                    <span class="function-type">function</span>
+                    <span class="xedit-id">7x008</span>
+                </div>
+                <button class="add-btn" onclick="addToPayload('7x008')" title="Add to payload">+</button>
+            </div>
+            <div class="function-item" onclick="highlightFunction('7x009')">
+                <div class="function-info">
+                    <span>⚡</span>
+                    <span class="function-name">pauseGame</span>
+                    <span class="function-type">function</span>
+                    <span class="xedit-id">7x009</span>
+                </div>
+                <button class="add-btn" onclick="addToPayload('7x009')" title="Add to payload">+</button>
+            </div>
+            <div class="function-item" onclick="highlightFunction('7x010')">
+                <div class="function-info">
+                    <span>⚡</span>
+                    <span class="function-name">gameLoop</span>
+                    <span class="function-type">function</span>
+                    <span class="xedit-id">7x010</span>
+                </div>
+                <button class="add-btn" onclick="addToPayload('7x010')" title="Add to payload">+</button>
+            </div>
+            <div class="function-item" onclick="highlightFunction('7x011')">
+                <div class="function-info">
+                    <span>⚡</span>
+                    <span class="function-name">moveSnake</span>
+                    <span class="function-type">function</span>
+                    <span class="xedit-id">7x011</span>
+                </div>
+                <button class="add-btn" onclick="addToPayload('7x011')" title="Add to payload">+</button>
+            </div>
+            <div class="function-item" onclick="highlightFunction('7x012')">
+                <div class="function-info">
+                    <span>⚡</span>
+                    <span class="function-name">growSnake</span>
+                    <span class="function-type">function</span>
+                    <span class="xedit-id">7x012</span>
+                </div>
+                <button class="add-btn" onclick="addToPayload('7x012')" title="Add to payload">+</button>
+            </div>
+            <div class="function-item" onclick="highlightFunction('7x013')">
+                <div class="function-info">
+                    <span>⚡</span>
+                    <span class="function-name">checkCollision</span>
+                    <span class="function-type">function</span>
+                    <span class="xedit-id">7x013</span>
+                </div>
+                <button class="add-btn" onclick="addToPayload('7x013')" title="Add to payload">+</button>
+            </div>
+            <div class="function-item" onclick="highlightFunction('7x014')">
+                <div class="function-info">
+                    <span>⚡</span>
+                    <span class="function-name">checkFoodCollision</span>
+                    <span class="function-type">function</span>
+                    <span class="xedit-id">7x014</span>
+                </div>
+                <button class="add-btn" onclick="addToPayload('7x014')" title="Add to payload">+</button>
+            </div>
+            <div class="function-item" onclick="highlightFunction('7x015')">
+                <div class="function-info">
+                    <span>⚡</span>
+                    <span class="function-name">placeFood</span>
+                    <span class="function-type">function</span>
+                    <span class="xedit-id">7x015</span>
+                </div>
+                <button class="add-btn" onclick="addToPayload('7x015')" title="Add to payload">+</button>
+            </div>
+            <div class="function-item" onclick="highlightFunction('7x016')">
+                <div class="function-info">
+                    <span>⚡</span>
+                    <span class="function-name">draw</span>
+                    <span class="function-type">function</span>
+                    <span class="xedit-id">7x016</span>
+                </div>
+                <button class="add-btn" onclick="addToPayload('7x016')" title="Add to payload">+</button>
+            </div>
+            <div class="function-item" onclick="highlightFunction('7x017')">
+                <div class="function-info">
+                    <span>⚡</span>
+                    <span class="function-name">updateScore</span>
+                    <span class="function-type">function</span>
+                    <span class="xedit-id">7x017</span>
+                </div>
+                <button class="add-btn" onclick="addToPayload('7x017')" title="Add to payload">+</button>
+            </div>
+            </div>
+        </div>
+
+        <div class="middle-panel">
+            <div class="payload-header">XEdit Payload</div>
+            <div class="payload-container">
+                <div class="payload-list" id="payload-list">
+                    <div class="payload-empty">Click functions to add XEdit-Paths</div>
+                </div>
+                <button class="send-button" id="send-button" onclick="sendToMCP()" disabled>
+                    🚀 Send 0 to MCP for Fixes
+                </button>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="code-header">📁 Build a snake game.: Generated Code</div>
+            <div class="code-container">
+                <div class="code-content">
+                    <div class="code-line" data-line="1"><span class="line-number">  1</span><span class="line-content">// File: index.html</span></div>
+<div class="code-line" data-line="2"><span class="line-number">  2</span><span class="line-content">// Language: html</span></div>
+<div class="code-line" data-line="3"><span class="line-number">  3</span><span class="line-content">// Size: 636 characters</span></div>
+<div class="code-line" data-line="4"><span class="line-number">  4</span><span class="line-content"></span></div>
+<div class="code-line" data-line="5"><span class="line-number">  5</span><span class="line-content">&lt;!DOCTYPE html&gt;</span></div>
+<div class="code-line" data-line="6"><span class="line-number">  6</span><span class="line-content">&lt;html lang="en"&gt;</span></div>
+<div class="code-line" data-line="7"><span class="line-number">  7</span><span class="line-content">&lt;head&gt;</span></div>
+<div class="code-line" data-line="8"><span class="line-number">  8</span><span class="line-content">    &lt;meta charset="UTF-8"&gt;</span></div>
+<div class="code-line" data-line="9"><span class="line-number">  9</span><span class="line-content">    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</span></div>
+<div class="code-line" data-line="10"><span class="line-number"> 10</span><span class="line-content">    &lt;title&gt;Generated Project&lt;/title&gt;</span></div>
+<div class="code-line" data-line="11"><span class="line-number"> 11</span><span class="line-content">    &lt;link rel="stylesheet" href="styles.css"&gt;</span></div>
+<div class="code-line" data-line="12"><span class="line-number"> 12</span><span class="line-content">&lt;/head&gt;</span></div>
+<div class="code-line" data-line="13"><span class="line-number"> 13</span><span class="line-content">&lt;body&gt;</span></div>
+<div class="code-line" data-line="14"><span class="line-number"> 14</span><span class="line-content">    &lt;div id="gameContainer"&gt;</span></div>
+<div class="code-line" data-line="15"><span class="line-number"> 15</span><span class="line-content">        &lt;canvas id="gameCanvas" width="400" height="400"&gt;&lt;/canvas&gt;</span></div>
+<div class="code-line" data-line="16"><span class="line-number"> 16</span><span class="line-content">        &lt;div id="scoreDisplay"&gt;Score: &lt;span id="score"&gt;0&lt;/span&gt;&lt;/div&gt;</span></div>
+<div class="code-line" data-line="17"><span class="line-number"> 17</span><span class="line-content">        &lt;div id="gameControls"&gt;</span></div>
+<div class="code-line" data-line="18"><span class="line-number"> 18</span><span class="line-content">            &lt;button onclick="startGame()"&gt;Start Game&lt;/button&gt;</span></div>
+<div class="code-line" data-line="19"><span class="line-number"> 19</span><span class="line-content">            &lt;button onclick="pauseGame()"&gt;Pause&lt;/button&gt;</span></div>
+<div class="code-line" data-line="20"><span class="line-number"> 20</span><span class="line-content">        &lt;/div&gt;</span></div>
+<div class="code-line" data-line="21"><span class="line-number"> 21</span><span class="line-content">    &lt;/div&gt;</span></div>
+<div class="code-line" data-line="22"><span class="line-number"> 22</span><span class="line-content">    &lt;script src="script.js"&gt;&lt;/script&gt;</span></div>
+<div class="code-line" data-line="23"><span class="line-number"> 23</span><span class="line-content">&lt;/body&gt;</span></div>
+<div class="code-line" data-line="24"><span class="line-number"> 24</span><span class="line-content">&lt;/html&gt;</span></div>
+<div class="code-line" data-line="25"><span class="line-number"> 25</span><span class="line-content"></span></div>
+<div class="code-line" data-line="26"><span class="line-number"> 26</span><span class="line-content">// ============================================================</span></div>
+<div class="code-line" data-line="27"><span class="line-number"> 27</span><span class="line-content"></span></div>
+<div class="code-line" data-line="28"><span class="line-number"> 28</span><span class="line-content">// File: styles.css</span></div>
+<div class="code-line" data-line="29"><span class="line-number"> 29</span><span class="line-content">// Language: css</span></div>
+<div class="code-line" data-line="30"><span class="line-number"> 30</span><span class="line-content">// Size: 835 characters</span></div>
+<div class="code-line" data-line="31"><span class="line-number"> 31</span><span class="line-content"></span></div>
+<div class="code-line" data-line="32"><span class="line-number"> 32</span><span class="line-content">body {</span></div>
+<div class="code-line" data-line="33"><span class="line-number"> 33</span><span class="line-content">    margin: 0;</span></div>
+<div class="code-line" data-line="34"><span class="line-number"> 34</span><span class="line-content">    padding: 20px;</span></div>
+<div class="code-line" data-line="35"><span class="line-number"> 35</span><span class="line-content">    font-family: Arial, sans-serif;</span></div>
+<div class="code-line" data-line="36"><span class="line-number"> 36</span><span class="line-content">    background: #1a1a1a;</span></div>
+<div class="code-line" data-line="37"><span class="line-number"> 37</span><span class="line-content">    color: #ffffff;</span></div>
+<div class="code-line" data-line="38"><span class="line-number"> 38</span><span class="line-content">    display: flex;</span></div>
+<div class="code-line" data-line="39"><span class="line-number"> 39</span><span class="line-content">    justify-content: center;</span></div>
+<div class="code-line" data-line="40"><span class="line-number"> 40</span><span class="line-content">    align-items: center;</span></div>
+<div class="code-line" data-line="41"><span class="line-number"> 41</span><span class="line-content">    min-height: 100vh;</span></div>
+<div class="code-line" data-line="42"><span class="line-number"> 42</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="43"><span class="line-number"> 43</span><span class="line-content"></span></div>
+<div class="code-line" data-line="44"><span class="line-number"> 44</span><span class="line-content">#gameContainer {</span></div>
+<div class="code-line" data-line="45"><span class="line-number"> 45</span><span class="line-content">    text-align: center;</span></div>
+<div class="code-line" data-line="46"><span class="line-number"> 46</span><span class="line-content">    background: #2a2a2a;</span></div>
+<div class="code-line" data-line="47"><span class="line-number"> 47</span><span class="line-content">    padding: 20px;</span></div>
+<div class="code-line" data-line="48"><span class="line-number"> 48</span><span class="line-content">    border-radius: 10px;</span></div>
+<div class="code-line" data-line="49"><span class="line-number"> 49</span><span class="line-content">    box-shadow: 0 4px 8px rgba(0,0,0,0.3);</span></div>
+<div class="code-line" data-line="50"><span class="line-number"> 50</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="51"><span class="line-number"> 51</span><span class="line-content"></span></div>
+<div class="code-line" data-line="52"><span class="line-number"> 52</span><span class="line-content">#gameCanvas {</span></div>
+<div class="code-line" data-line="53"><span class="line-number"> 53</span><span class="line-content">    border: 2px solid #4CAF50;</span></div>
+<div class="code-line" data-line="54"><span class="line-number"> 54</span><span class="line-content">    background: #000000;</span></div>
+<div class="code-line" data-line="55"><span class="line-number"> 55</span><span class="line-content">    margin-bottom: 20px;</span></div>
+<div class="code-line" data-line="56"><span class="line-number"> 56</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="57"><span class="line-number"> 57</span><span class="line-content"></span></div>
+<div class="code-line" data-line="58"><span class="line-number"> 58</span><span class="line-content">#scoreDisplay {</span></div>
+<div class="code-line" data-line="59"><span class="line-number"> 59</span><span class="line-content">    font-size: 24px;</span></div>
+<div class="code-line" data-line="60"><span class="line-number"> 60</span><span class="line-content">    font-weight: bold;</span></div>
+<div class="code-line" data-line="61"><span class="line-number"> 61</span><span class="line-content">    margin-bottom: 15px;</span></div>
+<div class="code-line" data-line="62"><span class="line-number"> 62</span><span class="line-content">    color: #4CAF50;</span></div>
+<div class="code-line" data-line="63"><span class="line-number"> 63</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="64"><span class="line-number"> 64</span><span class="line-content"></span></div>
+<div class="code-line" data-line="65"><span class="line-number"> 65</span><span class="line-content">#gameControls button {</span></div>
+<div class="code-line" data-line="66"><span class="line-number"> 66</span><span class="line-content">    background: #4CAF50;</span></div>
+<div class="code-line" data-line="67"><span class="line-number"> 67</span><span class="line-content">    color: white;</span></div>
+<div class="code-line" data-line="68"><span class="line-number"> 68</span><span class="line-content">    border: none;</span></div>
+<div class="code-line" data-line="69"><span class="line-number"> 69</span><span class="line-content">    padding: 10px 20px;</span></div>
+<div class="code-line" data-line="70"><span class="line-number"> 70</span><span class="line-content">    margin: 0 10px;</span></div>
+<div class="code-line" data-line="71"><span class="line-number"> 71</span><span class="line-content">    border-radius: 5px;</span></div>
+<div class="code-line" data-line="72"><span class="line-number"> 72</span><span class="line-content">    cursor: pointer;</span></div>
+<div class="code-line" data-line="73"><span class="line-number"> 73</span><span class="line-content">    font-size: 16px;</span></div>
+<div class="code-line" data-line="74"><span class="line-number"> 74</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="75"><span class="line-number"> 75</span><span class="line-content"></span></div>
+<div class="code-line" data-line="76"><span class="line-number"> 76</span><span class="line-content">#gameControls button:hover {</span></div>
+<div class="code-line" data-line="77"><span class="line-number"> 77</span><span class="line-content">    background: #45a049;</span></div>
+<div class="code-line" data-line="78"><span class="line-number"> 78</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="79"><span class="line-number"> 79</span><span class="line-content"></span></div>
+<div class="code-line" data-line="80"><span class="line-number"> 80</span><span class="line-content">// ============================================================</span></div>
+<div class="code-line" data-line="81"><span class="line-number"> 81</span><span class="line-content"></span></div>
+<div class="code-line" data-line="82"><span class="line-number"> 82</span><span class="line-content">// File: script.js</span></div>
+<div class="code-line" data-line="83"><span class="line-number"> 83</span><span class="line-content">// Language: javascript</span></div>
+<div class="code-line" data-line="84"><span class="line-number"> 84</span><span class="line-content">// Size: 3045 characters</span></div>
+<div class="code-line" data-line="85"><span class="line-number"> 85</span><span class="line-content"></span></div>
+<div class="code-line" data-line="86"><span class="line-number"> 86</span><span class="line-content">// Game configuration</span></div>
+<div class="code-line" data-line="87"><span class="line-number"> 87</span><span class="line-content">const GRID_SIZE = 20;</span></div>
+<div class="code-line" data-line="88"><span class="line-number"> 88</span><span class="line-content">const CANVAS_SIZE = 400;</span></div>
+<div class="code-line" data-line="89"><span class="line-number"> 89</span><span class="line-content"></span></div>
+<div class="code-line" data-line="90"><span class="line-number"> 90</span><span class="line-content">// Game state</span></div>
+<div class="code-line" data-line="91"><span class="line-number"> 91</span><span class="line-content">let snake = [{x: 200, y: 200}];</span></div>
+<div class="code-line" data-line="92"><span class="line-number"> 92</span><span class="line-content">let food = {x: 0, y: 0};</span></div>
+<div class="code-line" data-line="93"><span class="line-number"> 93</span><span class="line-content">let direction = {x: 0, y: 0};</span></div>
+<div class="code-line" data-line="94"><span class="line-number"> 94</span><span class="line-content">let score = 0;</span></div>
+<div class="code-line" data-line="95"><span class="line-number"> 95</span><span class="line-content">let gameRunning = false;</span></div>
+<div class="code-line" data-line="96"><span class="line-number"> 96</span><span class="line-content"></span></div>
+<div class="code-line" data-line="97"><span class="line-number"> 97</span><span class="line-content">// Get canvas and context</span></div>
+<div class="code-line" data-line="98"><span class="line-number"> 98</span><span class="line-content">const canvas = document.getElementById('gameCanvas');</span></div>
+<div class="code-line" data-line="99"><span class="line-number"> 99</span><span class="line-content">const ctx = canvas.getContext('2d');</span></div>
+<div class="code-line" data-line="100"><span class="line-number">100</span><span class="line-content"></span></div>
+<div class="code-line" data-line="101"><span class="line-number">101</span><span class="line-content">// Game functions</span></div>
+<div class="code-line" data-line="102"><span class="line-number">102</span><span class="line-content">function startGame() {</span></div>
+<div class="code-line" data-line="103"><span class="line-number">103</span><span class="line-content">    if (gameRunning) return;</span></div>
+<div class="code-line" data-line="104"><span class="line-number">104</span><span class="line-content">    </span></div>
+<div class="code-line" data-line="105"><span class="line-number">105</span><span class="line-content">    gameRunning = true;</span></div>
+<div class="code-line" data-line="106"><span class="line-number">106</span><span class="line-content">    snake = [{x: 200, y: 200}];</span></div>
+<div class="code-line" data-line="107"><span class="line-number">107</span><span class="line-content">    direction = {x: GRID_SIZE, y: 0};</span></div>
+<div class="code-line" data-line="108"><span class="line-number">108</span><span class="line-content">    score = 0;</span></div>
+<div class="code-line" data-line="109"><span class="line-number">109</span><span class="line-content">    updateScore();</span></div>
+<div class="code-line" data-line="110"><span class="line-number">110</span><span class="line-content">    placeFood();</span></div>
+<div class="code-line" data-line="111"><span class="line-number">111</span><span class="line-content">    gameLoop();</span></div>
+<div class="code-line" data-line="112"><span class="line-number">112</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="113"><span class="line-number">113</span><span class="line-content"></span></div>
+<div class="code-line" data-line="114"><span class="line-number">114</span><span class="line-content">function pauseGame() {</span></div>
+<div class="code-line" data-line="115"><span class="line-number">115</span><span class="line-content">    gameRunning = false;</span></div>
+<div class="code-line" data-line="116"><span class="line-number">116</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="117"><span class="line-number">117</span><span class="line-content"></span></div>
+<div class="code-line" data-line="118"><span class="line-number">118</span><span class="line-content">function gameLoop() {</span></div>
+<div class="code-line" data-line="119"><span class="line-number">119</span><span class="line-content">    if (!gameRunning) return;</span></div>
+<div class="code-line" data-line="120"><span class="line-number">120</span><span class="line-content">    </span></div>
+<div class="code-line" data-line="121"><span class="line-number">121</span><span class="line-content">    moveSnake();</span></div>
+<div class="code-line" data-line="122"><span class="line-number">122</span><span class="line-content">    </span></div>
+<div class="code-line" data-line="123"><span class="line-number">123</span><span class="line-content">    if (checkCollision()) {</span></div>
+<div class="code-line" data-line="124"><span class="line-number">124</span><span class="line-content">        gameRunning = false;</span></div>
+<div class="code-line" data-line="125"><span class="line-number">125</span><span class="line-content">        alert('Game Over! Score: ' + score);</span></div>
+<div class="code-line" data-line="126"><span class="line-number">126</span><span class="line-content">        return;</span></div>
+<div class="code-line" data-line="127"><span class="line-number">127</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="128"><span class="line-number">128</span><span class="line-content">    </span></div>
+<div class="code-line" data-line="129"><span class="line-number">129</span><span class="line-content">    if (checkFoodCollision()) {</span></div>
+<div class="code-line" data-line="130"><span class="line-number">130</span><span class="line-content">        score += 10;</span></div>
+<div class="code-line" data-line="131"><span class="line-number">131</span><span class="line-content">        updateScore();</span></div>
+<div class="code-line" data-line="132"><span class="line-number">132</span><span class="line-content">        growSnake();</span></div>
+<div class="code-line" data-line="133"><span class="line-number">133</span><span class="line-content">        placeFood();</span></div>
+<div class="code-line" data-line="134"><span class="line-number">134</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="135"><span class="line-number">135</span><span class="line-content">    </span></div>
+<div class="code-line" data-line="136"><span class="line-number">136</span><span class="line-content">    draw();</span></div>
+<div class="code-line" data-line="137"><span class="line-number">137</span><span class="line-content">    setTimeout(gameLoop, 100);</span></div>
+<div class="code-line" data-line="138"><span class="line-number">138</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="139"><span class="line-number">139</span><span class="line-content"></span></div>
+<div class="code-line" data-line="140"><span class="line-number">140</span><span class="line-content">function moveSnake() {</span></div>
+<div class="code-line" data-line="141"><span class="line-number">141</span><span class="line-content">    const head = {x: snake[0].x + direction.x, y: snake[0].y + direction.y};</span></div>
+<div class="code-line" data-line="142"><span class="line-number">142</span><span class="line-content">    snake.unshift(head);</span></div>
+<div class="code-line" data-line="143"><span class="line-number">143</span><span class="line-content">    snake.pop();</span></div>
+<div class="code-line" data-line="144"><span class="line-number">144</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="145"><span class="line-number">145</span><span class="line-content"></span></div>
+<div class="code-line" data-line="146"><span class="line-number">146</span><span class="line-content">function growSnake() {</span></div>
+<div class="code-line" data-line="147"><span class="line-number">147</span><span class="line-content">    const tail = snake[snake.length - 1];</span></div>
+<div class="code-line" data-line="148"><span class="line-number">148</span><span class="line-content">    snake.push({x: tail.x, y: tail.y});</span></div>
+<div class="code-line" data-line="149"><span class="line-number">149</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="150"><span class="line-number">150</span><span class="line-content"></span></div>
+<div class="code-line" data-line="151"><span class="line-number">151</span><span class="line-content">function checkCollision() {</span></div>
+<div class="code-line" data-line="152"><span class="line-number">152</span><span class="line-content">    const head = snake[0];</span></div>
+<div class="code-line" data-line="153"><span class="line-number">153</span><span class="line-content">    </span></div>
+<div class="code-line" data-line="154"><span class="line-number">154</span><span class="line-content">    // Wall collision</span></div>
+<div class="code-line" data-line="155"><span class="line-number">155</span><span class="line-content">    if (head.x &lt; 0 || head.x &gt;= CANVAS_SIZE || head.y &lt; 0 || head.y &gt;= CANVAS_SIZE) {</span></div>
+<div class="code-line" data-line="156"><span class="line-number">156</span><span class="line-content">        return true;</span></div>
+<div class="code-line" data-line="157"><span class="line-number">157</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="158"><span class="line-number">158</span><span class="line-content">    </span></div>
+<div class="code-line" data-line="159"><span class="line-number">159</span><span class="line-content">    // Self collision</span></div>
+<div class="code-line" data-line="160"><span class="line-number">160</span><span class="line-content">    for (let i = 1; i &lt; snake.length; i++) {</span></div>
+<div class="code-line" data-line="161"><span class="line-number">161</span><span class="line-content">        if (head.x === snake[i].x && head.y === snake[i].y) {</span></div>
+<div class="code-line" data-line="162"><span class="line-number">162</span><span class="line-content">            return true;</span></div>
+<div class="code-line" data-line="163"><span class="line-number">163</span><span class="line-content">        }</span></div>
+<div class="code-line" data-line="164"><span class="line-number">164</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="165"><span class="line-number">165</span><span class="line-content">    </span></div>
+<div class="code-line" data-line="166"><span class="line-number">166</span><span class="line-content">    return false;</span></div>
+<div class="code-line" data-line="167"><span class="line-number">167</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="168"><span class="line-number">168</span><span class="line-content"></span></div>
+<div class="code-line" data-line="169"><span class="line-number">169</span><span class="line-content">function checkFoodCollision() {</span></div>
+<div class="code-line" data-line="170"><span class="line-number">170</span><span class="line-content">    return snake[0].x === food.x && snake[0].y === food.y;</span></div>
+<div class="code-line" data-line="171"><span class="line-number">171</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="172"><span class="line-number">172</span><span class="line-content"></span></div>
+<div class="code-line" data-line="173"><span class="line-number">173</span><span class="line-content">function placeFood() {</span></div>
+<div class="code-line" data-line="174"><span class="line-number">174</span><span class="line-content">    food.x = Math.floor(Math.random() * (CANVAS_SIZE / GRID_SIZE)) * GRID_SIZE;</span></div>
+<div class="code-line" data-line="175"><span class="line-number">175</span><span class="line-content">    food.y = Math.floor(Math.random() * (CANVAS_SIZE / GRID_SIZE)) * GRID_SIZE;</span></div>
+<div class="code-line" data-line="176"><span class="line-number">176</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="177"><span class="line-number">177</span><span class="line-content"></span></div>
+<div class="code-line" data-line="178"><span class="line-number">178</span><span class="line-content">function draw() {</span></div>
+<div class="code-line" data-line="179"><span class="line-number">179</span><span class="line-content">    // Clear canvas</span></div>
+<div class="code-line" data-line="180"><span class="line-number">180</span><span class="line-content">    ctx.fillStyle = '#000000';</span></div>
+<div class="code-line" data-line="181"><span class="line-number">181</span><span class="line-content">    ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);</span></div>
+<div class="code-line" data-line="182"><span class="line-number">182</span><span class="line-content">    </span></div>
+<div class="code-line" data-line="183"><span class="line-number">183</span><span class="line-content">    // Draw snake</span></div>
+<div class="code-line" data-line="184"><span class="line-number">184</span><span class="line-content">    ctx.fillStyle = '#4CAF50';</span></div>
+<div class="code-line" data-line="185"><span class="line-number">185</span><span class="line-content">    snake.forEach(segment =&gt; {</span></div>
+<div class="code-line" data-line="186"><span class="line-number">186</span><span class="line-content">        ctx.fillRect(segment.x, segment.y, GRID_SIZE, GRID_SIZE);</span></div>
+<div class="code-line" data-line="187"><span class="line-number">187</span><span class="line-content">    });</span></div>
+<div class="code-line" data-line="188"><span class="line-number">188</span><span class="line-content">    </span></div>
+<div class="code-line" data-line="189"><span class="line-number">189</span><span class="line-content">    // Draw food</span></div>
+<div class="code-line" data-line="190"><span class="line-number">190</span><span class="line-content">    ctx.fillStyle = '#FF5722';</span></div>
+<div class="code-line" data-line="191"><span class="line-number">191</span><span class="line-content">    ctx.fillRect(food.x, food.y, GRID_SIZE, GRID_SIZE);</span></div>
+<div class="code-line" data-line="192"><span class="line-number">192</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="193"><span class="line-number">193</span><span class="line-content"></span></div>
+<div class="code-line" data-line="194"><span class="line-number">194</span><span class="line-content">function updateScore() {</span></div>
+<div class="code-line" data-line="195"><span class="line-number">195</span><span class="line-content">    document.getElementById('score').textContent = score;</span></div>
+<div class="code-line" data-line="196"><span class="line-number">196</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="197"><span class="line-number">197</span><span class="line-content"></span></div>
+<div class="code-line" data-line="198"><span class="line-number">198</span><span class="line-content">// Keyboard controls</span></div>
+<div class="code-line" data-line="199"><span class="line-number">199</span><span class="line-content">document.addEventListener('keydown', function(event) {</span></div>
+<div class="code-line" data-line="200"><span class="line-number">200</span><span class="line-content">    if (!gameRunning) return;</span></div>
+<div class="code-line" data-line="201"><span class="line-number">201</span><span class="line-content">    </span></div>
+<div class="code-line" data-line="202"><span class="line-number">202</span><span class="line-content">    switch(event.key) {</span></div>
+<div class="code-line" data-line="203"><span class="line-number">203</span><span class="line-content">        case 'ArrowUp':</span></div>
+<div class="code-line" data-line="204"><span class="line-number">204</span><span class="line-content">            if (direction.y === 0) direction = {x: 0, y: -GRID_SIZE};</span></div>
+<div class="code-line" data-line="205"><span class="line-number">205</span><span class="line-content">            break;</span></div>
+<div class="code-line" data-line="206"><span class="line-number">206</span><span class="line-content">        case 'ArrowDown':</span></div>
+<div class="code-line" data-line="207"><span class="line-number">207</span><span class="line-content">            if (direction.y === 0) direction = {x: 0, y: GRID_SIZE};</span></div>
+<div class="code-line" data-line="208"><span class="line-number">208</span><span class="line-content">            break;</span></div>
+<div class="code-line" data-line="209"><span class="line-number">209</span><span class="line-content">        case 'ArrowLeft':</span></div>
+<div class="code-line" data-line="210"><span class="line-number">210</span><span class="line-content">            if (direction.x === 0) direction = {x: -GRID_SIZE, y: 0};</span></div>
+<div class="code-line" data-line="211"><span class="line-number">211</span><span class="line-content">            break;</span></div>
+<div class="code-line" data-line="212"><span class="line-number">212</span><span class="line-content">        case 'ArrowRight':</span></div>
+<div class="code-line" data-line="213"><span class="line-number">213</span><span class="line-content">            if (direction.x === 0) direction = {x: GRID_SIZE, y: 0};</span></div>
+<div class="code-line" data-line="214"><span class="line-number">214</span><span class="line-content">            break;</span></div>
+<div class="code-line" data-line="215"><span class="line-number">215</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="216"><span class="line-number">216</span><span class="line-content">});</span></div>
+<div class="code-line" data-line="217"><span class="line-number">217</span><span class="line-content"></span></div>
+<div class="code-line" data-line="218"><span class="line-number">218</span><span class="line-content">// Initialize</span></div>
+<div class="code-line" data-line="219"><span class="line-number">219</span><span class="line-content">placeFood();</span></div>
+<div class="code-line" data-line="220"><span class="line-number">220</span><span class="line-content">draw();</span></div>
+<div class="code-line" data-line="221"><span class="line-number">221</span><span class="line-content"></span></div>
+<div class="code-line" data-line="222"><span class="line-number">222</span><span class="line-content">// ============================================================</span></div>
+<div class="code-line" data-line="223"><span class="line-number">223</span><span class="line-content"></span></div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const xeditPaths = {"7x001": {"display_name": "gameContainer", "type": "div_element", "filename": "index.html", "language": "html", "line_start": 10, "line_end": 10, "lines_display": "10-10", "technical_path": "index.html::div_element.gameContainer/lines[10-10]", "optimal_model": "gemma2-9b-it"}, "7x002": {"display_name": "gameCanvas", "type": "canvas_element", "filename": "index.html", "language": "html", "line_start": 11, "line_end": 11, "lines_display": "11-11", "technical_path": "index.html::canvas_element.gameCanvas/lines[11-11]", "optimal_model": "gemma2-9b-it"}, "7x003": {"display_name": "scoreDisplay", "type": "div_element", "filename": "index.html", "language": "html", "line_start": 12, "line_end": 12, "lines_display": "12-12", "technical_path": "index.html::div_element.scoreDisplay/lines[12-12]", "optimal_model": "gemma2-9b-it"}, "7x004": {"display_name": "gameControls", "type": "div_element", "filename": "index.html", "language": "html", "line_start": 13, "line_end": 13, "lines_display": "13-13", "technical_path": "index.html::div_element.gameControls/lines[13-13]", "optimal_model": "gemma2-9b-it"}, "7x005": {"display_name": "gameContainer", "type": "css_id", "filename": "styles.css", "language": "css", "line_start": 13, "line_end": 23, "lines_display": "13-23", "technical_path": "styles.css::css_id.gameContainer/lines[13-23]", "optimal_model": "gemma2-9b-it"}, "7x006": {"display_name": "gameCanvas", "type": "css_id", "filename": "styles.css", "language": "css", "line_start": 21, "line_end": 31, "lines_display": "21-31", "technical_path": "styles.css::css_id.gameCanvas/lines[21-31]", "optimal_model": "gemma2-9b-it"}, "7x007": {"display_name": "scoreDisplay", "type": "css_id", "filename": "styles.css", "language": "css", "line_start": 27, "line_end": 37, "lines_display": "27-37", "technical_path": "styles.css::css_id.scoreDisplay/lines[27-37]", "optimal_model": "gemma2-9b-it"}, "7x008": {"display_name": "startGame", "type": "function", "filename": "script.js", "language": "javascript", "line_start": 17, "line_end": 32, "lines_display": "17-32", "technical_path": "script.js::function.startGame/lines[17-32]", "optimal_model": "llama-3.1-8b-instant"}, "7x009": {"display_name": "pauseGame", "type": "function", "filename": "script.js", "language": "javascript", "line_start": 29, "line_end": 44, "lines_display": "29-44", "technical_path": "script.js::function.pauseGame/lines[29-44]", "optimal_model": "llama-3.1-8b-instant"}, "7x010": {"display_name": "gameLoop", "type": "function", "filename": "script.js", "language": "javascript", "line_start": 33, "line_end": 48, "lines_display": "33-48", "technical_path": "script.js::function.gameLoop/lines[33-48]", "optimal_model": "llama-3.1-8b-instant"}, "7x011": {"display_name": "moveSnake", "type": "function", "filename": "script.js", "language": "javascript", "line_start": 55, "line_end": 70, "lines_display": "55-70", "technical_path": "script.js::function.moveSnake/lines[55-70]", "optimal_model": "llama-3.1-8b-instant"}, "7x012": {"display_name": "growSnake", "type": "function", "filename": "script.js", "language": "javascript", "line_start": 61, "line_end": 76, "lines_display": "61-76", "technical_path": "script.js::function.growSnake/lines[61-76]", "optimal_model": "llama-3.1-8b-instant"}, "7x013": {"display_name": "checkCollision", "type": "function", "filename": "script.js", "language": "javascript", "line_start": 66, "line_end": 81, "lines_display": "66-81", "technical_path": "script.js::function.checkCollision/lines[66-81]", "optimal_model": "llama-3.1-8b-instant"}, "7x014": {"display_name": "checkFoodCollision", "type": "function", "filename": "script.js", "language": "javascript", "line_start": 84, "line_end": 99, "lines_display": "84-99", "technical_path": "script.js::function.checkFoodCollision/lines[84-99]", "optimal_model": "llama-3.1-8b-instant"}, "7x015": {"display_name": "placeFood", "type": "function", "filename": "script.js", "language": "javascript", "line_start": 88, "line_end": 103, "lines_display": "88-103", "technical_path": "script.js::function.placeFood/lines[88-103]", "optimal_model": "llama-3.1-8b-instant"}, "7x016": {"display_name": "draw", "type": "function", "filename": "script.js", "language": "javascript", "line_start": 93, "line_end": 108, "lines_display": "93-108", "technical_path": "script.js::function.draw/lines[93-108]", "optimal_model": "llama-3.1-8b-instant"}, "7x017": {"display_name": "updateScore", "type": "function", "filename": "script.js", "language": "javascript", "line_start": 109, "line_end": 124, "lines_display": "109-124", "technical_path": "script.js::function.updateScore/lines[109-124]", "optimal_model": "llama-3.1-8b-instant"}};
+        const sessionTimestamp = '24-9-306';
+        const projectName = 'Build a snake game.';
+        
+        function highlightFunction(xeditId) {
+            // Clear previous highlights
+            document.querySelectorAll('.code-line').forEach(line => {
+                line.classList.remove('highlighted');
+            });
+            
+            document.querySelectorAll('.function-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // Highlight selected function
+            event.currentTarget.classList.add('selected');
+            
+            // Highlight code lines
+            const pathData = xeditPaths[xeditId];
+            if (pathData) {
+                const startLine = pathData.line_start;
+                const endLine = pathData.line_end;
+                
+                for (let i = startLine; i <= endLine; i++) {
+                    const line = document.querySelector(`[data-line="${i}"]`);
+                    if (line) {
+                        line.classList.add('highlighted');
+                    }
+                }
+            }
+        }
+
+        function addToPayload(xeditId) {
+            const payloadList = document.getElementById("payload-list");
+            const sendButton = document.getElementById("send-button");
+            
+            // Check if already added
+            if (document.getElementById(`payload-${xeditId}`)) {
+                return;
+            }
+            
+            // Remove empty message
+            const emptyMsg = payloadList.querySelector('.payload-empty');
+            if (emptyMsg) {
+                emptyMsg.remove();
+            }
+            
+            // Add payload item
+            const pathData = xeditPaths[xeditId];
+            const payloadItem = document.createElement("div");
+            payloadItem.className = "payload-item";
+            payloadItem.id = `payload-${xeditId}`;
+            payloadItem.innerHTML = `
+                <div>
+                    <span class="xedit-id">${xeditId}</span>
+                    <div style="font-size: 12px; color: #8b949e; margin-top: 4px;">
+                        ${pathData.display_name} (${pathData.type})
+                    </div>
+                </div>
+                <button class="remove-btn" onclick="removeFromPayload('${xeditId}')">&times;</button>
+            `;
+            
+            payloadList.appendChild(payloadItem);
+            
+            // Update send button
+            const count = payloadList.children.length;
+            sendButton.textContent = `🚀 Send ${count} to MCP for Fixes`;
+            sendButton.disabled = false;
+        }
+
+        function removeFromPayload(xeditId) {
+            const payloadItem = document.getElementById(`payload-${xeditId}`);
+            if (payloadItem) {
+                payloadItem.remove();
+            }
+            
+            const payloadList = document.getElementById("payload-list");
+            const sendButton = document.getElementById("send-button");
+            const count = payloadList.children.length;
+            
+            if (count === 0) {
+                payloadList.innerHTML = '<div class="payload-empty">Click functions to add XEdit-Paths</div>';
+                sendButton.textContent = "🚀 Send 0 to MCP for Fixes";
+                sendButton.disabled = true;
+            } else {
+                sendButton.textContent = `🚀 Send ${count} to MCP for Fixes`;
+            }
+        }
+
+        function sendToMCP() {
+            const payloadItems = document.querySelectorAll('.payload-item');
+            const xeditIds = Array.from(payloadItems).map(item => {
+                return item.querySelector('.xedit-id').textContent;
+            });
+            
+            console.log('Sending XEdit-Paths to MCP:', xeditIds);
+            
+            // Send to MCP server
+            fetch('http://127.0.0.1:8000/process', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    command: 'fix_xedit_paths',
+                    xedit_paths: xeditIds,
+                    session: sessionTimestamp,
+                    project: projectName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('MCP Response:', data);
+                if (data.success) {
+                    alert(`✅ MCP processed ${xeditIds.length} XEdit-Paths successfully!`);
+                } else {
+                    alert(`❌ Error: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(`❌ Connection error: ${error.message}`);
+            });
+        }
+    </script>
+</body>
+</html>
