@@ -20,7 +20,6 @@ from pathlib import Path
 # Import the birds from the aviary directory
 sys.path.append(str(Path(__file__).parent.parent / "aviary"))
 from out_homing import create_homing_orchestrator
-from in_homing import create_return_homing_processor
 from spark import create_spark_analyst
 from falcon import create_falcon_architect
 from eagle import create_eagle_implementer
@@ -411,28 +410,34 @@ class PeacockRequestHandler(http.server.BaseHTTPRequestHandler):
 
     def process_with_birds(self, user_request: str):
         """
-        Use OUT-HOMING orchestrator to run the full bird pipeline
+        WIRE #2 & #3 FIX: Use OUT-HOMING to orchestrate birds pipeline
+        Returns properly structured response for dashboard
         """
+        
         cli_progress("BIRDS", "START", "Starting OUT-HOMING orchestration")
         
         try:
-            # Initialize OUT-HOMING orchestrator
+            # Create OUT-HOMING orchestrator
             homing = create_homing_orchestrator()
             
-            # Run the full pipeline
+            # WIRE #3: Orchestrate full pipeline through birds
             cli_progress("OUT-HOMING", "WORKING", "Starting full pipeline execution")
-            result = homing.orchestrate_full_pipeline(user_request)
+            pipeline_result = homing.orchestrate_full_pipeline(user_request)
             
-            if not result.get("success", False):
-                error_msg = result.get("error", "Unknown error in OUT-HOMING pipeline")
+            if not pipeline_result.get("success", False):
+                error_msg = pipeline_result.get("error", "Unknown error in OUT-HOMING pipeline")
                 cli_progress("OUT-HOMING", "ERROR", "Pipeline failed", error_msg)
                 return {"success": False, "error": error_msg}
             
-            # Get stage results and final response
-            stage_results = result.get("stage_results", {})
-            final_response = result.get("final_response", "")
+            # Extract the final LLM response for XEdit processing
+            final_response = pipeline_result.get("final_response", "")
+            pipeline_results = pipeline_result.get("stage_results", {})
             
-            # Calculate character counts
+            # WIRE #4 FIX: Generate XEdit interface with session coordination
+            cli_progress("XEDIT", "START", "Generating XEdit interface")
+            xedit_result = self.generate_xedit_interface(final_response, user_request)
+            
+            # Calculate character counts for each stage
             character_counts = {
                 "prompts": {},
                 "responses": {},
@@ -440,63 +445,52 @@ class PeacockRequestHandler(http.server.BaseHTTPRequestHandler):
                 "total_response_chars": 0
             }
             
-            for stage in ["spark", "falcon", "eagle", "hawk"]:
-                if stage in stage_results:
-                    prompt_len = len(stage_results[stage].get("prompt", ""))
-                    resp_len = len(stage_results[stage].get("response", ""))
-                    
-                    character_counts["prompts"][stage] = prompt_len
-                    character_counts["responses"][stage] = resp_len
-                    character_counts["total_prompt_chars"] += prompt_len
-                    character_counts["total_response_chars"] += resp_len
+            for stage, data in pipeline_results.items():
+                prompt_len = len(data.get("prompt", ""))
+                resp_len = len(data.get("response", ""))
+                
+                character_counts["prompts"][stage] = prompt_len
+                character_counts["responses"][stage] = resp_len
+                character_counts["total_prompt_chars"] += prompt_len
+                character_counts["total_response_chars"] += resp_len
             
-            # Print character count summary
-            print("\n📊 CHARACTER COUNT SUMMARY")
-            print("=" * 25)
-            print("STAGE          PROMPT CHARS  RESPONSE CHARS  TOTAL CHARS")
-            print("-" * 60)
-            
-            for stage in ["spark", "falcon", "eagle", "hawk"]:
-                prompt_len = character_counts["prompts"].get(stage, 0)
-                resp_len = character_counts["responses"].get(stage, 0)
-                total = prompt_len + resp_len
-                print(f"{stage.upper():<14} {prompt_len:>11,}  {resp_len:>14,}  {total:>11,}")
-            
-            print("-" * 60)
-            print(f"{'TOTAL':<14} {character_counts['total_prompt_chars']:>11,}  {character_counts['total_response_chars']:>14,}  {character_counts['total_prompt_chars'] + character_counts['total_response_chars']:>11,}")
-            print("=" * 50 + "\n")
-            
-            # Generate XEdit interface with the final response
-            xedit_result = self.generate_xedit_interface(
-                final_response, 
-                user_request, 
-                stage_results
-            )
-            
-            # Prepare response with all stage results and character counts
-            response_data = {
+            # Structure response for dashboard
+            cli_progress("OUT-HOMING", "SUCCESS", "Pipeline completed successfully")
+            return {
                 "success": True,
                 "session_timestamp": SESSION_TIMESTAMP,
                 "character_counts": character_counts,
-                "pipeline_results": {},
+                "pipeline_results": {
+                    "spark": {
+                        "text": pipeline_results.get("spark", {}).get("response", ""),
+                        "char_count": len(pipeline_results.get("spark", {}).get("response", "")),
+                        "model": pipeline_results.get("spark", {}).get("model", "gemma2-9b-it"),
+                        "prompt_chars": len(pipeline_results.get("spark", {}).get("prompt", ""))
+                    },
+                    "falcon": {
+                        "text": pipeline_results.get("falcon", {}).get("response", ""),
+                        "char_count": len(pipeline_results.get("falcon", {}).get("response", "")),
+                        "model": pipeline_results.get("falcon", {}).get("model", "gemma2-9b-it"),
+                        "prompt_chars": len(pipeline_results.get("falcon", {}).get("prompt", ""))
+                    },
+                    "eagle": {
+                        "text": pipeline_results.get("eagle", {}).get("response", ""),
+                        "char_count": len(pipeline_results.get("eagle", {}).get("response", "")),
+                        "model": pipeline_results.get("eagle", {}).get("model", "llama3-8b-8192"),
+                        "prompt_chars": len(pipeline_results.get("eagle", {}).get("prompt", ""))
+                    },
+                    "hawk": {
+                        "text": pipeline_results.get("hawk", {}).get("response", ""),
+                        "char_count": len(pipeline_results.get("hawk", {}).get("response", "")),
+                        "model": pipeline_results.get("hawk", {}).get("model", "gemma2-9b-it"),
+                        "prompt_chars": len(pipeline_results.get("hawk", {}).get("prompt", ""))
+                    }
+                },
                 "xedit_generated": xedit_result.get("success", False),
                 "xedit_file": xedit_result.get("file_path", ""),
                 "total_response_chars": len(final_response),
                 "final_response": final_response
             }
-            
-            # Add stage results to response
-            for stage in ["spark", "falcon", "eagle", "hawk"]:
-                if stage in stage_results:
-                    response_data["pipeline_results"][stage] = {
-                        "text": stage_results[stage].get("response", ""),
-                        "char_count": len(stage_results[stage].get("response", "")),
-                        "model": stage_results[stage].get("model", "unknown"),
-                        "prompt_chars": len(stage_results[stage].get("prompt", ""))
-                    }
-            
-            cli_progress("OUT-HOMING", "SUCCESS", "Pipeline completed successfully")
-            return response_data
             
         except Exception as e:
             import traceback
@@ -504,12 +498,11 @@ class PeacockRequestHandler(http.server.BaseHTTPRequestHandler):
             cli_progress("OUT-HOMING", "ERROR", "Pipeline execution failed", error_msg)
             return {"success": False, "error": error_msg}
 
-    def generate_xedit_interface(self, llm_response: str, project_name: str, pipeline_results: dict):
+    def generate_xedit_interface(self, llm_response: str, project_name: str):
         """
         WIRE #4: Generate XEdit interface with session coordination
         """
         
-        cli_progress("XEDIT", "START", "Generating XEdit interface")
         log_to_file('xedit', f"Starting XEdit generation for session: {SESSION_TIMESTAMP}")
         
         try:

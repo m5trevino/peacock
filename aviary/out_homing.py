@@ -139,7 +139,8 @@ class OutHomingOrchestrator:
             
             # BIRD 4: HAWK (Quality Assurance)
             print("🦅 Running HAWK quality assurance...")
-            hawk_result = self.hawk.analyze_implementation(eagle_result)
+            hawk_input = eagle_result  # Prepare input for HAWK
+            hawk_result = self.hawk.analyze_implementation(hawk_input)  # CORRECT METHOD!
             stage_results["hawk"] = {
                 "prompt": hawk_result.get("prompt", ""),
                 "response": hawk_result.get("qa_review", ""),

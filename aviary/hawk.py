@@ -48,7 +48,7 @@ class HawkQASpecialist:
         
         files_summary = self._generate_files_summary(code_files)
         
-        return f"""<thinking>
+        prompt = f"""<thinking>
 I need to analyze the implementation from Eagle and create a comprehensive QA strategy. I should look at:
 - Code quality and best practices
 - Security considerations

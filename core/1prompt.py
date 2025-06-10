@@ -75,7 +75,7 @@ def generate_1prompt_dashboard():
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Peacock Pipeline Dashboard</title>
+    <title>🦚 Peacock Pipeline Dashboard</title>
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         
@@ -448,7 +448,7 @@ def generate_1prompt_dashboard():
     <div class="container">
         <div class="header">
             <div class="title">
-                 Peacock Pipeline Dashboard
+                🦚 Peacock Pipeline Dashboard
             </div>
             <div class="session-info">
                 <div>Session ID</div>
@@ -464,13 +464,13 @@ def generate_1prompt_dashboard():
                 placeholder="Describe your project idea... (e.g., 'Build a snake game with HTML, CSS, and JavaScript')"
             ></textarea>
             <button class="build-btn" id="buildBtn" onclick="startPipeline()">
-                 Build Project
+                🚀 Build Project
             </button>
         </div>
 
         <div class="pipeline-section">
             <div class="pipeline-header">
-                <div class="pipeline-title"> Live Pipeline Progress</div>
+                <div class="pipeline-title">🔄 Live Pipeline Progress</div>
                 <div class="live-indicator">Live</div>
             </div>
             
@@ -531,11 +531,11 @@ def generate_1prompt_dashboard():
 
         <div class="completion-section" id="completionSection">
             <div class="completion-title">
-                 Pipeline Completed Successfully!
+                ✅ Pipeline Completed Successfully!
             </div>
             
             <div class="debug-info">
-                <div class="debug-title"> Debug Information</div>
+                <div class="debug-title">🔍 Debug Information</div>
                 <div class="debug-item">
                     <span class="debug-label">Session Sync:</span>
                     <span class="debug-value">Timestamps synchronized between dashboard and MCP</span>
@@ -579,10 +579,10 @@ def generate_1prompt_dashboard():
 
             <div class="action-buttons">
                 <button class="action-btn xedit-btn" id="xeditBtn" onclick="sendToXEdit()">
-                     Send to XEdit Interface
+                    🎯 Send to XEdit Interface
                 </button>
                 <button class="action-btn download-btn" onclick="downloadProject()">
-                     Download Complete Project
+                    💾 Download Complete Project
                 </button>
             </div>
         </div>
@@ -604,7 +604,7 @@ def generate_1prompt_dashboard():
 
             const buildBtn = document.getElementById('buildBtn');
             buildBtn.disabled = true;
-            buildBtn.textContent = ' Processing...';
+            buildBtn.textContent = '🔄 Processing...';
 
             // Reset all stages
             stages.forEach(stage => {{
@@ -615,7 +615,7 @@ def generate_1prompt_dashboard():
             document.getElementById('completionSection').classList.remove('show');
 
             try {{
-                console.log(' Starting pipeline with session:', sessionTimestamp);
+                console.log('🦚 Starting pipeline with session:', sessionTimestamp);
                 updateStageStatus('spark', 'starting', 'Initializing requirements analysis...', 25);
                 
                 // WIRE #1 FIX: Real fetch to MCP instead of fake processPipelineStages
@@ -634,7 +634,7 @@ def generate_1prompt_dashboard():
                 }}
 
                 const result = await response.json();
-                console.log(' Pipeline result:', result);
+                console.log('🦚 Pipeline result:', result);
                 
                 if (result.success) {{
                     // Update with REAL character counts from MCP
@@ -658,7 +658,7 @@ def generate_1prompt_dashboard():
 
                     pipelineResults = result;
                     
-                    console.log(' XEdit generation:', result.xedit_generated ? 'Success' : 'Failed');
+                    console.log('🎯 XEdit generation:', result.xedit_generated ? 'Success' : 'Failed');
                     
                     // Show completion section
                     document.getElementById('completionSection').classList.add('show');
@@ -668,7 +668,7 @@ def generate_1prompt_dashboard():
                 }}
                 
             }} catch (error) {{
-                console.error(' Pipeline error:', error);
+                console.error('🚨 Pipeline error:', error);
                 alert(`Pipeline failed: ${{error.message}}`);
                 
                 // Mark current stage as failed
@@ -678,7 +678,7 @@ def generate_1prompt_dashboard():
                 }}
             }} finally {{
                 buildBtn.disabled = false;
-                buildBtn.textContent = ' Build Project';
+                buildBtn.textContent = '🚀 Build Project';
             }}
         }}
 
@@ -740,7 +740,7 @@ def generate_1prompt_dashboard():
             
             // Open XEdit file with matching session timestamp
             const xeditFile = `/home/flintx/peacock/html/xedit-${{sessionTimestamp}}.html`;
-            console.log(' Opening XEdit file:', xeditFile);
+            console.log('🎯 Opening XEdit file:', xeditFile);
             
             try {{
                 window.open(`file://${{xeditFile}}`, '_blank');
@@ -757,15 +757,15 @@ def generate_1prompt_dashboard():
             }}
             
             // Create download of project files
-            console.log(' Downloading project...');
+            console.log('💾 Downloading project...');
             alert('Download functionality coming soon!');
         }}
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {{
-            console.log(' Peacock Dashboard initialized');
-            console.log(' Session ID:', sessionTimestamp);
-            console.log(' Ready for MCP connection on http://127.0.0.1:8000');
+            console.log('🦚 Peacock Dashboard initialized');
+            console.log('📝 Session ID:', sessionTimestamp);
+            console.log('🔗 Ready for MCP connection on http://127.0.0.1:8000');
         }});
     </script>
 </body>
@@ -813,8 +813,8 @@ def generate_1prompt_dashboard():
         print("PEACOCK PIPELINE")
     
     print(chess_border + "\n")
-    print(f" Session: {session_timestamp} (Military Time)")
-    print(f" URL: file://{file_path}")
+    print(f"🔥 Session: {session_timestamp} (Military Time)")
+    print(f"🌐 URL: file://{file_path}")
     
     return str(file_path)
 
