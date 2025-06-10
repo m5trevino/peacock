@@ -6,6 +6,7 @@ Handles the final stage of the pipeline, processing results for XEdit
 
 import json
 import datetime
+import sys
 from pathlib import Path
 from typing import Dict, List, Any
 
@@ -170,6 +171,5 @@ function sayHello() {
     return result
 
 if __name__ == "__main__":
-    import sys
     # Test the processor
     test_return_homing_processor()
