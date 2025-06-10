@@ -6,10 +6,10 @@ Generates professional dashboard with working MCP fetch calls
 
 import datetime
 import random
-import sys
+import os
 from pathlib import Path
 
-def get_session_timestamp():
+def generate_session_timestamp():
     """Generate military time session timestamp: 23-08-1948"""
     now = datetime.datetime.now()
     week = now.isocalendar()[1]
@@ -21,7 +21,7 @@ def get_session_timestamp():
 def generate_1prompt_dashboard():
     """Generate the professional Peacock dashboard with REAL MCP connection"""
     
-    session_timestamp = get_session_timestamp()
+    session_timestamp = generate_session_timestamp()
     
     html_content = f'''<!DOCTYPE html>
 <html lang="en">
@@ -535,7 +535,7 @@ def generate_1prompt_dashboard():
                     🎯 Send to XEdit Interface
                 </button>
                 <button class="action-btn download-btn" onclick="downloadProject()">
-                    💾 Download Complete Project
+                    📦 Download Complete Project
                 </button>
             </div>
         </div>
@@ -710,7 +710,7 @@ def generate_1prompt_dashboard():
             }}
             
             // Create download of project files
-            console.log('💾 Downloading project...');
+            console.log('📦 Downloading project...');
             alert('Download functionality coming soon!');
         }}
 
@@ -743,22 +743,16 @@ def generate_1prompt_dashboard():
     print(f" Session: {session_timestamp} (Military Time)")
     print(f" URL: file://{file_path}")
     
+    # Try to open the dashboard in a browser
+    try:
+        import webbrowser
+        webbrowser.open(f"file://{file_path}")
+        print(" Dashboard opened in browser")
+    except:
+        print(" Note: Could not automatically open dashboard in browser")
+    
     return str(file_path)
 
-def main():
-    """Main function - generate dashboard and open in browser"""
-    try:
-        # Generate the dashboard
-        dashboard_path = generate_1prompt_dashboard()
-        
-        # Open in browser
-        import webbrowser
-        webbrowser.open(f"file://{dashboard_path}")
-        
-        return 0
-    except Exception as e:
-        print(f"Error generating dashboard: {e}")
-        return 1
-
 if __name__ == "__main__":
-    sys.exit(main())
+    # Only generate the dashboard - the banner will be shown within it
+    generate_1prompt_dashboard()

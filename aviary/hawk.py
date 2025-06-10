@@ -43,9 +43,6 @@ class HawkQASpecialist:
         
         return hawk_analysis
     
-    # Alias for backward compatibility
-    review_code = analyze_implementation
-    
     def _build_hawk_prompt(self, implementation_text: str, code_files: List[Dict[str, Any]]) -> str:
         """Build the QA analysis and testing strategy prompt"""
         

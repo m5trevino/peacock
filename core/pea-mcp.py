@@ -19,21 +19,15 @@ from pathlib import Path
 
 # Import the birds from the aviary directory
 sys.path.append(str(Path(__file__).parent.parent / "aviary"))
-try:
-    from out_homing import create_homing_orchestrator
-    from spark import create_spark_analyst
-    from falcon import create_falcon_architect
-    from eagle import create_eagle_implementer
-    from hawk import create_hawk_qa_specialist
-except ImportError as e:
-    print(f"Warning: Could not import birds modules: {e}")
+from out_homing import create_homing_orchestrator
+from spark import create_spark_analyst
+from falcon import create_falcon_architect
+from eagle import create_eagle_implementer
+from hawk import create_hawk_qa_specialist
 
 # Import XEdit parser from core directory
 sys.path.append(str(Path(__file__).parent))
-try:
-    from xedit import PeacockResponseParser, XEditPathGenerator, XEditInterfaceGenerator
-except ImportError as e:
-    print(f"Warning: Could not import XEdit modules: {e}")
+from xedit import PeacockResponseParser, XEditPathGenerator, XEditInterfaceGenerator
 
 # --- CONFIGURATION ---
 HOST = "127.0.0.1"
@@ -97,8 +91,6 @@ def log_to_file(log_type: str, message: str):
         return
         
     log_dir = Path("/home/flintx/peacock/logs")
-    log_dir.mkdir(exist_ok=True)
-    
     log_file = log_dir / f"{log_type}log-{SESSION_TIMESTAMP}.txt"
     
     timestamp = datetime.datetime.now().strftime('%H:%M:%S')
@@ -166,7 +158,7 @@ class PeacockRequestHandler(http.server.BaseHTTPRequestHandler):
                 cli_progress("MCP", "START", f"Processing command: {command}")
                 log_to_file('prompt', f"Command: {command}\nInput: {text_to_process}\n{'-'*40}")
                 
-                # Log the raw request
+                # Enhanced logging of raw request
                 request_log = (
                     f"\n{'='*80}\n"
                     f"TIMESTAMP: {datetime.datetime.now().isoformat()}\n"
@@ -182,16 +174,8 @@ class PeacockRequestHandler(http.server.BaseHTTPRequestHandler):
                 else:
                     result = {"success": False, "error": f"Unknown command: {command}"}
 
-                # Send response
-                self.send_response(200)
-                self.send_header("Content-type", "application/json")
-                self.send_header("Access-Control-Allow-Origin", "*")
-                self.end_headers()
-                
-                response_json = json.dumps(result)
-                self.wfile.write(response_json.encode("utf-8"))
-                
-                # Log the response
+                # Enhanced logging of response
+                response_json = json.dumps(result, indent=2)
                 response_log = (
                     f"\n{'='*80}\n"
                     f"TIMESTAMP: {datetime.datetime.now().isoformat()}\n"
@@ -199,6 +183,14 @@ class PeacockRequestHandler(http.server.BaseHTTPRequestHandler):
                     f"\n{'='*80}"
                 )
                 log_to_file('response', response_log)
+
+                # Send response
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                
+                self.wfile.write(response_json.encode("utf-8"))
                 
                 cli_progress("MCP", "SUCCESS", f"Response sent: {len(response_json)} bytes")
 
@@ -225,159 +217,72 @@ class PeacockRequestHandler(http.server.BaseHTTPRequestHandler):
         cli_progress("BIRDS", "START", "Starting OUT-HOMING orchestration")
         
         try:
-            # Try to use OUT-HOMING orchestrator if available
-            try:
-                homing = create_homing_orchestrator()
-                
-                # WIRE #3: Orchestrate full pipeline through birds
-                cli_progress("OUT-HOMING", "WORKING", "Starting full pipeline execution")
-                pipeline_result = homing.orchestrate_full_pipeline(user_request)
-                
-                if not pipeline_result.get("success"):
-                    return {
-                        "success": False,
-                        "error": f"Pipeline failed: {pipeline_result.get('error', 'Unknown error')}"
-                    }
-                
-                # Extract the final LLM response for XEdit processing
-                final_response = pipeline_result.get("final_response", "")
-                pipeline_results = pipeline_result.get("stage_results", {})
-                
-                cli_progress("XEDIT", "START", "Generating XEdit interface")
-                
-                # WIRE #4 FIX: Generate XEdit interface with session coordination
-                xedit_result = self.generate_xedit_interface(final_response, user_request)
-                
-                cli_progress("OUT-HOMING", "SUCCESS", "Pipeline completed successfully")
-                
-                # Structure response for dashboard with REAL character counts
+            # Create OUT-HOMING orchestrator
+            homing = create_homing_orchestrator()
+            
+            # WIRE #3: Orchestrate full pipeline through birds
+            cli_progress("OUT-HOMING", "WORKING", "Starting full pipeline execution")
+            pipeline_result = homing.orchestrate_full_pipeline(user_request)
+            
+            if not pipeline_result.get("success"):
                 return {
-                    "success": True,
-                    "session_timestamp": SESSION_TIMESTAMP,
-                    "character_counts": {
-                        "prompts": {
-                            "spark": len(pipeline_results.get("spark", {}).get("prompt", "")),
-                            "falcon": len(pipeline_results.get("falcon", {}).get("prompt", "")),
-                            "eagle": len(pipeline_results.get("eagle", {}).get("prompt", "")),
-                            "hawk": len(pipeline_results.get("hawk", {}).get("prompt", ""))
-                        },
-                        "responses": {
-                            "spark": len(pipeline_results.get("spark", {}).get("response", "")),
-                            "falcon": len(pipeline_results.get("falcon", {}).get("response", "")),
-                            "eagle": len(pipeline_results.get("eagle", {}).get("response", "")),
-                            "hawk": len(pipeline_results.get("hawk", {}).get("response", ""))
-                        },
-                        "total_prompt_chars": sum(len(stage.get("prompt", "")) for stage in pipeline_results.values()),
-                        "total_response_chars": sum(len(stage.get("response", "")) for stage in pipeline_results.values())
-                    },
-                    "pipeline_results": {
-                        "spark": {
-                            "text": pipeline_results.get("spark", {}).get("response", ""),
-                            "char_count": len(pipeline_results.get("spark", {}).get("response", "")),
-                            "model": pipeline_results.get("spark", {}).get("model", "llama3-8b-8192"),
-                            "prompt_chars": len(pipeline_results.get("spark", {}).get("prompt", ""))
-                        },
-                        "falcon": {
-                            "text": pipeline_results.get("falcon", {}).get("response", ""),
-                            "char_count": len(pipeline_results.get("falcon", {}).get("response", "")),
-                            "model": pipeline_results.get("falcon", {}).get("model", "gemma2-9b-it"),
-                            "prompt_chars": len(pipeline_results.get("falcon", {}).get("prompt", ""))
-                        },
-                        "eagle": {
-                            "text": pipeline_results.get("eagle", {}).get("response", ""),
-                            "char_count": len(pipeline_results.get("eagle", {}).get("response", "")),
-                            "model": pipeline_results.get("eagle", {}).get("model", "llama-3.1-8b-instant"),
-                            "prompt_chars": len(pipeline_results.get("eagle", {}).get("prompt", ""))
-                        },
-                        "hawk": {
-                            "text": pipeline_results.get("hawk", {}).get("response", ""),
-                            "char_count": len(pipeline_results.get("hawk", {}).get("response", "")),
-                            "model": pipeline_results.get("hawk", {}).get("model", "gemma2-9b-it"),
-                            "prompt_chars": len(pipeline_results.get("hawk", {}).get("prompt", ""))
-                        }
-                    },
-                    "xedit_generated": xedit_result.get("success", False),
-                    "xedit_file": xedit_result.get("file_path", ""),
-                    "total_response_chars": len(final_response),
-                    "final_response": final_response
+                    "success": False,
+                    "error": f"Pipeline failed: {pipeline_result.get('error', 'Unknown error')}"
                 }
-                
-            except (ImportError, NameError, AttributeError) as e:
-                # Fallback to individual bird stages if OUT-HOMING not available
-                cli_progress("BIRDS", "START", "Running individual bird stages with GROQ")
-                return self.process_with_individual_birds(user_request)
-                
-        except Exception as e:
-            cli_progress("BIRDS", "ERROR", "Pipeline orchestration failed", str(e))
-            return {
-                "success": False,
-                "error": f"Birds orchestration failed: {str(e)}"
+            
+            # Extract the final LLM response for XEdit processing
+            final_response = pipeline_result.get("final_response", "")
+            pipeline_results = pipeline_result.get("stage_results", {})
+            
+            # WIRE #4 FIX: Generate XEdit interface with session coordination
+            xedit_result = self.generate_xedit_interface(final_response, user_request)
+            
+            # Structure response for dashboard with character counts
+            character_counts = {
+                "prompts": {},
+                "responses": {},
+                "total_prompt_chars": 0,
+                "total_response_chars": 0
             }
-
-    def process_with_individual_birds(self, user_request: str):
-        """Fallback to individual bird stages if OUT-HOMING not available"""
-        try:
-            # BIRD 1: SPARK (Requirements Analysis)
-            cli_progress("SPARK", "START", "Requirements analysis")
-            spark = create_spark_analyst()
-            spark_result = spark.analyze_project_request(user_request)
             
-            # BIRD 2: FALCON (Architecture Design)
-            cli_progress("FALCON", "START", "Architecture design")
-            falcon = create_falcon_architect()
-            falcon_result = falcon.design_architecture(spark_result)
+            for stage, data in pipeline_results.items():
+                prompt_len = len(data.get("prompt", ""))
+                resp_len = len(data.get("response", ""))
+                
+                character_counts["prompts"][stage] = prompt_len
+                character_counts["responses"][stage] = resp_len
+                character_counts["total_prompt_chars"] += prompt_len
+                character_counts["total_response_chars"] += resp_len
             
-            # BIRD 3: EAGLE (Code Implementation)
-            cli_progress("EAGLE", "START", "Implementation")
-            eagle = create_eagle_implementer()
-            eagle_result = eagle.implement_code(falcon_result)
-            
-            # BIRD 4: HAWK (Quality Assurance)
-            cli_progress("HAWK", "START", "Quality Assurance")
-            hawk = create_hawk_qa_specialist()
-            hawk_input = eagle_result  # Prepare input for HAWK
-            hawk_result = hawk.analyze_implementation(hawk_input)  # Use the correct method
-            
-            # Generate XEdit interface
-            cli_progress("XEDIT", "START", "Generating XEdit interface")
-            xedit_result = self.generate_xedit_interface(hawk_result.get("qa_review", ""), user_request)
-            
-            # Return structured response
-            return {
+            # Prepare comprehensive response
+            response_data = {
                 "success": True,
                 "session_timestamp": SESSION_TIMESTAMP,
-                "pipeline_results": {
-                    "spark": {
-                        "text": spark_result.get("analysis", ""),
-                        "char_count": len(spark_result.get("analysis", "")),
-                        "model": spark_result.get("model", "gemma2-9b-it")
-                    },
-                    "falcon": {
-                        "text": falcon_result.get("architecture", ""),
-                        "char_count": len(falcon_result.get("architecture", "")),
-                        "model": falcon_result.get("model", "gemma2-9b-it")
-                    },
-                    "eagle": {
-                        "text": eagle_result.get("implementation", ""),
-                        "char_count": len(eagle_result.get("implementation", "")),
-                        "model": eagle_result.get("model", "llama3-8b-8192")
-                    },
-                    "hawk": {
-                        "text": hawk_result.get("qa_review", ""),
-                        "char_count": len(hawk_result.get("qa_review", "")),
-                        "model": hawk_result.get("model", "gemma2-9b-it")
-                    }
-                },
+                "character_counts": character_counts,
+                "pipeline_results": {},
                 "xedit_generated": xedit_result.get("success", False),
                 "xedit_file": xedit_result.get("file_path", ""),
-                "total_response_chars": len(hawk_result.get("qa_review", ""))
+                "total_response_chars": len(final_response),
+                "final_response": final_response
             }
             
+            # Add stage results to response
+            for stage, data in pipeline_results.items():
+                response_data["pipeline_results"][stage] = {
+                    "text": data.get("response", ""),
+                    "char_count": len(data.get("response", "")),
+                    "model": data.get("model", "unknown"),
+                    "prompt_chars": len(data.get("prompt", ""))
+                }
+            
+            cli_progress("OUT-HOMING", "SUCCESS", "Pipeline completed successfully")
+            return response_data
+            
         except Exception as e:
-            cli_progress("BIRDS", "ERROR", f"Individual bird processing failed", str(e))
+            cli_progress("OUT-HOMING", "ERROR", "Pipeline execution failed", str(e))
             return {
                 "success": False,
-                "error": f"Individual bird processing failed: {str(e)}"
+                "error": f"Error in OUT-HOMING pipeline: {str(e)}"
             }
 
     def generate_xedit_interface(self, llm_response: str, project_name: str):
