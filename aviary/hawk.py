@@ -43,6 +43,13 @@ class HawkQASpecialist:
         
         return hawk_analysis
     
+    # Adding the review_code method that was missing
+    def review_code(self, eagle_implementation: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Alias for analyze_implementation - for backward compatibility
+        """
+        return self.analyze_implementation(eagle_implementation)
+    
     def _build_hawk_prompt(self, implementation_text: str, code_files: List[Dict[str, Any]]) -> str:
         """Build the QA analysis and testing strategy prompt"""
         
