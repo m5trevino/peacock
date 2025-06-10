@@ -6,11 +6,10 @@ Generates professional dashboard with working MCP fetch calls
 
 import datetime
 import random
-import subprocess
-import webbrowser
+import sys
 from pathlib import Path
 
-def generate_session_timestamp():
+def get_session_timestamp():
     """Generate military time session timestamp: 23-08-1948"""
     now = datetime.datetime.now()
     week = now.isocalendar()[1]
@@ -22,7 +21,7 @@ def generate_session_timestamp():
 def generate_1prompt_dashboard():
     """Generate the professional Peacock dashboard with REAL MCP connection"""
     
-    session_timestamp = generate_session_timestamp()
+    session_timestamp = get_session_timestamp()
     
     html_content = f'''<!DOCTYPE html>
 <html lang="en">
@@ -737,47 +736,29 @@ def generate_1prompt_dashboard():
     # Create the decorative chess piece border
     chess_border = "♞▀▄▀▄♝▀▄ ♞▀▄▀▄♝▀▄​‍‌♞▀▄▀▄♝▀▄ ♞▀▄▀▄♝▀▄​‍‌♞▀▄▀▄♝▀▄ ♞▀▄▀▄♝▀▄​‍‌"
     
-    # Print the formatted output with random cfonts command
+    # Print the formatted output
     print("\n" + chess_border)
-    
-    # Run a random cfonts command
-    try:
-        banner_cmd = random.choice([
-            "cfonts 'PEACOCK' -f pallet -t yellow,red",
-            "cfonts 'PEACOCK' -f slick -t green,cyan",
-            "cfonts 'PEACOCK' -f shade -t red,magenta",
-            "cfonts 'PEACOCK' -f simple3d -t cyan,magenta",
-            "cfonts 'PEACOCK' -f simple -t blue,magenta",
-            "cfonts 'PEACOCK' -f grid -g red,blue",
-            "cfonts 'PEACOCK' -f slick -g yellow,red",
-            "cfonts 'PEACOCK' -f shade -g green,cyan",
-            "cfonts 'PEACOCK' -f chrome -g green,cyan",
-            "cfonts 'PEACOCK' -f simple -g green,cyan",
-            "cfonts 'PEACOCK' -f block -g red,yellow",
-            "cfonts 'PEACOCK' -f pallet -c cyan",
-            "cfonts 'PEACOCK' -f slick -c blueBright",
-            "cfonts 'PEACOCK' -f simple -c yellowBright",
-            "cfonts 'PEACOCK' -f simple -c blue",
-            "cfonts 'PEACOCK' -f simple -c green",
-            "cfonts 'PEACOCK' -f block -c whiteBright",
-            "cfonts 'PEACOCK' -f block -c blue"
-        ])
-        subprocess.run(banner_cmd, shell=True, check=True)
-    except Exception:
-        print("PEACOCK PIPELINE")
-    
+    print("PEACOCK PIPELINE")
     print(chess_border + "\n")
-    print(f"🔥 Session: {session_timestamp} (Military Time)")
-    print(f"🌐 URL: file://{file_path}")
-    
-    # Open the dashboard in the browser
-    try:
-        webbrowser.open(f"file://{file_path}")
-    except Exception as e:
-        print(f"⚠️ Could not open browser: {e}")
+    print(f" Session: {session_timestamp} (Military Time)")
+    print(f" URL: file://{file_path}")
     
     return str(file_path)
 
+def main():
+    """Main function - generate dashboard and open in browser"""
+    try:
+        # Generate the dashboard
+        dashboard_path = generate_1prompt_dashboard()
+        
+        # Open in browser
+        import webbrowser
+        webbrowser.open(f"file://{dashboard_path}")
+        
+        return 0
+    except Exception as e:
+        print(f"Error generating dashboard: {e}")
+        return 1
+
 if __name__ == "__main__":
-    # Only generate the dashboard - the banner will be shown within it
-    generate_1prompt_dashboard()
+    sys.exit(main())
