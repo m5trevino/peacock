@@ -16,10 +16,22 @@ import subprocess
 import webbrowser
 from pathlib import Path
 
+# Get the current project directory dynamically
+PROJECT_ROOT = Path(__file__).parent.parent
+LOGS_DIR = PROJECT_ROOT / "logs"
+
 # Import the birds from the aviary directory
-sys.path.append(str(Path(__file__).parent.parent / "aviary"))
-from homing import create_homing_orchestrator
-from return_homing import create_return_homing_processor
+sys.path.append(str(PROJECT_ROOT / "aviary"))
+try:
+    from homing import create_homing_orchestrator
+    from return_homing import create_return_homing_processor
+except ImportError as e:
+    print(f"Warning: Could not import birds modules: {e}")
+    # Create dummy functions to prevent crashes
+    def create_homing_orchestrator():
+        return None
+    def create_return_homing_processor():
+        return None
 
 # --- CONFIGURATION ---
 HOST = "127.0.0.1"
@@ -62,7 +74,7 @@ LOGGING_ENABLED = True
 def init_logging():
     """Initialize and return the logs directory path"""
     global SESSION_TIMESTAMP
-    log_dir = Path("/home/flintx/peacock/logs")
+    log_dir = LOGS_DIR
     log_dir.mkdir(exist_ok=True)
     
     # Create a simple session marker file
@@ -76,7 +88,7 @@ def log_to_file(log_type: str, message: str):
     if not LOGGING_ENABLED:
         return
         
-    log_dir = Path("/home/flintx/peacock/logs")
+    log_dir = LOGS_DIR
     log_file = log_dir / f"{log_type}log-{SESSION_TIMESTAMP}.txt"
     
     timestamp = datetime.datetime.now().strftime('%H:%M:%S')
@@ -233,6 +245,11 @@ class PeacockRequestHandler(http.server.BaseHTTPRequestHandler):
             # Step 1: HOMING orchestration - generates all prompts
             cli_progress("HOMING", "WORKING", "Orchestrating all birds")
             homing = create_homing_orchestrator()
+            
+            if homing is None:
+                cli_progress("HOMING", "ERROR", "Birds modules not available")
+                return {"success": False, "error": "Birds architecture modules not available"}
+            
             pipeline_result = homing.orchestrate_full_pipeline(user_request)
             
             if not pipeline_result.get("success", False):
@@ -267,7 +284,12 @@ class PeacockRequestHandler(http.server.BaseHTTPRequestHandler):
             # Step 3: RETURN-HOMING processing - generates XEdit interface
             cli_progress("RETURN-HOMING", "WORKING", "Generating XEdit interface")
             return_homing = create_return_homing_processor()
-            xedit_result = return_homing.process_pipeline_completion(pipeline_result)
+            
+            if return_homing is None:
+                cli_progress("RETURN-HOMING", "ERROR", "Return homing module not available")
+                xedit_result = {"success": False, "error": "Return homing module not available"}
+            else:
+                xedit_result = return_homing.process_pipeline_completion(pipeline_result)
             
             if not xedit_result.get("success", False):
                 cli_progress("RETURN-HOMING", "ERROR", "XEdit generation failed", xedit_result.get("error"))
@@ -311,7 +333,7 @@ class PeacockRequestHandler(http.server.BaseHTTPRequestHandler):
             cli_progress("BIRDS", "ERROR", "Pipeline execution failed", error_msg)
             return {"success": False, "error": error_msg}
 
-    def process_xedit_fixes(self, xedit_paths: List[str]):
+    def process_xedit_fixes(self, xedit_paths):
         """Process XEdit path fixes with optimal model selection"""
         cli_progress("XEDIT-FIX", "START", f"Processing {len(xedit_paths)} XEdit paths")
         
@@ -360,7 +382,7 @@ Format your response clearly for each XEdit-Path."""
         
         # PROMPT LOGGING: Always log prompts if logging is enabled
         if LOGGING_ENABLED:
-            prompt_log_file = f"/home/flintx/peacock/logs/promptlog-{SESSION_TIMESTAMP}.txt"
+            prompt_log_file = LOGS_DIR / f"promptlog-{SESSION_TIMESTAMP}.txt"
             with open(prompt_log_file, "a", encoding="utf-8") as f:
                 f.write(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] {stage.upper()} PROMPT TO {model}\n")
                 f.write("=" * 80 + "\n")
@@ -371,38 +393,45 @@ Format your response clearly for each XEdit-Path."""
                 f.write("\n" + "=" * 80 + "\n\n")
 
         try:
-            from groq import Groq
-            client = Groq(api_key=GROQ_API_KEY)
-            
-            response = client.chat.completions.create(
-                model=model,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=GROQ_CONFIG["temperature"],
-                max_tokens=GROQ_CONFIG["max_tokens"]
-                # NO response_format parameter - JSON mode is bootise
-            )
-            
-            content = response.choices[0].message.content
-            
-            # Validate response quality
-            if self.validate_response_quality(content, stage):
-                if LOGGING_ENABLED:
-                    log_file = f"/home/flintx/peacock/logs/response-{SESSION_TIMESTAMP}.txt"
-                    with open(log_file, "a", encoding="utf-8") as f:
-                        f.write(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] {stage.upper()} SUCCESS - {model}\n")
-                        f.write("=" * 80 + "\n")
-                        f.write(content)
-                        f.write("\n" + "=" * 80 + "\n\n")
+            # Try to import groq, but handle gracefully if not available
+            try:
+                from groq import Groq
+                client = Groq(api_key=GROQ_API_KEY)
                 
-                return {
-                    "success": True,
-                    "text": content,
-                    "model_used": model
-                }
-            else:
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=GROQ_CONFIG["temperature"],
+                    max_tokens=GROQ_CONFIG["max_tokens"]
+                    # NO response_format parameter - JSON mode is bootise
+                )
+                
+                content = response.choices[0].message.content
+                
+                # Validate response quality
+                if self.validate_response_quality(content, stage):
+                    if LOGGING_ENABLED:
+                        log_file = LOGS_DIR / f"response-{SESSION_TIMESTAMP}.txt"
+                        with open(log_file, "a", encoding="utf-8") as f:
+                            f.write(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] {stage.upper()} SUCCESS - {model}\n")
+                            f.write("=" * 80 + "\n")
+                            f.write(content)
+                            f.write("\n" + "=" * 80 + "\n\n")
+                    
+                    return {
+                        "success": True,
+                        "text": content,
+                        "model_used": model
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "error": f"Quality validation failed for {model}"
+                    }
+            except ImportError:
                 return {
                     "success": False,
-                    "error": f"Quality validation failed for {model}"
+                    "error": "Groq module not available - install with: pip install groq"
                 }
                 
         except Exception as e:
@@ -452,6 +481,7 @@ def show_peacock_banner():
         return True
     except Exception:
         # Fallback to simple text banner
+        import random
         banners = [
             "🦚🔥 PEACOCK MCP SERVER - BIRDS ARCHITECTURE 🔥🦚",
             "🔥💯 PEACOCK PIPELINE - MANTEQUILLA SMOOTH 💯🔥", 
@@ -485,6 +515,7 @@ def main():
     print(f"🔥 Session: {SESSION_TIMESTAMP} (Military Time)")
     print()
     print(f"📁 Logs directory: {logs_dir}")
+    print(f"📁 Project root: {PROJECT_ROOT}")
     print()
     print(f"🌐 Server starting on http://{HOST}:{PORT}")
     print()
