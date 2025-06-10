@@ -1,0 +1,11 @@
+[02:38:39] HTTP: "OPTIONS /process HTTP/1.1" 200 -
+[02:38:39] MCP START: Processing command: peacock_full
+[02:38:39] BIRDS START: Initializing OUT-HOMING orchestrator
+[02:38:39] BIRDS WORKING: Running full pipeline through birds
+[02:38:39] BIRDS SUCCESS: Pipeline completed, processing XEdit generation
+[02:38:39] XEDIT START: Generating XEdit interface
+[02:38:39] XEDIT WORKING: Generated 17 XEdit paths
+[02:38:39] XEDIT SUCCESS: XEdit interface saved: /home/flintx/peacock/html/xedit-24-09-0236.html
+[02:38:40] XEDIT INFO: XEdit interface opened in browser
+[02:38:40] HTTP: "POST /process HTTP/1.1" 200 -
+[02:38:40] MCP SUCCESS: Response sent: 594 bytes
