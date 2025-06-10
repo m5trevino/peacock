@@ -38,7 +38,8 @@ class HawkQASpecialist:
             "model": self.optimal_model,
             "temperature": 0.3,
             "max_tokens": 1024,
-            "analysis_type": "quality_assurance"
+            "analysis_type": "quality_assurance",
+            "raw_analysis": implementation_text  # Include the raw implementation for XEdit
         }
         
         return hawk_analysis
