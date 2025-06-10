@@ -7,54 +7,8 @@ Generates professional dashboard with working MCP fetch calls
 import datetime
 import random
 import subprocess
+import webbrowser
 from pathlib import Path
-
-def show_peacock_banner():
-    """Display a random peacock banner using cfonts"""
-    banners = [
-        # Transition patterns
-        "cfonts 'PEACOCK' -f pallet -t yellow,red",
-        "cfonts 'PEACOCK' -f slick -t green,cyan",
-        "cfonts 'PEACOCK' -f shade -t red,magenta",
-        "cfonts 'PEACOCK' -f simple3d -t cyan,magenta",
-        "cfonts 'PEACOCK' -f simple -t blue,magenta",
-        
-        # Gradient patterns
-        "cfonts 'PEACOCK' -f grid -g red,blue",
-        "cfonts 'PEACOCK' -f slick -g yellow,red",
-        "cfonts 'PEACOCK' -f shade -g green,cyan",
-        "cfonts 'PEACOCK' -f chrome -g green,cyan",
-        "cfonts 'PEACOCK' -f simple -g green,cyan",
-        "cfonts 'PEACOCK' -f block -g red,yellow",
-        
-        # Single color patterns
-        "cfonts 'PEACOCK' -f pallet -c cyan",
-        "cfonts 'PEACOCK' -f slick -c blueBright",
-        "cfonts 'PEACOCK' -f simple -c yellowBright",
-        "cfonts 'PEACOCK' -f simple -c blue",
-        "cfonts 'PEACOCK' -f simple -c green",
-        "cfonts 'PEACOCK' -f block -c whiteBright",
-        "cfonts 'PEACOCK' -f block -c blue"
-    ]
-    
-    try:
-        # Select a random banner command
-        banner_cmd = random.choice(banners)
-        # Run the banner command
-        subprocess.run(banner_cmd, shell=True, check=True)
-        return True
-    except Exception as e:
-        # Fallback to simple text banner if cfonts fails
-        text_banners = [
-            " PEACOCK PIPELINE - ALL WIRES CONNECTED ",
-            " PEACOCK MCP SERVER - FIRE EDITION ",
-            " PEACOCK - MANTEQUILLA SMOOTH OPERATION "
-        ]
-        print("\n" + "="*70)
-        print(f"    {random.choice(text_banners)}")
-        print("="*70)
-        print(f"(cfonts not available - using text banner)")
-        return False
 
 def generate_session_timestamp():
     """Generate military time session timestamp: 23-08-1948"""
@@ -815,6 +769,12 @@ def generate_1prompt_dashboard():
     print(chess_border + "\n")
     print(f"🔥 Session: {session_timestamp} (Military Time)")
     print(f"🌐 URL: file://{file_path}")
+    
+    # Open the dashboard in the browser
+    try:
+        webbrowser.open(f"file://{file_path}")
+    except Exception as e:
+        print(f"⚠️ Could not open browser: {e}")
     
     return str(file_path)
 

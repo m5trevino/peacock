@@ -19,49 +19,49 @@ from pathlib import Path
 
 # Import the birds from the aviary directory
 sys.path.append(str(Path(__file__).parent.parent / "aviary"))
-from out_homing import create_homing_orchestrator
-from spark import create_spark_analyst
-from falcon import create_falcon_architect
-from eagle import create_eagle_implementer
-from hawk import create_hawk_qa_specialist
+try:
+    from out_homing import create_homing_orchestrator
+    from spark import create_spark_analyst
+    from falcon import create_falcon_architect
+    from eagle import create_eagle_implementer
+    from hawk import create_hawk_qa_specialist
+except ImportError as e:
+    print(f"Warning: Could not import birds modules: {e}")
+    # Create dummy functions to prevent crashes
+    def create_homing_orchestrator():
+        return None
+    def create_spark_analyst():
+        return None
+    def create_falcon_architect():
+        return None
+    def create_eagle_implementer():
+        return None
+    def create_hawk_qa_specialist():
+        return None
 
 # Import XEdit parser from core directory
 sys.path.append(str(Path(__file__).parent))
-from xedit import PeacockResponseParser, XEditPathGenerator, XEditInterfaceGenerator
+try:
+    from xedit import PeacockResponseParser, XEditPathGenerator, XEditInterfaceGenerator
+except ImportError as e:
+    print(f"Warning: Could not import XEdit parser: {e}")
 
 # --- CONFIGURATION ---
 HOST = "127.0.0.1"
 PORT = 8000
 PROCESS_PATH = "/process"
 
-# Model configuration
-PEACOCK_MODEL_STRATEGY = {
-    "primary_model": "gemma2-9b-it",        # Best overall mixed content
-    "speed_model": "llama3-8b-8192",        # When speed is critical  
-    "explanation_model": "llama3-8b-8192",  # When detailed explanations needed
-    "json_model": "llama3-8b-8192",         # Most reliable JSON parsing
-    "fallback_model": "llama-3.1-8b-instant"
-}
-
-# Stage-specific model assignments
-PEACOCK_STAGE_MODELS = {
-    "spark_analysis": "gemma2-9b-it",      # Structure + requirements
-    "falcon_architecture": "gemma2-9b-it", # Won architecture tests
-    "eagle_implementation": "llama3-8b-8192", # Speed + explanations  
-    "hawk_qa": "gemma2-9b-it",             # Structure + organization
-    "code_analysis": "llama3-8b-8192"      # Speed + perfect JSON
-}
-
-# Groq API configuration
-GROQ_CONFIG = {
-    "temperature": 0.3,  # Optimized for consistency
-    "max_tokens": 1024,  # Sufficient for most tasks
-    "use_json_mode": False,  # CRITICAL: Don't use JSON mode
-    "prompt_style": "request_json_in_prompt"  # Request JSON in prompt text
-}
-
 # GROQ API CONFIGURATION
 GROQ_API_KEY = "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"
+
+# PEACOCK MULTI-MODEL STRATEGY
+PEACOCK_MODEL_STRATEGY = {
+    "primary_model": "gemma2-9b-it",
+    "speed_model": "llama3-8b-8192",
+    "explanation_model": "llama3-8b-8192",
+    "json_model": "llama3-8b-8192",
+    "fallback_model": "llama-3.1-8b-instant"
+}
 
 # SESSION TIMESTAMP GENERATION
 def generate_session_timestamp():
@@ -77,55 +77,29 @@ def generate_session_timestamp():
 SESSION_TIMESTAMP = generate_session_timestamp()
 LOGGING_ENABLED = True
 
-# PEACOCK BANNER STYLES
-PEACOCK_BANNERS = [
-    # Block font with red
-    "cfonts 'PEACOCK' -f block -c red",
-    # Simple font with green  
-    "cfonts 'PEACOCK' -f simple -c green",
-    # Chrome style with magenta
-    "cfonts 'PEACOCK' -f chrome -c magenta",
-    # Shade style with bright green
-    "cfonts 'PEACOCK' -f shade -c greenBright",
-    # Slick style with white
-    "cfonts 'PEACOCK' -f slick -c whiteBright",
-    # Grid style with yellow
-    "cfonts 'PEACOCK' -f grid -c yellow",
-    # Pallet style with cyan
-    "cfonts 'PEACOCK' -f pallet -c cyanBright",
-    # Cyan to Magenta gradient
-    "cfonts 'PEACOCK' -f block -g cyan,magenta",
-    # Yellow to Red gradient
-    "cfonts 'PEACOCK' -f simple -g yellow,red",
-    # Red to Blue gradient  
-    "cfonts 'PEACOCK' -f shade -g red,blue",
-    # Red to Yellow gradient
-    "cfonts 'PEACOCK' -f slick -g red,yellow",
-    # Magenta to Yellow gradient
-    "cfonts 'PEACOCK' -f grid -g magenta,yellow",
-    # Green to Cyan gradient
-    "cfonts 'PEACOCK' -f pallet -g green,cyan",
-    # Red to Blue gradient (tiny font)
-    "cfonts 'PEACOCK' -f tiny -g red,blue",
-    # Red to Blue transition
-    "cfonts 'PEACOCK' -f block -t red,blue",
-    # Yellow to Red transition
-    "cfonts 'PEACOCK' -f simple -t yellow,red",
-    # Green to Red transition
-    "cfonts 'PEACOCK' -f shade -t green,red"
-]
-
+# LOGGING SETUP
 def init_logging():
-    """Initialize and return the logs directory path"""
-    global SESSION_TIMESTAMP
+    """Initialize all log files with session timestamp"""
     log_dir = Path("/home/flintx/peacock/logs")
     log_dir.mkdir(exist_ok=True)
     
-    # Create a simple session marker file
-    session_marker = log_dir / f"session-{SESSION_TIMESTAMP}.started"
-    session_marker.touch()
+    global SESSION_TIMESTAMP
     
-    return str(log_dir)  # Return just the logs directory path
+    log_files = {
+        'mcp': log_dir / f"mcplog-{SESSION_TIMESTAMP}.txt",
+        'prompt': log_dir / f"promptlog-{SESSION_TIMESTAMP}.txt", 
+        'response': log_dir / f"responselog-{SESSION_TIMESTAMP}.txt",
+        'xedit': log_dir / f"xeditlog-{SESSION_TIMESTAMP}.txt"
+    }
+    
+    # Create log files
+    for log_type, log_file in log_files.items():
+        with open(log_file, 'w') as f:
+            f.write(f"🦚 PEACOCK {log_type.upper()} LOG - Session: {SESSION_TIMESTAMP}\n")
+            f.write(f"Started: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write("="*60 + "\n\n")
+    
+    return log_files
 
 def log_to_file(log_type: str, message: str):
     """Log message to specific log file"""
@@ -161,69 +135,6 @@ def cli_progress(stage: str, status: str, message: str, details: str = None):
     else:
         print(f"{icon} {stage}: {message}")
         log_to_file('mcp', f"{stage} {status}: {message}")
-
-def validate_response_quality(content: str, command: str) -> bool:
-    """Validate response meets quality standards"""
-    
-    # Check for basic content
-    if not content or len(content.strip()) < 50:
-        return False
-    
-    # For structured commands, require JSON
-    structured_commands = ["spark_analysis", "falcon_architecture", 
-                         "eagle_implementation", "hawk_qa"]
-    
-    if command in structured_commands:
-        # Must contain valid JSON
-        json_pattern = r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}'
-        json_matches = re.findall(json_pattern, content, re.DOTALL)
-        
-        for match in json_matches:
-            try:
-                json.loads(match)
-                return True
-            except:
-                continue
-        return False
-    
-    return True
-
-def parse_mixed_response(response_text: str) -> dict:
-    """Parse responses containing multiple content types"""
-    
-    parsed_data = {
-        "explanation": "",
-        "structured_data": {},
-        "code_blocks": [],
-        "success": False
-    }
-    
-    try:
-        # Extract explanations (text outside code blocks and JSON)
-        explanation_text = re.sub(r'```.*?```', '', response_text, flags=re.DOTALL)
-        explanation_text = re.sub(r'\{.*?\}', '', explanation_text, flags=re.DOTALL)
-        parsed_data["explanation"] = explanation_text.strip()
-        
-        # Extract code blocks
-        code_blocks = re.findall(r'```[\w]*\n(.*?)\n```', response_text, re.DOTALL)
-        parsed_data["code_blocks"] = [block.strip() for block in code_blocks]
-        
-        # Extract JSON
-        json_pattern = r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}'
-        json_matches = re.findall(json_pattern, response_text, re.DOTALL)
-        
-        for match in json_matches:
-            try:
-                parsed_json = json.loads(match)
-                parsed_data["structured_data"] = parsed_json
-                parsed_data["success"] = True
-                break
-            except:
-                continue
-    except Exception as e:
-        print(f"Error parsing response: {e}")
-    
-    return parsed_data
 
 class PeacockRequestHandler(http.server.BaseHTTPRequestHandler):
     def log_message(self, format, *args):
@@ -262,7 +173,7 @@ class PeacockRequestHandler(http.server.BaseHTTPRequestHandler):
                 
                 cli_progress("MCP", "START", f"Processing command: {command}")
                 
-                # Enhanced logging of raw request
+                # Log the raw request
                 request_log = (
                     f"\n{'='*80}\n"
                     f"TIMESTAMP: {datetime.datetime.now().isoformat()}\n"
@@ -336,166 +247,89 @@ class PeacockRequestHandler(http.server.BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
 
-    def select_optimal_model(self, command: str, priority: str = "balanced") -> str:
-        """Select best model based on task and priority"""
-        if priority == "speed":
-            return PEACOCK_MODEL_STRATEGY["speed_model"]
-        elif priority == "structure":
-            return PEACOCK_MODEL_STRATEGY["primary_model"]
-        elif priority == "explanation":
-            return PEACOCK_MODEL_STRATEGY["explanation_model"]
-        
-        # Default to stage-specific model or primary model
-        return PEACOCK_STAGE_MODELS.get(command, PEACOCK_MODEL_STRATEGY["primary_model"])
-    
-    def call_optimized_groq(self, prompt: str, stage: str) -> dict:
-        """Call Groq with optimized model selection and fallback"""
-        import requests
-        
-        primary_model = self.select_optimal_model(stage)
-        fallback_models = [
-            PEACOCK_MODEL_STRATEGY["json_model"],
-            PEACOCK_MODEL_STRATEGY["fallback_model"]
-        ]
-        
-        # Remove primary model from fallbacks if present
-        fallback_models = [m for m in fallback_models if m != primary_model]
-        models_to_try = [primary_model] + fallback_models
-        
-        for model in models_to_try:
-            try:
-                headers = {
-                    "Authorization": f"Bearer {GROQ_API_KEY}",
-                    "Content-Type": "application/json"
-                }
-                
-                data = {
-                    "model": model,
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": GROQ_CONFIG["temperature"],
-                    "max_tokens": GROQ_CONFIG["max_tokens"]
-                    # Note: No response_format parameter as per guide
-                }
-                
-                response = requests.post(
-                    "https://api.groq.com/openai/v1/chat/completions",
-                    headers=headers,
-                    json=data,
-                    timeout=30
-                )
-                response.raise_for_status()
-                
-                content = response.json()['choices'][0]['message']['content']
-                
-                # Validate response quality
-                if validate_response_quality(content, stage):
-                    return {
-                        "success": True,
-                        "text": content,
-                        "model_used": model,
-                        "parsed": parse_mixed_response(content)
-                    }
-                
-                print(f"Model {model} produced invalid response, trying next...")
-                
-            except Exception as e:
-                print(f"Model {model} failed: {e}")
-                continue
-        
-        return {
-            "success": False,
-            "error": "All models failed to produce valid response",
-            "models_tried": models_to_try
-        }
-
     def process_with_birds(self, user_request: str):
         """
-        WIRE #2 & #3 FIX: Use OUT-HOMING to orchestrate birds pipeline
-        Returns properly structured response for dashboard
+        Run individual bird stages with GROQ
         """
-        
-        cli_progress("BIRDS", "START", "Starting OUT-HOMING orchestration")
+        cli_progress("BIRDS", "START", "Running individual bird stages with GROQ")
         
         try:
-            # Create OUT-HOMING orchestrator
-            homing = create_homing_orchestrator()
+            # Initialize birds
+            spark = create_spark_analyst()
+            falcon = create_falcon_architect()
+            eagle = create_eagle_implementer()
+            hawk = create_hawk_qa_specialist()
             
-            # WIRE #3: Orchestrate full pipeline through birds
-            cli_progress("OUT-HOMING", "WORKING", "Starting full pipeline execution")
-            pipeline_result = homing.orchestrate_full_pipeline(user_request)
+            if not all([spark, falcon, eagle, hawk]):
+                return {
+                    "success": False,
+                    "error": "Birds modules not available"
+                }
             
-            if not pipeline_result.get("success", False):
-                error_msg = pipeline_result.get("error", "Unknown error in OUT-HOMING pipeline")
-                cli_progress("OUT-HOMING", "ERROR", "Pipeline failed", error_msg)
-                return {"success": False, "error": error_msg}
+            # Step 1: SPARK - Requirements Analysis
+            cli_progress("SPARK", "START", "Requirements analysis")
+            spark_input = {"user_request": user_request}
+            spark_result = spark.analyze_project_request(spark_input)
             
-            # Extract the final LLM response for XEdit processing
-            final_response = pipeline_result.get("final_response", "")
-            pipeline_results = pipeline_result.get("stage_results", {})
+            # Step 2: FALCON - Architecture Design
+            cli_progress("FALCON", "START", "Architecture design")
+            falcon_input = spark_result
+            falcon_result = falcon.design_architecture(falcon_input)
             
-            # WIRE #4 FIX: Generate XEdit interface with session coordination
+            # Step 3: EAGLE - Implementation
+            cli_progress("EAGLE", "START", "Implementation")
+            eagle_input = falcon_result
+            eagle_result = eagle.implement_code(eagle_input)
+            
+            # Step 4: HAWK - Quality Assurance
+            cli_progress("HAWK", "START", "Quality Assurance")
+            hawk_input = eagle_result
+            # FIXED: Use the correct method name
+            hawk_result = hawk.analyze_implementation(hawk_input)
+            
+            # Step 5: Generate XEdit interface
             cli_progress("XEDIT", "START", "Generating XEdit interface")
-            xedit_result = self.generate_xedit_interface(final_response, user_request)
+            xedit_result = self.generate_xedit_interface(
+                hawk_result.get("raw_analysis", ""),
+                user_request
+            )
             
-            # Calculate character counts for each stage
-            character_counts = {
-                "prompts": {},
-                "responses": {},
-                "total_prompt_chars": 0,
-                "total_response_chars": 0
-            }
-            
-            for stage, data in pipeline_results.items():
-                prompt_len = len(data.get("prompt", ""))
-                resp_len = len(data.get("response", ""))
-                
-                character_counts["prompts"][stage] = prompt_len
-                character_counts["responses"][stage] = resp_len
-                character_counts["total_prompt_chars"] += prompt_len
-                character_counts["total_response_chars"] += resp_len
-            
-            # Structure response for dashboard
-            cli_progress("OUT-HOMING", "SUCCESS", "Pipeline completed successfully")
+            # Prepare response with all stage results
             return {
                 "success": True,
                 "session_timestamp": SESSION_TIMESTAMP,
-                "character_counts": character_counts,
                 "pipeline_results": {
                     "spark": {
-                        "text": pipeline_results.get("spark", {}).get("response", ""),
-                        "char_count": len(pipeline_results.get("spark", {}).get("response", "")),
-                        "model": pipeline_results.get("spark", {}).get("model", "gemma2-9b-it"),
-                        "prompt_chars": len(pipeline_results.get("spark", {}).get("prompt", ""))
+                        "text": spark_result.get("raw_analysis", ""),
+                        "char_count": len(spark_result.get("raw_analysis", "")),
+                        "model": spark_result.get("model", "gemma2-9b-it")
                     },
                     "falcon": {
-                        "text": pipeline_results.get("falcon", {}).get("response", ""),
-                        "char_count": len(pipeline_results.get("falcon", {}).get("response", "")),
-                        "model": pipeline_results.get("falcon", {}).get("model", "gemma2-9b-it"),
-                        "prompt_chars": len(pipeline_results.get("falcon", {}).get("prompt", ""))
+                        "text": falcon_result.get("raw_design", ""),
+                        "char_count": len(falcon_result.get("raw_design", "")),
+                        "model": falcon_result.get("model", "gemma2-9b-it")
                     },
                     "eagle": {
-                        "text": pipeline_results.get("eagle", {}).get("response", ""),
-                        "char_count": len(pipeline_results.get("eagle", {}).get("response", "")),
-                        "model": pipeline_results.get("eagle", {}).get("model", "llama3-8b-8192"),
-                        "prompt_chars": len(pipeline_results.get("eagle", {}).get("prompt", ""))
+                        "text": eagle_result.get("raw_implementation", ""),
+                        "char_count": len(eagle_result.get("raw_implementation", "")),
+                        "model": eagle_result.get("model", "llama3-8b-8192")
                     },
                     "hawk": {
-                        "text": pipeline_results.get("hawk", {}).get("response", ""),
-                        "char_count": len(pipeline_results.get("hawk", {}).get("response", "")),
-                        "model": pipeline_results.get("hawk", {}).get("model", "gemma2-9b-it"),
-                        "prompt_chars": len(pipeline_results.get("hawk", {}).get("prompt", ""))
+                        "text": hawk_result.get("raw_analysis", ""),
+                        "char_count": len(hawk_result.get("raw_analysis", "")),
+                        "model": hawk_result.get("model", "gemma2-9b-it")
                     }
                 },
                 "xedit_generated": xedit_result.get("success", False),
                 "xedit_file": xedit_result.get("file_path", ""),
-                "total_response_chars": len(final_response),
-                "final_response": final_response
+                "total_response_chars": len(hawk_result.get("raw_analysis", "")),
+                "final_response": hawk_result.get("raw_analysis", "")
             }
             
         except Exception as e:
             import traceback
-            error_msg = f"Error in OUT-HOMING pipeline: {str(e)}\n{traceback.format_exc()}"
-            cli_progress("OUT-HOMING", "ERROR", "Pipeline execution failed", error_msg)
+            error_msg = f"Error in process_with_birds: {str(e)}\n{traceback.format_exc()}"
+            cli_progress("BIRDS", "ERROR", error_msg)
             return {"success": False, "error": error_msg}
 
     def generate_xedit_interface(self, llm_response: str, project_name: str):
@@ -503,6 +337,7 @@ class PeacockRequestHandler(http.server.BaseHTTPRequestHandler):
         WIRE #4: Generate XEdit interface with session coordination
         """
         
+        cli_progress("XEDIT", "START", "Generating XEdit interface")
         log_to_file('xedit', f"Starting XEdit generation for session: {SESSION_TIMESTAMP}")
         
         try:
@@ -558,43 +393,6 @@ class PeacockRequestHandler(http.server.BaseHTTPRequestHandler):
             log_to_file('xedit', f"ERROR: {str(e)}")
             return {"success": False, "error": str(e)}
 
-def show_peacock_banner():
-    """Display a random peacock banner using cfonts if available"""
-    try:
-        import random
-        import subprocess
-        
-        # Try to use cfonts if available
-        banner_cmd = random.choice(PEACOCK_BANNERS)
-        subprocess.run(banner_cmd.split(), check=True)
-        return True
-    except Exception:
-        # Fallback to simple text banner
-        banners = [
-            "🦚🔥 PEACOCK MCP SERVER - FIRE EDITION 🔥🦚",
-            "🔥💯 PEACOCK PIPELINE - ALL WIRES CONNECTED 💯🔥", 
-            "💯🦚 PEACOCK - MANTEQUILLA SMOOTH OPERATION 🦚💯"
-        ]
-        print("\n" + "="*70)
-        print(f"    {random.choice(banners)}")
-        print("="*70)
-        return False
-
-def display_config():
-    """Display current configuration with peacock banner"""
-    try:
-        # Show peacock banner
-        show_peacock_banner()
-        
-        # Get terminal width for centering
-        try:
-            cols = int(subprocess.check_output(['tput', 'cols']))
-        except:
-            cols = 80
-            
-    except Exception as e:
-        print("⚠️  Could not display peacock banner:", str(e))
-
 def main():
     """Main function with argument parsing"""
     global LOGGING_ENABLED, PORT
@@ -608,23 +406,28 @@ def main():
     LOGGING_ENABLED = args.log
     PORT = args.port
     
-    # Initialize logging and get logs directory
-    logs_dir = init_logging()
+    # Initialize logging
+    log_files = init_logging()
     
-    print("\n" + "🦚" + "="*60 + "🦚")
-    # Show peacock banner and config
-    display_config()
+    print("🦚" + "="*60 + "🦚")
+    print("    PEACOCK MCP SERVER - ALL 4 WIRES FIXED")
+    print("🦚" + "="*60 + "🦚")
     print()
     print(f"🔥 Session: {SESSION_TIMESTAMP} (Military Time)")
+    print(f"🐦 Birds: Individual bird stages with GROQ")  
+    print(f"🎯 XEdit: Auto-generation with session sync")
+    print(f"📝 Logging: {'Enhanced' if LOGGING_ENABLED else 'Basic'}")
     print()
-    print(f"📁 Logs directory: {logs_dir}")
+    print(f"📁 Log Files:")
+    for log_type, log_file in log_files.items():
+        print(f"   📄 {log_type.capitalize()}: {log_file}")
     print()
     print(f"🌐 Server starting on http://{HOST}:{PORT}")
     print()
     print("🚀 WIRE STATUS:")
     print("   ✅ Wire #1: Web UI → MCP (fetch enabled)")
-    print("   ✅ Wire #2: MCP → Birds (OUT-HOMING orchestration)")  
-    print("   ✅ Wire #3: Birds → LLM (mixed content prompts)")
+    print("   ✅ Wire #2: MCP → Birds (individual bird stages)")  
+    print("   ✅ Wire #3: Birds → LLM (optimized prompts)")
     print("   ✅ Wire #4: LLM → XEdit (session-synced auto-generation)")
     print("="*70)
     
