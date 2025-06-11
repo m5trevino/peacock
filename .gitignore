@@ -1,2 +1,7 @@
 node_modules/
 .env
+untitled/
+.idea
+.ropeproject
+.qodo
+aviary/__pycache__/
