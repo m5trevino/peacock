@@ -1,3 +1,0 @@
-[02:51:57] Starting XEdit generation for session: 24-09-0251
-[02:51:57] Parsing successful: 11 sections found
-[02:51:57] XEdit file generated: /home/flintx/peacock/html/xedit-24-09-0251.html
