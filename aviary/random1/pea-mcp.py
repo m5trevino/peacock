@@ -22,7 +22,6 @@ from pathlib import Path
 # Add aviary to path for bird imports
 sys.path.append(str(Path(__file__).parent.parent / "aviary"))
 from out_homing import create_homing_orchestrator
-from robust_parser import RobustParser, ParseResult
 
 # --- CYBERPUNK CONFIGURATION ---
 HOST = "127.0.0.1"
@@ -242,7 +241,7 @@ def log_to_file(log_type: str, content: str):
         return
     
     timestamp = datetime.datetime.now().isoformat()
-    log_dir = Path.cwd() / "logs"
+    log_dir = Path("/home/flintx/peacock/logs")
     
     if not log_dir.exists():
         log_dir.mkdir(parents=True, exist_ok=True)
@@ -473,7 +472,7 @@ def main():
     
     # Create logs directory
     if LOGGING_ENABLED:
-        Path.cwd() / "logs".mkdir(parents=True, exist_ok=True)
+        Path("/home/flintx/peacock/logs").mkdir(parents=True, exist_ok=True)
     
     # PERFECT STARTUP SEQUENCE WITH UNIFORM BORDERS
     

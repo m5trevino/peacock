@@ -473,7 +473,7 @@ def main():
     
     # Create logs directory
     if LOGGING_ENABLED:
-        Path.cwd() / "logs".mkdir(parents=True, exist_ok=True)
+        (Path.cwd() / "logs").mkdir(parents=True, exist_ok=True)
     
     # PERFECT STARTUP SEQUENCE WITH UNIFORM BORDERS
     

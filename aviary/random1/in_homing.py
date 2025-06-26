@@ -8,12 +8,6 @@ import json
 import re
 import datetime
 from pathlib import Path
-import sys
-
-# Add core directory to path for xedit imports
-core_path = Path(__file__).parent.parent / "core"
-if str(core_path) not in sys.path:
-    sys.path.insert(0, str(core_path))
 from typing import Dict, List, Any, Optional
 
 class InHomingProcessor:

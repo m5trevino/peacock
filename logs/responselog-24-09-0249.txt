@@ -1,9 +1,0 @@
-[02:49:51] 
-================================================================================
-TIMESTAMP: 2025-06-09T02:49:51.521114
-RESPONSE (400 bytes):
-{
-  "success": false,
-  "error": "Error in process_with_birds: 'HawkQASpecialist' object has no attribute 'review_code'\nTraceback (most recent call last):\n  File \"/home/flintx/peacock/core/pea-mcp.py\", line 387, in process_with_birds\n    hawk_result = hawk.review_code(hawk_input)\n                  ^^^^^^^^^^^^^^^^\nAttributeError: 'HawkQASpecialist' object has no attribute 'review_code'\n"
-}
-================================================================================
