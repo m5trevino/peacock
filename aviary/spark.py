@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """
 spark.py - SPARK Requirements Analysis Bird
@@ -51,6 +52,7 @@ Project: {user_request}
 
 I should provide:
 1. Core objective - what's the main goal?
+
 2. Current state - what problems does this solve?
 3. Target state - what's the desired outcome?
 4. In scope - what features are included?
@@ -105,6 +107,7 @@ Then provide the structured data as JSON:
             "has_json": False,
             "character_count": len(response_text),
             "quality_score": 0
+
         }
         
         # Check for core sections
@@ -158,6 +161,7 @@ Then provide the structured data as JSON:
         current_match = re.search(r'\*\*2\. Current State:\*\*\s*\n([^\n*]+)', response_text)
         if current_match:
             requirements["current_state"] = current_match.group(1).strip()
+
         
         # Extract target state
         target_match = re.search(r'\*\*3\. Target State:\*\*\s*\n([^\n*]+)', response_text)

@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """
 falcon.py - FALCON Architecture Design Bird
@@ -69,6 +70,7 @@ Requirements Analysis:
 {spark_text}
 
 Provide architecture design in this EXACT format:
+
 
 **TECHNOLOGY STACK:**
 - Frontend: [Technology choices]
@@ -142,6 +144,7 @@ Then provide the structured data as JSON:
         json_match = re.search(json_pattern, response_text, re.DOTALL)
         if json_match:
             try:
+
                 json.loads(json_match.group(1))
                 validation_result["has_json"] = True
                 validation_result["quality_score"] += 3
@@ -214,6 +217,7 @@ Then provide the structured data as JSON:
         
         for component in architecture_data.get("components", []):
             spec = {
+
                 "name": component["name"],
                 "purpose": component["purpose"],
                 "technologies": self._suggest_technologies_for_component(component["name"]),
