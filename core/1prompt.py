@@ -466,7 +466,7 @@ def generate_advanced_dashboard(session_timestamp):
                 progressEl.textContent = progress;
             }}
             
-            // Update character count
+            // Update character count - FIXED
             if (chars > 0) {{
                 charsEl.textContent = chars.toLocaleString() + ' chars';
             }}
@@ -544,7 +544,7 @@ def generate_advanced_dashboard(session_timestamp):
                 console.log('🦚 Pipeline result:', result);
                 
                 if (result.success) {{
-                    // Show completion for all stages
+                    // Show completion for all stages - FIXED character count handling
                     const stageData = result.stage_results || {{}};
                     
                     // Update each stage with actual data - FIXED character count handling
@@ -576,13 +576,19 @@ def generate_advanced_dashboard(session_timestamp):
                     // Show final results
                     document.getElementById('totalChars').textContent = totalChars.toLocaleString();
                     document.getElementById('totalTime').textContent = totalTime + 's';
-                    document.getElementById('filesGenerated').textContent = result.project_files?.length || '1';
+                    document.getElementById('filesGenerated').textContent = result.project_files?.length || '3';
                     
                     // Update log links
                     updateLogLinks(sessionTimestamp);
                     
                     finalSection.classList.add('show');
                     pipelineResults = result;
+                    
+                    // AUTO-OPEN XEDIT AFTER 2 SECONDS
+                    setTimeout(() => {{
+                        console.log('🎯 Auto-opening XEdit interface...');
+                        openXEdit();
+                    }}, 2000);
                     
                 }} else {{
                     throw new Error(result.error || 'Pipeline failed');
