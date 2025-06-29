@@ -28,7 +28,7 @@ class EnhancedXEditGenerator:
         project_name = parsed_data.get("project_name", "Generated Project")
         model_used = parsed_data.get("model_used", "unknown")
         model_type = self._get_model_type(model_used)
-        code_files = parsed_data.get("files", [])
+        code_files = parsed_data.get("code_files", [])
         
         # Generate functions list HTML
         functions_html = self._generate_functions_html(xedit_paths)
@@ -174,6 +174,26 @@ class EnhancedXEditGenerator:
             border-color: #00ff00 !important;
         }}
         
+        .code-line {{
+            display: flex;
+        }}
+        
+        .code-line.highlight {{
+            background-color: #004400;
+        }}
+        
+        .line-number {{
+            color: #666;
+            margin-right: 10px;
+            user-select: none;
+            min-width: 30px;
+            text-align: right;
+        }}
+        
+        .line-content {{
+            flex: 1;
+        }}
+        
         .payload-section {{
             background: #2a2a2a;
             border: 1px solid #444;
@@ -315,31 +335,25 @@ class EnhancedXEditGenerator:
             const pathData = xeditPaths[xeditId];
             if (!pathData) return;
             
-            /* Scroll to function in code display */
-            const codeDisplay = document.getElementById('code-display');
-            const lines = codeDisplay.textContent.split('\\n');
-            const targetLine = pathData.line_start - 1;
+            /* Clear previous highlights */
+            document.querySelectorAll('.code-line').forEach(line => {{
+                line.classList.remove('highlight');
+            }});
             
-            if (targetLine >= 0 && targetLine < lines.length) {{
-                /* Create temporary element to measure line height */
-                const tempDiv = document.createElement('div');
-                tempDiv.style.font = window.getComputedStyle(codeDisplay).font;
-                tempDiv.style.position = 'absolute';
-                tempDiv.style.visibility = 'hidden';
-                tempDiv.textContent = 'A';
-                document.body.appendChild(tempDiv);
-                const lineHeight = tempDiv.offsetHeight;
-                document.body.removeChild(tempDiv);
-                
-                /* Scroll to target line */
-                codeDisplay.scrollTop = targetLine * lineHeight;
-                
-                /* Flash highlight effect */
-                codeDisplay.style.transition = 'background-color 0.3s ease';
-                codeDisplay.style.backgroundColor = '#004400';
-                setTimeout(() => {{
-                    codeDisplay.style.backgroundColor = '#000';
-                }}, 300);
+            /* Highlight the code lines */
+            const lineStart = parseInt(pathData.line_start || 1);
+            const lineEnd = parseInt(pathData.line_end || lineStart + 10);
+            
+            for (let i = lineStart; i <= lineEnd; i++) {{
+                const lineElement = document.querySelector(`.code-line[data-line="${i}"]`);
+                if (lineElement) {{
+                    lineElement.classList.add('highlight');
+                    
+                    /* Scroll to the first highlighted line */
+                    if (i === lineStart) {{
+                        lineElement.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+                    }}
+                }}
             }}
         }}
         
@@ -373,9 +387,9 @@ class EnhancedXEditGenerator:
             
             /* Prepare deployment data */
             const deploymentData = {{
-                project_name: projectData.project_name,
+                project_name: projectData.project_name || "Peacock Project",
                 session_id: '{session_id}',
-                files: projectData.files,
+                project_files: projectData.code_files || [],
                 timestamp: new Date().toISOString()
             }};
             
@@ -440,13 +454,26 @@ class EnhancedXEditGenerator:
 </html>"""
         
         # Save HTML file
-        html_filepath = os.path.join(self.html_dir, f"xedit-{session_id}.html")
+        html_filename = f"xedit-{session_id}.html"
+        html_filepath = os.path.join(self.html_dir, html_filename)
         
         with open(html_filepath, 'w', encoding='utf-8') as f:
             f.write(html_content)
         
         print(f"✅ Enhanced XEdit HTML generated: {html_filepath}")
         return html_filepath
+
+    def _get_model_type(self, model_name: str) -> str:
+        """Determine model type from model name"""
+        model_name = model_name.lower()
+        if "qwen" in model_name:
+            return "qwen"
+        elif "llama" in model_name:
+            return "llama"
+        elif "gemma" in model_name:
+            return "gemma"
+        else:
+            return "unknown"
 
     def _generate_functions_html(self, xedit_paths: Dict[str, Dict[str, Any]]) -> str:
         """Generate HTML for functions and classes list"""
@@ -493,7 +520,7 @@ class EnhancedXEditGenerator:
         return functions_html
 
     def _generate_code_html(self, code_files: List[Dict[str, Any]]) -> str:
-        """Generate HTML for code display"""
+        """Generate HTML for code display with line numbers and data attributes for highlighting"""
         
         if not code_files:
             return "No code files found"
@@ -509,28 +536,129 @@ class EnhancedXEditGenerator:
             code_html += f"// FILE: {file_data['filename']} ({file_data['language']})\n"
             code_html += "//" + "="*78 + "\n\n"
             
-            # Add code content with line numbers
+            # Add code content with line numbers and data attributes
             lines = file_data['code'].split('\n')
             for line_num, line in enumerate(lines, 1):
-                # Escape HTML characters to prevent rendering issues
-                safe_line = line.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-                code_html += f"{line_num:4d} | {safe_line}\n"
+                # Escape HTML characters
+                escaped_line = line.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+                code_html += f'<div class="code-line" data-line="{line_num}"><span class="line-number">{line_num}</span><span class="line-content">{escaped_line}</span></div>\n'
             
             code_html += "\n"
         
         return code_html
+
+def get_session_timestamp():
+    """Generate session timestamp in week-day-hourminute format"""
+    now = datetime.datetime.now()
+    week = now.isocalendar()[1]
+    day = now.day
+    hour_minute = now.strftime("%H%M")
+    return f"{week}-{day}-{hour_minute}"
+
+class PeacockResponseParser:
+    """Parse LLM responses into structured content for XEdit generation"""
     
-    def _get_model_type(self, model_name: str) -> str:
-        """Determine model type from model name"""
-        model_name = model_name.lower()
-        if "qwen" in model_name:
-            return "qwen"
-        elif "llama" in model_name:
-            return "llama"
-        elif "deepseek" in model_name:
-            return "deepseek"
+    def __init__(self):
+        self.session_timestamp = get_session_timestamp()
+        
+    def parse_llm_response(self, response_text: str, project_name: str = "Generated Project") -> Dict[str, Any]:
+        """Main parsing function - converts raw LLM response to structured data"""
+        parsed_data = {
+            "project_name": project_name,
+            "session_timestamp": self.session_timestamp,
+            "code_files": self._extract_code_files(response_text),
+            "parsing_success": True
+        }
+        return parsed_data
+    
+    def _extract_code_files(self, text: str) -> List[Dict[str, Any]]:
+        """Extract code files from response"""
+        code_files = []
+        
+        # First try to find filename-based code blocks
+        filename_pattern = r'```filename:\s*([^\n]+)\n(.*?)\n```'
+        filename_matches = re.findall(filename_pattern, text, re.DOTALL)
+        
+        if filename_matches:
+            for filename, code in filename_matches:
+                language = self._detect_language_from_filename(filename.strip())
+                code_files.append({
+                    "id": f"file{len(code_files)+1:03d}",
+                    "filename": filename.strip(),
+                    "language": language,
+                    "code": code.strip(),
+                    "size": len(code.strip()),
+                    "type": "code_file"
+                })
         else:
-            return "unknown"
+            # Fallback to standard code blocks
+            pattern = r'```(\w+)?\s*(.*?)```'
+            matches = re.findall(pattern, text, re.DOTALL)
+            
+            for i, (language, code) in enumerate(matches):
+                if len(code.strip()) > 50:  # Only substantial code blocks
+                    lang = language.strip() if language else "text"
+                    filename = self._infer_filename(lang, i)
+                    code_files.append({
+                        "id": f"file{len(code_files)+1:03d}",
+                        "filename": filename,
+                        "language": lang,
+                        "code": code.strip(),
+                        "size": len(code.strip()),
+                        "type": "code_file"
+                    })
+        
+        return code_files
+    
+    def _detect_language_from_filename(self, filename: str) -> str:
+        """Detect language from filename extension"""
+        ext_map = {
+            '.py': 'python',
+            '.js': 'javascript',
+            '.html': 'html',
+            '.css': 'css',
+            '.json': 'json',
+            '.md': 'markdown',
+            '.txt': 'text',
+            '.sh': 'bash',
+            '.sql': 'sql'
+        }
+        
+        for ext, lang in ext_map.items():
+            if filename.lower().endswith(ext):
+                return lang
+        
+        return 'text'
+    
+    def _infer_filename(self, language: str, index: int) -> str:
+        """Infer a filename based on language and index"""
+        if language == 'python':
+            return f"script{index+1}.py"
+        elif language == 'javascript':
+            return f"script{index+1}.js"
+        elif language == 'html':
+            return "index.html"
+        elif language == 'css':
+            return "style.css"
+        else:
+            return f"file{index+1}.{language}"
+
+class XEditInterfaceGenerator:
+    """Generate HTML XEdit interfaces"""
+    
+    def generate_xedit_interface_html(self, parsed_data: Dict[str, Any], xedit_paths: List[Dict[str, Any]]) -> str:
+        """Generate complete XEdit HTML interface"""
+        # Create enhanced generator and use it
+        generator = EnhancedXEditGenerator()
+        
+        # Convert xedit_paths list to dictionary with ID keys
+        xedit_paths_dict = {}
+        for i, path in enumerate(xedit_paths):
+            path_id = path.get("id", f"7x{i+1:03d}")
+            xedit_paths_dict[path_id] = path
+        
+        # Generate the HTML
+        return generator.generate_enhanced_xedit_html(parsed_data, xedit_paths_dict, parsed_data.get("session_timestamp", get_session_timestamp()))
 
 def main():
     """Main entry point for enhanced XEdit generation"""
