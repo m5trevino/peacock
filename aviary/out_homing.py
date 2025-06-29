@@ -5,6 +5,10 @@ The key fix: Generate SINGLE MIXED CONTENT response that xedit.py can parse
 WITH API KEY ROTATION + PROXY SUPPORT + RETRY LOGIC + XEDIT GENERATION
 """
 
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 import json
 import datetime
 import sys
@@ -24,7 +28,7 @@ from hawk import create_hawk_qa_specialist
 # Import XEdit module with proper path handling
 sys.path.insert(0, str(Path(__file__).parent.parent / "core"))
 try:
-    from xedit import EnhancedXEditGenerator, PeacockResponseParser
+    from xedit import EnhancedXEditGenerator
     XEDIT_AVAILABLE = True
     print("✅ XEdit module loaded successfully")
 except ImportError as e:
@@ -34,11 +38,15 @@ except ImportError as e:
 # GROQ API CONFIGURATION WITH KEY ROTATION
 # Load API keys from environment
 GROQ_API_KEYS = [
-    "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",
-    "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",
-    "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",
-    "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"
+    os.getenv("GROQ_API_KEY"),
+    os.getenv("GROQ_API_KEY_1"),
+    os.getenv("GROQ_API_KEY_2"),
+    os.getenv("GROQ_API_KEY_3"),
+    os.getenv("GROQ_API_KEY_4")
 ]
+
+# Filter out None values
+GROQ_API_KEYS = [key for key in GROQ_API_KEYS if key]
 
 # PROXY CONFIGURATION
 PROXY_CONFIG = {
@@ -48,11 +56,11 @@ PROXY_CONFIG = {
 
 # MODEL ASSIGNMENTS FOR PRE-GENERATION STAGES
 STAGE_MODEL_ASSIGNMENTS = {
-    "spark": "meta-llama/llama-4-scout-17b-16e-instruct",
-    "falcon": "meta-llama/llama-4-maverick-17b-128e-instruct",
-    "eagle": "meta-llama/llama-4-scout-17b-16e-instruct",
-    "hawk": "meta-llama/llama-4-maverick-17b-128e-instruct",
-    "final": "meta-llama/llama-4-maverick-17b-128e-instruct"
+    "spark": os.getenv("SPARK_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct"),
+    "falcon": os.getenv("FALCON_MODEL", "meta-llama/llama-4-maverick-17b-128e-instruct"),
+    "eagle": os.getenv("EAGLE_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct"),
+    "hawk": os.getenv("HAWK_MODEL", "meta-llama/llama-4-maverick-17b-128e-instruct"),
+    "final": os.getenv("FINAL_MODEL", "meta-llama/llama-4-maverick-17b-128e-instruct")
 }
 
 # FINAL CODE GENERATOR CONFIGURATION (DATA-DRIVEN)
@@ -329,6 +337,16 @@ Be specific and actionable."""
         """Make actual API call to Groq with retry logic"""
         
         model = STAGE_MODEL_ASSIGNMENTS.get(stage, "meta-llama/llama-4-scout-17b-16e-instruct")
+        
+        # Check if we have any API keys
+        if not GROQ_API_KEYS:
+            return {
+                "success": False,
+                "error": "No API keys available in environment variables",
+                "model": model,
+                "attempt": attempt
+            }
+            
         api_key = random.choice(GROQ_API_KEYS)
         
         # Use proxy on first attempt, direct on retry
@@ -462,101 +480,54 @@ CRITICAL REQUIREMENTS:
 DO NOT RETURN ANYTHING EXCEPT THE CODE FILES.
 """
         
-        # Log the mega prompt
-        self._log_mega_prompt(mega_prompt)
-        
         return mega_prompt
 
     def _generate_final_code_with_mega_prompt(self, mega_prompt: str, model_choice: str = "qwen-32b-instruct") -> Dict[str, Any]:
         """Send mega prompt to Groq and get final code generation"""
         
-        print("🎯 SENDING MEGA PROMPT TO GROQ FOR FINAL CODE GENERATION...")
+        print(f"🎯 SENDING MEGA PROMPT TO GROQ FOR FINAL CODE GENERATION...")
         
-        generator_config = FINAL_CODE_GENERATORS.get(model_choice)
-        if not generator_config:
-            return {"success": False, "error": f"Invalid model choice: {model_choice}", "final_code": ""}
-
-        model_id = generator_config["model_id"]
-
-        # Enhanced prompt with JSON schema requirement for FinalCodeOutput
-        enhanced_prompt = f"""SYSTEM: You are a code generation specialist. Output ONLY valid JSON matching this exact schema:
-
-{{
-  "project_name": "string",
-  "files": [
-    {{
-      "filename": "string (include file extension)",
-      "language": "string (html/css/javascript/python/etc)",
-      "code": "string (complete file content)"
-    }}
-  ]
-}}
-
-CRITICAL INSTRUCTIONS:
-- Return ONLY valid JSON, no explanations before or after
-- Each file must be complete and runnable
-- Include ALL necessary files for the project
-- Use proper file extensions (.html, .css, .js, .py, etc)
-- DO NOT include markdown code blocks or any other formatting
-- Avoid Chinese characters in output
-
-{mega_prompt}
-
-Return the response as valid JSON matching the schema above."""
-
-        # Log the enhanced prompt
-        import os
-        logs_dir = "/home/flintx/peacock/core/logs"
-        os.makedirs(logs_dir, exist_ok=True)
-        mega_log_path = f"{logs_dir}/megapromptlog-{self.session_timestamp}.txt"
-        with open(mega_log_path, "w") as f:
-            f.write(f"[{datetime.datetime.now().isoformat()}] ENHANCED MEGA PROMPT\n")
-            f.write(f"Session: {self.session_timestamp}\n")
-            f.write(f"Model Choice: {model_choice} ({model_id})\n")
-            f.write("=" * 60 + "\n")
-            f.write(enhanced_prompt)
-            f.write("\n" + "=" * 60 + "\n")
-        print(f"✅ Enhanced mega prompt logged: {mega_log_path}")
+        # Log the mega prompt
+        self._log_mega_prompt(mega_prompt)
         
         try:
+            # Select API key and model for final generation
+            if not GROQ_API_KEYS:
+                return {"success": False, "error": "No API keys available in environment variables", "final_code": ""}
+                
             api_key = random.choice(GROQ_API_KEYS)
             
+            generator_config = FINAL_CODE_GENERATORS.get(model_choice)
+            if not generator_config:
+                return {"success": False, "error": f"Invalid model choice: {model_choice}", "final_code": ""}
+
+            model_id = generator_config["model_id"]
+            
+            # Initialize Groq client
             from groq import Groq
             client = Groq(api_key=api_key)
             
             print(f"🔗 FINAL CODE GENERATION API call (model: {model_id})")
-
-            # Use Qwen best practices parameters
-            payload = {
-                "model": model_id,
-                "messages": [{"role": "user", "content": enhanced_prompt}],
-                "temperature": 0.7,  # Qwen best practice for non-thinking mode
-                "max_tokens": 32768,  # Qwen recommended length
-                "top_p": 0.8,  # Qwen best practice
-            }
             
-            # Add Qwen-specific parameters based on model
-            if "qwen3" in model_id or "qwen/qwen3" in model_id:
-                payload["reasoning_effort"] = "none"  # Non-thinking mode
-            elif "qwq" in model_id:
-                payload["reasoning_format"] = "parsed"  # Handle missing <think> token
-
-            response = client.chat.completions.create(**payload)
+            # Make the final API call with mega prompt
+            response = client.chat.completions.create(
+                messages=[
+                    {
+                        "role": "user",
+                        "content": mega_prompt
+                    }
+                ],
+                model=model_id,
+                max_tokens=4000,
+                temperature=0.3
+            )
             
             final_response = response.choices[0].message.content
             
             # Log the final response
-            final_log_path = f"{logs_dir}/finalresponselog-{self.session_timestamp}.txt"
-            with open(final_log_path, "w") as f:
-                f.write(f"[{datetime.datetime.now().isoformat()}] FINAL CODE GENERATION RESPONSE\n")
-                f.write(f"Session: {self.session_timestamp}\n")
-                f.write(f"Model: {model_id}\n")
-                f.write("=" * 60 + "\n")
-                f.write(final_response)
-                f.write("\n" + "=" * 60 + "\n")
-            print(f"✅ Final response logged: {final_log_path}")
+            self._log_final_response(final_response, model_id)
             
-            self.api_call_count += 1
+            print(f"✅ FINAL CODE GENERATION Success - {len(final_response)} chars - Model: {model_id}")
             
             return {
                 "success": True,
@@ -567,7 +538,11 @@ Return the response as valid JSON matching the schema above."""
             
         except Exception as e:
             print(f"❌ FINAL CODE GENERATION failed: {e}")
-            return {"success": False, "error": str(e), "final_code": ""}
+            return {
+                "success": False,
+                "error": str(e),
+                "final_code": ""
+            }
 
     def _log_mega_prompt(self, mega_prompt: str):
         """Log the assembled mega prompt"""
@@ -618,7 +593,6 @@ def create_homing_orchestrator() -> OutHomingOrchestrator:
     """Factory function to create OUT-HOMING orchestrator instance"""
     return OutHomingOrchestrator()
 
-# Test function for OUT-HOMING bird
 def test_out_homing_pipeline():
     """Test the complete OUT-HOMING pipeline orchestration"""
     homing = create_homing_orchestrator()
