@@ -379,7 +379,7 @@ class InHomingProcessor:
             return "meta-llama/llama-4-maverick-17b-128e-instruct"
 
     def _call_xedit_generator(self, processing_result: Dict[str, Any], session_timestamp: str) -> str:
-        """Call xedit.py to generate the HTML interface"""
+        """Call xedit.py to generate the HTML interface - FIXED"""
         try:
             # Import XEdit generator from the actual classes in your xedit.py
             sys.path.insert(0, str(Path(__file__).parent.parent / "core"))
@@ -388,13 +388,18 @@ class InHomingProcessor:
             # Create generator instance
             xedit_generator = EnhancedXEditGenerator()
             
+            # Prepare data for XEdit generation
+            parsed_data = processing_result["parsed_data"]
+            xedit_paths = processing_result["xedit_paths"]
+            
             # Generate the HTML file using the method that actually exists
             xedit_file_path = xedit_generator.generate_enhanced_xedit_html(
-                parsed_data=processing_result["parsed_data"],
-                xedit_paths=processing_result["xedit_paths"], 
+                parsed_data=parsed_data,
+                xedit_paths=xedit_paths, 
                 session_id=session_timestamp
             )
             
+            print(f"✅ XEdit interface generated: {xedit_file_path}")
             return xedit_file_path
             
         except Exception as e:
@@ -407,10 +412,12 @@ class InHomingProcessor:
                 Path("/home/flintx/peacock/html").mkdir(parents=True, exist_ok=True)
                 with open(fallback_path, 'w') as f:
                     f.write(f"""<!DOCTYPE html>
-<html><head><title>XEdit Error</title></head>
-<body><h1>XEdit Generation Failed</h1>
-<p>Error: {str(e)}</p>
+<html><head><title>XEdit - {session_timestamp}</title></head>
+<body>
+<h1>🦚 Peacock XEdit Interface</h1>
 <p>Session: {session_timestamp}</p>
+<p>XEdit generation encountered an error: {str(e)}</p>
+<p>This is a fallback interface.</p>
 </body></html>""")
                 print(f"✅ Created fallback XEdit file: {fallback_path}")
                 return fallback_path
