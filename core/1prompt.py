@@ -472,6 +472,30 @@ def generate_advanced_dashboard(session_timestamp):
             }}
         }}
         
+        function updateLogLinks(sessionId) {{
+            // Update all log links with correct session ID and paths
+            document.getElementById('promptLogLink').href = `file:///home/flintx/peacock/core/logs/promptlog-${{sessionId}}.txt`;
+            document.getElementById('responseLogLink').href = `file:///home/flintx/peacock/core/logs/responselog-${{sessionId}}.txt`;
+            document.getElementById('mcpLogLink').href = `file:///home/flintx/peacock/core/logs/mcplog-${{sessionId}}.txt`;
+            document.getElementById('xeditLogLink').href = `file:///home/flintx/peacock/core/logs/xeditlog-${{sessionId}}.txt`;
+            document.getElementById('megaPromptLogLink').href = `file:///home/flintx/peacock/core/logs/megapromptlog-${{sessionId}}.txt`;
+            document.getElementById('finalResponseLogLink').href = `file:///home/flintx/peacock/core/logs/finalresponselog-${{sessionId}}.txt`;
+        }}
+        
+        function openXEdit() {{
+            // Construct XEdit path with current session ID
+            const xeditPath = `file:///home/flintx/peacock/html/xedit-${{sessionTimestamp}}.html`;
+            console.log('Opening XEdit:', xeditPath);
+            
+            // Try to open the XEdit file
+            try {{
+                window.open(xeditPath, '_blank');
+            }} catch (error) {{
+                console.error('Failed to open XEdit:', error);
+                alert('Failed to open XEdit interface. Check if the file exists at: ' + xeditPath);
+            }}
+        }}
+        
         async function startPipeline() {{
             const promptInput = document.getElementById('promptInput');
             const modelChoice = document.getElementById('modelChoice').value;
@@ -523,25 +547,29 @@ def generate_advanced_dashboard(session_timestamp):
                     // Show completion for all stages
                     const stageData = result.stage_results || {{}};
                     
-                    // Update each stage with actual data
+                    // Update each stage with actual data - FIXED character count handling
                     if (stageData.spark) {{
-                        updateStageStatus('spark', 'completed', 'Requirements complete', stageData.spark.chars || stageData.spark.char_count || 0);
+                        const sparkChars = stageData.spark.chars || stageData.spark.char_count || 0;
+                        updateStageStatus('spark', 'completed', 'Requirements complete', sparkChars);
                     }}
                     if (stageData.falcon) {{
-                        updateStageStatus('falcon', 'completed', 'Architecture complete', stageData.falcon.chars || stageData.falcon.char_count || 0);
+                        const falconChars = stageData.falcon.chars || stageData.falcon.char_count || 0;
+                        updateStageStatus('falcon', 'completed', 'Architecture complete', falconChars);
                     }}
                     if (stageData.eagle) {{
-                        updateStageStatus('eagle', 'completed', 'Code complete', stageData.eagle.chars || stageData.eagle.char_count || 0);
+                        const eagleChars = stageData.eagle.chars || stageData.eagle.char_count || 0;
+                        updateStageStatus('eagle', 'completed', 'Code complete', eagleChars);
                     }}
                     if (stageData.hawk) {{
-                        updateStageStatus('hawk', 'completed', 'QA complete', stageData.hawk.chars || stageData.hawk.char_count || 0);
+                        const hawkChars = stageData.hawk.chars || stageData.hawk.char_count || 0;
+                        updateStageStatus('hawk', 'completed', 'QA complete', hawkChars);
                     }}
                     
-                    // Calculate totals
-                    const totalChars = Object.values(stageData).reduce((sum, stage) => {
+                    // Calculate totals with proper fallback
+                    const totalChars = Object.values(stageData).reduce((sum, stage) => {{
                         const chars = stage.chars || stage.char_count || 0;
                         return sum + chars;
-                    }, 0);
+                    }}, 0);
                     
                     const totalTime = Math.round((Date.now() - pipelineStartTime) / 1000);
                     
@@ -578,22 +606,6 @@ def generate_advanced_dashboard(session_timestamp):
                 sendBtn.disabled = false;
                 sendBtn.textContent = 'Start Pipeline';
             }}
-        }}
-        
-        function updateLogLinks(sessionId) {{
-            // Update all log links with correct session ID
-            document.getElementById('promptLogLink').href = `file:///home/flintx/peacock/core/logs/promptlog-${{sessionId}}.txt`;
-            document.getElementById('responseLogLink').href = `file:///home/flintx/peacock/core/logs/responselog-${{sessionId}}.txt`;
-            document.getElementById('mcpLogLink').href = `file:///home/flintx/peacock/core/logs/mcplog-${{sessionId}}.txt`;
-            document.getElementById('xeditLogLink').href = `file:///home/flintx/peacock/core/logs/xeditlog-${{sessionId}}.txt`;
-            document.getElementById('megaPromptLogLink').href = `file:///home/flintx/peacock/core/logs/megapromptlog-${{sessionId}}.txt`;
-            document.getElementById('finalResponseLogLink').href = `file:///home/flintx/peacock/core/logs/finalresponselog-${{sessionId}}.txt`;
-        }}
-        
-        function openXEdit() {{
-            // Directly construct the XEdit URL with the current session ID
-            const xeditPath = `file:///home/flintx/peacock/html/xedit-${{sessionTimestamp}}.html`;
-            window.open(xeditPath, '_blank');
         }}
 
         // Enable Enter key to start pipeline
