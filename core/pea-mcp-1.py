@@ -287,37 +287,47 @@ class CyberpunkRequestHandler(http.server.BaseHTTPRequestHandler):
                 log_to_file('mcp', f"Pipeline failed: {error_msg}")
                 return {"success": False, "error": error_msg}
 
-            # Show the character count summary in terminal
+            # FIXED: Extract character counts from the correct location
             stage_results = pipeline_result.get("stage_results", {})
-            show_character_count_summary(stage_results)
+            
+            # Build response data in the EXACT format the dashboard expects
+            response_stage_data = {}
+            
+            for stage_name, stage_data in stage_results.items():
+                # Extract character count from multiple possible sources (like the working version)
+                char_count = (
+                    stage_data.get("char_count") or 
+                    stage_data.get("chars") or
+                    len(stage_data.get("response", "")) or 
+                    len(stage_data.get("text", "")) or
+                    0
+                )
+                
+                response_stage_data[stage_name] = {
+                    "chars": char_count,  # This is what the dashboard JS looks for
+                    "char_count": char_count,  # Backup field
+                    "model": stage_data.get("model", "unknown"),
+                    "response": stage_data.get("response", stage_data.get("text", "")),
+                    "success": stage_data.get("success", True)
+                }
+
+            # Show the character count summary in terminal
+            show_character_count_summary(response_stage_data)
             
             log_to_file('mcp', f"Pipeline completed successfully")
             
-            # FIXED: Properly format the response for the frontend with character counts
-            formatted_stage_results = {}
-            for stage_name, stage_data in stage_results.items():
-                # Make sure both 'chars' and 'char_count' are available
-                char_count = stage_data.get("char_count", stage_data.get("chars", 0))
-                formatted_stage_results[stage_name] = {
-                    "chars": char_count,
-                    "char_count": char_count,
-                    "model": stage_data.get("model", "unknown"),
-                    "response": stage_data.get("response", ""),
-                    "success": stage_data.get("success", True)
-                }
-            
-            # Return a clean, explicit JSON response for the client
+            # CRITICAL: Return data in the EXACT format the working dashboard expects
             return {
                 "success": True,
                 "xedit_file_path": pipeline_result.get("xedit_file_path"),
                 "project_files": pipeline_result.get("project_files", []),
                 "pipeline_result": {
-                    "stage_results": formatted_stage_results,
+                    "stage_results": response_stage_data,  # This is what the JS looks for
                     "session_timestamp": session_timestamp,
                     "api_calls_made": pipeline_result.get("api_calls_made", 0),
                     "model_used": pipeline_result.get("model_used", final_model_choice)
                 },
-                "stage_results": formatted_stage_results
+                "stage_results": response_stage_data  # Also include at top level for compatibility
             }
             
         except Exception as e:
