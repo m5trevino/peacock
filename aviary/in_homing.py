@@ -10,6 +10,7 @@ import datetime
 from pathlib import Path
 import sys
 import subprocess
+import os
 
 # Add core directory to path for xedit imports
 core_path = Path(__file__).parent.parent / "core"
@@ -83,6 +84,14 @@ class InHomingProcessor:
             processing_result["error"] = str(e)
             processing_result["success"] = False
             print(f"❌ IN-HOMING: Processing failed - {e}")
+            
+            # Create a fallback XEdit file with error information
+            try:
+                fallback_path = self._create_fallback_xedit(llm2_response, session_timestamp, str(e))
+                processing_result["xedit_file_path"] = str(fallback_path)
+                print(f"✅ Created fallback XEdit file: {fallback_path}")
+            except Exception as fallback_error:
+                print(f"❌ Even fallback failed: {fallback_error}")
         
         return processing_result
     
@@ -114,31 +123,117 @@ class InHomingProcessor:
         """Fallback to extract raw code blocks when JSON parsing fails."""
         print("Extracting raw code blocks...")
         code_files = []
-        # A more generic pattern to find any markdown code block
-        pattern = r'```(\w*)\n(.*?)```'
-        matches = re.findall(pattern, response_text, re.DOTALL)
-        for i, (language, code) in enumerate(matches):
-            lang = language.lower() or self._detect_language_from_content(code)
-            file_data = {
-                "filename": f"file{i+1}.{lang}",
-                "language": lang,
-                "code": code.strip(),
-            }
-            code_files.append(file_data)
-            print(f"📄 Found raw block: {file_data['filename']} ({file_data['language']})")
+        
+        # First try to find filename-based code blocks (most common format)
+        filename_pattern = r'```filename:\s*([^\n]+)\n(.*?)```'
+        filename_matches = re.findall(filename_pattern, response_text, re.DOTALL)
+        
+        if filename_matches:
+            for filename, code in filename_matches:
+                lang = self._detect_language_from_filename(filename.strip())
+                file_data = {
+                    "filename": filename.strip(),
+                    "language": lang,
+                    "code": code.strip(),
+                }
+                code_files.append(file_data)
+                print(f"📄 Found filename block: {file_data['filename']} ({file_data['language']})")
+        else:
+            # If no filename blocks found, try generic code blocks
+            pattern = r'```(\w*)\n(.*?)```'
+            matches = re.findall(pattern, response_text, re.DOTALL)
+            for i, (language, code) in enumerate(matches):
+                lang = language.lower() or self._detect_language_from_content(code)
+                
+                # Try to infer filename from content
+                filename = self._infer_filename_from_content(code, lang, i)
+                
+                file_data = {
+                    "filename": filename,
+                    "language": lang,
+                    "code": code.strip(),
+                }
+                code_files.append(file_data)
+                print(f"📄 Found raw block: {file_data['filename']} ({file_data['language']})")
+        
         return code_files
+
+    def _detect_language_from_filename(self, filename: str) -> str:
+        """Detect language from filename extension."""
+        ext_map = {
+            '.html': 'html',
+            '.css': 'css',
+            '.js': 'javascript',
+            '.py': 'python',
+            '.java': 'java',
+            '.cpp': 'cpp',
+            '.c': 'c',
+            '.php': 'php',
+            '.rb': 'ruby',
+            '.go': 'go',
+            '.ts': 'typescript',
+            '.jsx': 'jsx',
+            '.tsx': 'tsx',
+            '.json': 'json',
+            '.md': 'markdown',
+        }
+        
+        for ext, lang in ext_map.items():
+            if filename.lower().endswith(ext):
+                return lang
+        
+        return 'text'
 
     def _detect_language_from_content(self, code: str) -> str:
         """A simple heuristic to guess the language from code content."""
-        if code.strip().startswith("<!DOCTYPE html>"):
+        if code.strip().startswith("<!DOCTYPE html>") or "<html" in code:
             return "html"
         if "def " in code and ":" in code:
             return "python"
         if "function " in code and "{" in code:
             return "javascript"
-        if "{" in code and ":" in code and "}" in code:
+        if "{" in code and ":" in code and "}" in code and not "function" in code:
             return "css"
-        return "txt"
+        return "text"
+    
+    def _infer_filename_from_content(self, code: str, language: str, index: int) -> str:
+        """Infer a reasonable filename based on code content and language."""
+        # Default filenames by language
+        defaults = {
+            'html': 'index.html',
+            'css': 'style.css',
+            'javascript': 'script.js',
+            'python': 'main.py',
+            'java': 'Main.java',
+            'typescript': 'index.ts',
+            'jsx': 'App.jsx',
+            'tsx': 'App.tsx',
+        }
+        
+        # Try to find clues in the content
+        if language == 'html':
+            title_match = re.search(r'<title>(.*?)</title>', code)
+            if title_match:
+                title = title_match.group(1).lower().replace(' ', '_')
+                return f"{title}.html"
+        
+        elif language == 'javascript':
+            # Look for class or main function name
+            class_match = re.search(r'class\s+(\w+)', code)
+            if class_match:
+                return f"{class_match.group(1).lower()}.js"
+            
+            # Look for main function or component
+            func_match = re.search(r'function\s+(\w+)', code)
+            if func_match and func_match.group(1) not in ['render', 'init', 'setup']:
+                return f"{func_match.group(1).lower()}.js"
+        
+        # Use default if we couldn't infer
+        if language in defaults:
+            return defaults[language]
+        
+        # Generic fallback
+        return f"file{index+1}.{language or 'txt'}"
     
     def _generate_xedit_paths(self, project_files: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
         """Generate 7x001 style XEdit paths for all code elements"""
@@ -353,18 +448,61 @@ class InHomingProcessor:
             print(f"❌ Error details: {str(e)}")
             
             # Try to create a simple HTML file as fallback
-            fallback_path = f"/home/flintx/peacock/html/xedit-{session_timestamp}.html"
-            try:
-                Path("/home/flintx/peacock/html").mkdir(parents=True, exist_ok=True)
-                with open(fallback_path, 'w') as f:
-                    f.write(f"""<!DOCTYPE html>
-<html><head><title>XEdit Error</title></head>
-<body><h1>XEdit Generation Failed</h1>
-<p>Error: {str(e)}</p>
-<p>Session: {session_timestamp}</p>
-</body></html>""")
-                print(f"✅ Created fallback XEdit file: {fallback_path}")
-                return fallback_path
-            except Exception as fallback_error:
-                print(f"❌ Even fallback failed: {fallback_error}")
-                return f"/home/flintx/peacock/html/xedit-{session_timestamp}-error.html"
+            fallback_path = self._create_fallback_xedit(
+                processing_result["llm2_response"], 
+                session_timestamp, 
+                str(e)
+            )
+            return fallback_path
+    
+    def _create_fallback_xedit(self, response_text: str, session_timestamp: str, error_message: str) -> str:
+        """Create a fallback XEdit HTML file when normal generation fails"""
+        fallback_path = f"/home/flintx/peacock/html/xedit-{session_timestamp}.html"
+        
+        try:
+            # Ensure directory exists
+            Path("/home/flintx/peacock/html").mkdir(parents=True, exist_ok=True)
+            
+            # Extract any code blocks for display
+            code_blocks = re.findall(r'```(?:\w+)?\n(.*?)\n```', response_text, re.DOTALL)
+            code_display = "\n\n".join(code_blocks) if code_blocks else response_text
+            
+            # Create a simple HTML file
+            with open(fallback_path, 'w') as f:
+                f.write(f"""<!DOCTYPE html>
+<html>
+<head>
+    <title>XEdit - Session {session_timestamp}</title>
+    <style>
+        body {{ font-family: monospace; background: #1e1e1e; color: #d4d4d4; padding: 20px; }}
+        h1 {{ color: #ff6b35; }}
+        .error {{ color: #ff0000; background: #2d2d2d; padding: 10px; border-left: 5px solid #ff0000; margin: 20px 0; }}
+        pre {{ background: #2d2d2d; padding: 15px; overflow: auto; white-space: pre-wrap; }}
+        .info {{ color: #3794ff; background: #2d2d2d; padding: 10px; border-left: 5px solid #3794ff; margin: 20px 0; }}
+    </style>
+</head>
+<body>
+    <h1>🦚 Peacock XEdit - Fallback Mode</h1>
+    
+    <div class="info">
+        <strong>Session:</strong> {session_timestamp}<br>
+        <strong>Generated:</strong> {datetime.datetime.now().isoformat()}<br>
+        <strong>Mode:</strong> Fallback (Error Recovery)
+    </div>
+    
+    <div class="error">
+        <strong>XEdit Generation Error:</strong><br>
+        {error_message}
+    </div>
+    
+    <h2>Generated Code:</h2>
+    <pre>{code_display}</pre>
+</body>
+</html>""")
+            
+            print(f"✅ Created fallback XEdit file: {fallback_path}")
+            return fallback_path
+            
+        except Exception as fallback_error:
+            print(f"❌ Even fallback failed: {fallback_error}")
+            return f"/home/flintx/peacock/html/xedit-{session_timestamp}-error.html"

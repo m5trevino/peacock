@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """
 🦚 XEDIT - ENHANCED PEACOCK CODE INTERFACE GENERATOR 
@@ -18,7 +17,7 @@ class EnhancedXEditGenerator:
     """Enhanced XEdit generator with Qwen/Llama support and PCOCK deployment"""
     
     def __init__(self):
-        self.html_dir = "/home/flintx/peacock/core/html"
+        self.html_dir = "/home/flintx/peacock/html"
         self.apps_dir = "/home/flintx/peacock/apps"
         os.makedirs(self.html_dir, exist_ok=True)
         os.makedirs(self.apps_dir, exist_ok=True)
@@ -28,8 +27,8 @@ class EnhancedXEditGenerator:
         
         project_name = parsed_data.get("project_name", "Generated Project")
         model_used = parsed_data.get("model_used", "unknown")
-        model_type = parsed_data.get("model_type", "unknown")
-        code_files = parsed_data.get("code_files", [])
+        model_type = self._get_model_type(model_used)
+        code_files = parsed_data.get("files", [])
         
         # Generate functions list HTML
         functions_html = self._generate_functions_html(xedit_paths)
@@ -138,7 +137,6 @@ class EnhancedXEditGenerator:
             border: none;
             padding: 2px 6px;
             font-size: 0.7em;
-
             cursor: pointer;
             border-radius: 2px;
         }}
@@ -279,7 +277,6 @@ class EnhancedXEditGenerator:
                     <strong>Session:</strong> {session_id}
                 </div>
                 <div class="payload-item">
-
                     <strong>Model:</strong> {model_used}
                 </div>
                 <div class="payload-item">
@@ -320,7 +317,7 @@ class EnhancedXEditGenerator:
             
             /* Scroll to function in code display */
             const codeDisplay = document.getElementById('code-display');
-            const lines = codeDisplay.textContent.split('\n');
+            const lines = codeDisplay.textContent.split('\\n');
             const targetLine = pathData.line_start - 1;
             
             if (targetLine >= 0 && targetLine < lines.length) {{
@@ -378,12 +375,12 @@ class EnhancedXEditGenerator:
             const deploymentData = {{
                 project_name: projectData.project_name,
                 session_id: '{session_id}',
-                code_files: projectData.code_files,
+                files: projectData.files,
                 timestamp: new Date().toISOString()
             }};
             
             /* Call deployment API */
-            fetch('/api/deploy', {{
+            fetch('http://127.0.0.1:8000/deploy', {{
                 method: 'POST',
                 headers: {{
                     'Content-Type': 'application/json'
@@ -419,7 +416,6 @@ class EnhancedXEditGenerator:
                 deployStatus.innerHTML = `
                     <div style="color: #ff0000;">
                         ❌ Deployment failed:<br>
-
                         ${{error.message}}
                     </div>
                 `;
@@ -444,9 +440,7 @@ class EnhancedXEditGenerator:
 </html>"""
         
         # Save HTML file
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        html_filename = f"xedit-{session_id}-{timestamp}.html"
-        html_filepath = os.path.join(self.html_dir, html_filename)
+        html_filepath = os.path.join(self.html_dir, f"xedit-{session_id}.html")
         
         with open(html_filepath, 'w', encoding='utf-8') as f:
             f.write(html_content)
@@ -518,11 +512,25 @@ class EnhancedXEditGenerator:
             # Add code content with line numbers
             lines = file_data['code'].split('\n')
             for line_num, line in enumerate(lines, 1):
-                code_html += f"{line_num:4d} | {line}\n"
+                # Escape HTML characters to prevent rendering issues
+                safe_line = line.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+                code_html += f"{line_num:4d} | {safe_line}\n"
             
             code_html += "\n"
         
         return code_html
+    
+    def _get_model_type(self, model_name: str) -> str:
+        """Determine model type from model name"""
+        model_name = model_name.lower()
+        if "qwen" in model_name:
+            return "qwen"
+        elif "llama" in model_name:
+            return "llama"
+        elif "deepseek" in model_name:
+            return "deepseek"
+        else:
+            return "unknown"
 
 def main():
     """Main entry point for enhanced XEdit generation"""

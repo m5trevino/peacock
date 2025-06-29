@@ -1,7 +1,3 @@
-import os
-from dotenv import load_dotenv
-load_dotenv()
-
 #!/usr/bin/env python3
 """
 🦚 PEACOCK MCP SERVER - CYBERPUNK EDITION (UNIFORM SICK BORDERS)
@@ -26,7 +22,7 @@ from pathlib import Path
 # Add aviary to path for bird imports
 sys.path.insert(0, "/home/flintx/peacock/aviary")
 sys.path.append(str(Path(__file__).parent.parent / "aviary"))
-from out_homing import create_homing_orchestrator
+from out_homing import OutHomingOrchestrator
 from in_homing import InHomingProcessor
 
 # --- CYBERPUNK CONFIGURATION ---
@@ -112,69 +108,7 @@ CYBERPUNK_CFONTS = [
     "cfonts 'PEACOCK' -f block -g green,blue",
     "cfonts 'PEACOCK' -f simple -g red,cyan",
     "cfonts 'PEACOCK' -f chrome -g yellow,magenta",
-    "cfonts 'PEACOCK' -f tiny -g green,red",
-    
-    # Transition combinations (smooth flows)
-    "cfonts 'PEACOCK' -f pallet -t yellow,red,magenta",
-    "cfonts 'PEACOCK' -f slick -t green,cyan,blue", 
-    "cfonts 'PEACOCK' -f shade -t red,magenta,blue",
-    "cfonts 'PEACOCK' -f simple3d -t cyan,magenta,red",
-    "cfonts 'PEACOCK' -f block -t blue,cyan,green",
-    "cfonts 'PEACOCK' -f chrome -t green,yellow,red",
-    "cfonts 'PEACOCK' -f grid -t red,yellow,magenta",
-    "cfonts 'PEACOCK' -f simple -t magenta,cyan,blue",
-    "cfonts 'PEACOCK' -f shade -t yellow,green,cyan",
-    "cfonts 'PEACOCK' -f slick -t blue,magenta,red",
-    
-    # Single color classics (when you want clean)
-    "cfonts 'PEACOCK' -f pallet -c cyan",
-    "cfonts 'PEACOCK' -f slick -c blueBright",
-    "cfonts 'PEACOCK' -f simple -c yellowBright",
-    "cfonts 'PEACOCK' -f simple -c blue",
-    "cfonts 'PEACOCK' -f simple -c green",
-    "cfonts 'PEACOCK' -f block -c whiteBright",
-    "cfonts 'PEACOCK' -f block -c blue",
-    "cfonts 'PEACOCK' -f pallet -c cyanBright",
-    "cfonts 'PEACOCK' -f grid -c yellow",
-    "cfonts 'PEACOCK' -f slick -c whiteBright",
-    "cfonts 'PEACOCK' -f chrome -c magenta",
-    "cfonts 'PEACOCK' -f simple -c green",
-    "cfonts 'PEACOCK' -f block -c red",
-    "cfonts 'PEACOCK' -f shade -c cyan",
-    "cfonts 'PEACOCK' -f simple3d -c blue",
-    "cfonts 'PEACOCK' -f tiny -c green",
-    "cfonts 'PEACOCK' -f chrome -c red",
-    "cfonts 'PEACOCK' -f grid -c magenta",
-    "cfonts 'PEACOCK' -f pallet -c yellow",
-    "cfonts 'PEACOCK' -f slick -c green",
-    
-    # Background combinations (the fire ones)
-    "cfonts 'PEACOCK' -f block -c white -b blue",
-    "cfonts 'PEACOCK' -f simple -c yellow -b black",
-    "cfonts 'PEACOCK' -f pallet -c cyan -b magenta",
-    "cfonts 'PEACOCK' -f grid -c green -b red",
-    "cfonts 'PEACOCK' -f chrome -c white -b cyan",
-    "cfonts 'PEACOCK' -f shade -c blue -b yellow",
-    "cfonts 'PEACOCK' -f slick -c red -b blue",
-    "cfonts 'PEACOCK' -f simple3d -c magenta -b green",
-    
-    # Size variations (huge impact)
-    "cfonts 'PEACOCK' -f huge -c cyan",
-    "cfonts 'PEACOCK' -f massive -c red",
-    "cfonts 'PEACOCK' -f tiny -c green",
-    
-    # Special effects (the wild ones)
-    "cfonts 'PEACOCK' -f chrome -c rainbow",
-    "cfonts 'PEACOCK' -f block -c candy",
-    "cfonts 'PEACOCK' -f simple3d -c system",
-    
-    # More gradient madness
-    "cfonts 'PEACOCK' -f pallet -g blue,cyan,green",
-    "cfonts 'PEACOCK' -f slick -g red,yellow,green",
-    "cfonts 'PEACOCK' -f shade -g magenta,blue,cyan",
-    "cfonts 'PEACOCK' -f chrome -g yellow,red,magenta",
-    "cfonts 'PEACOCK' -f grid -g green,blue,magenta",
-    "cfonts 'PEACOCK' -f block -g cyan,yellow,red"
+    "cfonts 'PEACOCK' -f tiny -g green,red"
 ]
 
 def show_cyberpunk_ascii():
@@ -247,7 +181,7 @@ def log_to_file(log_type: str, content: str):
         return
     
     timestamp = datetime.datetime.now().isoformat()
-    log_dir = Path.cwd() / "logs"
+    log_dir = Path("/home/flintx/peacock/logs")
     
     if not log_dir.exists():
         log_dir.mkdir(parents=True, exist_ok=True)
@@ -346,49 +280,59 @@ class CyberpunkRequestHandler(http.server.BaseHTTPRequestHandler):
     def process_with_birds(self, user_request: str, session_timestamp: str, final_model_choice: str):
         """Process using OUT-HOMING bird orchestration with FIXED character count handling"""
         
-        show_uniform_box(f"Starting OUT-HOMING orchestration with {final_model_choice}", "🐦")
-        log_to_file('mcp', f"Starting bird orchestration for: {user_request[:100]}... using {final_model_choice}")
+        show_uniform_box("Starting OUT-HOMING orchestration", "🐦")
+        log_to_file('mcp', f"Starting bird orchestration for: {user_request[:100]}...")
         
         try:
             # Create orchestrator and run pipeline
-            homing = create_homing_orchestrator()
-            pipeline_result = homing.orchestrate_full_pipeline(user_request, final_model_choice)
+            orchestrator = OutHomingOrchestrator()
+            pipeline_result = orchestrator.orchestrate_full_pipeline(user_request, final_model_choice)
             
             if not pipeline_result.get("success"):
                 error_msg = f"Pipeline failed: {pipeline_result.get('error', 'Unknown error')}"
                 log_to_file('mcp', f"Pipeline failed: {error_msg}")
                 return {"success": False, "error": error_msg}
-
-            # Show the character count summary in terminal
+            
+            # FIXED: Extract character counts properly
             stage_results = pipeline_result.get("stage_results", {})
-            show_character_count_summary(stage_results)
             
-            log_to_file('mcp', f"Pipeline completed successfully")
+            # Build the response data that matches what the web UI expects
+            response_stage_data = {}
             
-            # FIXED: Properly format the response for the frontend with character counts
-            formatted_stage_results = {}
             for stage_name, stage_data in stage_results.items():
-                # Make sure both 'chars' and 'char_count' are available
-                char_count = stage_data.get("char_count", stage_data.get("chars", 0))
-                formatted_stage_results[stage_name] = {
-                    "chars": char_count,
-                    "char_count": char_count,
+                # Get character count from multiple possible sources
+                char_count = (
+                    stage_data.get("char_count") or 
+                    stage_data.get("response_length") or 
+                    len(stage_data.get("response", "")) or 
+                    0
+                )
+                
+                response_stage_data[stage_name] = {
+                    "chars": char_count,  # This is what the web UI looks for
+                    "char_count": char_count,  # Backup field
                     "model": stage_data.get("model", "unknown"),
-                    "response": stage_data.get("response", ""),
-                    "success": stage_data.get("success", True)
+                    "success": stage_data.get("success", False),
+                    "response": stage_data.get("response", "")
                 }
             
-            # Return a clean, explicit JSON response for the client
+            # Show the character count summary in terminal
+            show_character_count_summary(response_stage_data)
+            
+            log_to_file('mcp', f"Pipeline completed successfully with counts: {response_stage_data}")
+            
+            # CRITICAL: Return data in the exact format the web UI expects
             return {
                 "success": True,
                 "xedit_file_path": pipeline_result.get("xedit_file_path"),
                 "project_files": pipeline_result.get("project_files", []),
                 "pipeline_result": {
-                    "stage_results": formatted_stage_results,
-                    "session_timestamp": session_timestamp,
-                    "api_calls_made": pipeline_result.get("api_calls_made", 0),
-                    "model_used": pipeline_result.get("model_used", final_model_choice)
-                }
+                    "stage_results": response_stage_data,  # This is what the JS looks for
+                    "total_chars": sum(data["chars"] for data in response_stage_data.values()),
+                    "session": session_timestamp
+                },
+                "stage_results": response_stage_data,  # Also include at top level
+                "message": "Peacock pipeline completed with real API calls"
             }
             
         except Exception as e:
@@ -442,7 +386,7 @@ def main():
     
     # Create logs directory
     if LOGGING_ENABLED:
-        (Path.cwd() / "logs").mkdir(parents=True, exist_ok=True)
+        Path("/home/flintx/peacock/logs").mkdir(parents=True, exist_ok=True)
     
     # PERFECT STARTUP SEQUENCE WITH UNIFORM BORDERS
     

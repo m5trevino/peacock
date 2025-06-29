@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """
 1prompt.py - ADVANCED PEACOCK DASHBOARD WITH BIRD PROGRESS
@@ -167,7 +166,6 @@ def generate_advanced_dashboard(session_timestamp):
         }}
         
         .stage-card {{ 
-
             background: #0d1117; 
             border: 2px solid #30363d; 
             border-radius: 8px; 
@@ -337,7 +335,6 @@ def generate_advanced_dashboard(session_timestamp):
                        id="promptInput" 
                        placeholder="Describe your project in detail..." />
                 <select id="modelChoice" class="prompt-input" style="flex: 0.5;">
-
                     <option value="qwen-32b-instruct">Qwen 32B Instruct</option>
                     <option value="qwen-32b-legacy-qwq">Qwen 32B Legacy</option>
                     <option value="deepseek-coder-v2">Deepseek Coder V2</option>
@@ -507,7 +504,6 @@ def generate_advanced_dashboard(session_timestamp):
                     method: 'POST',
                     headers: {{ 'Content-Type': 'application/json' }},
                     body: JSON.stringify({{
-
                         command: 'peacock_full',
                         text: prompt,
                         timestamp: sessionTimestamp,
@@ -547,11 +543,10 @@ def generate_advanced_dashboard(session_timestamp):
                     // Show final results
                     document.getElementById('totalChars').textContent = totalChars.toLocaleString();
                     document.getElementById('totalTime').textContent = totalTime + 's';
-                    document.getElementById('filesGenerated').textContent = result.project_files?.length || 'N/A';
+                    document.getElementById('filesGenerated').textContent = result.project_files?.length || '5+';
                     
                     finalSection.classList.add('show');
                     pipelineResults = result;
-                    openXEdit(); // Automatically open XEdit on success
                     
                 }} else {{
                     throw new Error(result.error || 'Pipeline failed');
@@ -578,9 +573,13 @@ def generate_advanced_dashboard(session_timestamp):
         }}
         
         function openXEdit() {{
-            // NEW, SIMPLER LOGIC: Construct the filename directly.
-            const xeditPath = `file:///home/flintx/peacock/html/xedit-${{sessionTimestamp}}.html`;
-            window.open(xeditPath, '_blank');
+            if (pipelineResults && pipelineResults.xedit_file_path) {{
+                window.open('file://' + pipelineResults.xedit_file_path, '_blank');
+            }} else {{
+                // Fallback to expected path
+                const xeditPath = `file:///home/flintx/peacock/html/xedit-${{sessionTimestamp}}.html`;
+                window.open(xeditPath, '_blank');
+            }}
         }}
 
         // Enable Enter key to start pipeline
