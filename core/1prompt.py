@@ -523,6 +523,7 @@ def generate_advanced_dashboard(session_timestamp):
 
             try {{
                 console.log('🦚 Starting pipeline with session:', sessionTimestamp);
+                console.log('🦚 Model choice:', modelChoice);
                 updateStageStatus('spark', 'active', 'Analyzing requirements...', 0);
                 
                 const response = await fetch('http://127.0.0.1:8000/process', {{
@@ -541,27 +542,32 @@ def generate_advanced_dashboard(session_timestamp):
                 }}
 
                 const result = await response.json();
-                console.log('🦚 Pipeline result:', result);
+                console.log('🦚 Full pipeline result:', result);
                 
                 if (result.success) {{
-                    // Show completion for all stages - FIXED character count handling
+                    // FIXED: Extract stage data from the correct location
                     const stageData = result.stage_results || {{}};
+                    console.log('🦚 Stage data received:', stageData);
                     
                     // Update each stage with actual data - FIXED character count handling
                     if (stageData.spark) {{
                         const sparkChars = stageData.spark.chars || stageData.spark.char_count || 0;
+                        console.log('SPARK chars:', sparkChars);
                         updateStageStatus('spark', 'completed', 'Requirements complete', sparkChars);
                     }}
                     if (stageData.falcon) {{
                         const falconChars = stageData.falcon.chars || stageData.falcon.char_count || 0;
+                        console.log('FALCON chars:', falconChars);
                         updateStageStatus('falcon', 'completed', 'Architecture complete', falconChars);
                     }}
                     if (stageData.eagle) {{
                         const eagleChars = stageData.eagle.chars || stageData.eagle.char_count || 0;
+                        console.log('EAGLE chars:', eagleChars);
                         updateStageStatus('eagle', 'completed', 'Code complete', eagleChars);
                     }}
                     if (stageData.hawk) {{
                         const hawkChars = stageData.hawk.chars || stageData.hawk.char_count || 0;
+                        console.log('HAWK chars:', hawkChars);
                         updateStageStatus('hawk', 'completed', 'QA complete', hawkChars);
                     }}
                     
