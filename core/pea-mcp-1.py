@@ -287,10 +287,10 @@ class CyberpunkRequestHandler(http.server.BaseHTTPRequestHandler):
                 log_to_file('mcp', f"Pipeline failed: {error_msg}")
                 return {"success": False, "error": error_msg}
 
-            # FIXED: Extract character counts from the correct location
+            # FIXED: Extract character counts from the correct location (like the working version)
             stage_results = pipeline_result.get("stage_results", {})
             
-            # Build response data in the EXACT format the dashboard expects
+            # Build response data in the EXACT format the dashboard expects (from working version)
             response_stage_data = {}
             
             for stage_name, stage_data in stage_results.items():
