@@ -145,10 +145,10 @@ class InHomingProcessor:
             # A more generic pattern to find any markdown code block
             pattern = r'```(\w*)\n(.*?)```'
             matches = re.findall(pattern, response_text, re.DOTALL)
-            for i, (language, code) in enumerate(matches):
+            for file_index, (language, code) in enumerate(matches):
                 lang = language.lower() or self._detect_language_from_content(code)
                 file_data = {
-                    "filename": f"file{i+1}.{lang}",
+                    "filename": f"file{file_index+1}.{lang}",
                     "language": lang,
                     "code": code.strip(),
                 }
@@ -249,15 +249,15 @@ class InHomingProcessor:
         """Parse Python functions and classes"""
         elements = []
         
-        for i, line in enumerate(lines, 1):
+        for line_num, line in enumerate(lines, 1):
             # Function definitions
             func_match = re.search(r'def\s+(\w+)\s*\(', line)
             if func_match:
                 elements.append({
                     "name": func_match.group(1),
                     "type": "function",
-                    "line_start": i,
-                    "line_end": min(i + 15, len(lines))
+                    "line_start": line_num,
+                    "line_end": min(line_num + 15, len(lines))
                 })
             
             # Class definitions
@@ -266,8 +266,8 @@ class InHomingProcessor:
                 elements.append({
                     "name": class_match.group(1),
                     "type": "class",
-                    "line_start": i,
-                    "line_end": min(i + 30, len(lines))
+                    "line_start": line_num,
+                    "line_end": min(line_num + 30, len(lines))
                 })
         
         return elements
@@ -276,15 +276,15 @@ class InHomingProcessor:
         """Parse JavaScript functions and classes"""
         elements = []
         
-        for i, line in enumerate(lines, 1):
+        for line_num, line in enumerate(lines, 1):
             # Function declarations
             func_match = re.search(r'function\s+(\w+)\s*\(', line)
             if func_match:
                 elements.append({
                     "name": func_match.group(1),
                     "type": "function",
-                    "line_start": i,
-                    "line_end": min(i + 15, len(lines))
+                    "line_start": line_num,
+                    "line_end": min(line_num + 15, len(lines))
                 })
             
             # Arrow functions and const assignments
@@ -293,8 +293,8 @@ class InHomingProcessor:
                 elements.append({
                     "name": arrow_match.group(1),
                     "type": "function",
-                    "line_start": i,
-                    "line_end": min(i + 10, len(lines))
+                    "line_start": line_num,
+                    "line_end": min(line_num + 10, len(lines))
                 })
             
             # Class definitions
@@ -303,8 +303,8 @@ class InHomingProcessor:
                 elements.append({
                     "name": class_match.group(1),
                     "type": "class",
-                    "line_start": i,
-                    "line_end": min(i + 30, len(lines))
+                    "line_start": line_num,
+                    "line_end": min(line_num + 30, len(lines))
                 })
             
             # Method definitions (inside classes)
@@ -313,8 +313,8 @@ class InHomingProcessor:
                 elements.append({
                     "name": method_match.group(1),
                     "type": "method",
-                    "line_start": i,
-                    "line_end": min(i + 12, len(lines))
+                    "line_start": line_num,
+                    "line_end": min(line_num + 12, len(lines))
                 })
         
         return elements
@@ -323,7 +323,7 @@ class InHomingProcessor:
         """Parse HTML elements and sections"""
         elements = []
         
-        for i, line in enumerate(lines, 1):
+        for line_num, line in enumerate(lines, 1):
             # HTML tags with IDs or classes
             tag_match = re.search(r'<(\w+)(?:\s+(?:id|class)="([^"]+)")', line)
             if tag_match:
@@ -331,8 +331,8 @@ class InHomingProcessor:
                 elements.append({
                     "name": f"{tag_name}#{identifier}" if 'id=' in line else f"{tag_name}.{identifier}",
                     "type": "element",
-                    "line_start": i,
-                    "line_end": min(i + 5, len(lines))
+                    "line_start": line_num,
+                    "line_end": min(line_num + 5, len(lines))
                 })
         
         return elements
@@ -341,15 +341,15 @@ class InHomingProcessor:
         """Parse CSS selectors and rules"""
         elements = []
         
-        for i, line in enumerate(lines, 1):
+        for line_num, line in enumerate(lines, 1):
             # CSS selectors
             selector_match = re.search(r'^([.#]?[\w-]+)\s*\{', line.strip())
             if selector_match:
                 elements.append({
                     "name": selector_match.group(1),
                     "type": "selector",
-                    "line_start": i,
-                    "line_end": min(i + 10, len(lines))
+                    "line_start": line_num,
+                    "line_end": min(line_num + 10, len(lines))
                 })
         
         return elements
@@ -358,15 +358,15 @@ class InHomingProcessor:
         """Generic parsing for unknown file types"""
         elements = []
         
-        for i, line in enumerate(lines, 1):
+        for line_num, line in enumerate(lines, 1):
             # Look for function-like patterns
             func_pattern = re.search(r'(\w+)\s*\(.*\)\s*[{:]', line)
             if func_pattern:
                 elements.append({
                     "name": func_pattern.group(1),
                     "type": "function",
-                    "line_start": i,
-                    "line_end": min(i + 10, len(lines))
+                    "line_start": line_num,
+                    "line_end": min(line_num + 10, len(lines))
                 })
         
         return elements
@@ -381,26 +381,25 @@ class InHomingProcessor:
     def _call_xedit_generator(self, processing_result: Dict[str, Any], session_timestamp: str) -> str:
         """Call xedit.py to generate the HTML interface - FIXED"""
         try:
-            # Import XEdit generator from the actual classes in your xedit.py
-            sys.path.insert(0, str(Path(__file__).parent.parent / "core"))
-            from xedit import EnhancedXEditGenerator
+            # Create a simple XEdit HTML file directly
+            html_dir = Path("/home/flintx/peacock/html")
+            html_dir.mkdir(exist_ok=True)
             
-            # Create generator instance
-            xedit_generator = EnhancedXEditGenerator()
+            output_path = html_dir / f"xedit-{session_timestamp}.html"
             
-            # Prepare data for XEdit generation
+            # Get data
             parsed_data = processing_result["parsed_data"]
             xedit_paths = processing_result["xedit_paths"]
+            project_files = processing_result["project_files"]
             
-            # Generate the HTML file using the method that actually exists
-            xedit_file_path = xedit_generator.generate_enhanced_xedit_html(
-                parsed_data=parsed_data,
-                xedit_paths=xedit_paths, 
-                session_id=session_timestamp
-            )
+            # Generate simple XEdit HTML
+            html_content = self._generate_simple_xedit_html(parsed_data, xedit_paths, project_files, session_timestamp)
             
-            print(f"✅ XEdit interface generated: {xedit_file_path}")
-            return xedit_file_path
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(html_content)
+            
+            print(f"✅ XEdit interface generated: {output_path}")
+            return str(output_path)
             
         except Exception as e:
             print(f"❌ XEdit generation failed: {e}")
@@ -424,6 +423,73 @@ class InHomingProcessor:
             except Exception as fallback_error:
                 print(f"❌ Even fallback failed: {fallback_error}")
                 return f"/home/flintx/peacock/html/xedit-{session_timestamp}-error.html"
+    
+    def _generate_simple_xedit_html(self, parsed_data: Dict[str, Any], xedit_paths: Dict[str, Dict[str, Any]], project_files: List[Dict[str, Any]], session_timestamp: str) -> str:
+        """Generate a simple XEdit HTML interface"""
+        
+        project_name = parsed_data.get("project_name", "Generated Project")
+        
+        # Generate functions list
+        functions_html = ""
+        for xedit_id, data in xedit_paths.items():
+            functions_html += f"""
+            <div class="function-item" onclick="highlightFunction('{xedit_id}')">
+                <strong>{data['display_name']}</strong> ({data['type']})
+                <br><small>{data['filename']} • Lines {data['lines_display']}</small>
+            </div>
+            """
+        
+        # Generate code display
+        code_html = ""
+        for file_data in project_files:
+            code_html += f"// FILE: {file_data['filename']}\n"
+            code_html += f"{file_data['code']}\n\n"
+        
+        return f"""<!DOCTYPE html>
+<html>
+<head>
+    <title>🦚 XEdit - {project_name}</title>
+    <style>
+        body {{ font-family: monospace; background: #1a1a1a; color: #00ff00; margin: 0; padding: 20px; }}
+        .container {{ display: flex; height: 100vh; }}
+        .left-panel {{ width: 30%; background: #2a2a2a; padding: 20px; overflow-y: auto; }}
+        .right-panel {{ width: 70%; background: #0a0a0a; padding: 20px; overflow-y: auto; }}
+        .function-item {{ padding: 10px; margin: 5px 0; background: #333; cursor: pointer; border-radius: 5px; }}
+        .function-item:hover {{ background: #555; }}
+        .code-display {{ white-space: pre-wrap; font-size: 14px; line-height: 1.4; }}
+        h2 {{ color: #00ffff; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-panel">
+            <h2>🔧 Functions & Elements</h2>
+            {functions_html}
+        </div>
+        <div class="right-panel">
+            <h2>💻 Generated Code</h2>
+            <div class="code-display">{code_html}</div>
+        </div>
+    </div>
+    
+    <script>
+        function highlightFunction(xeditId) {{
+            console.log('Selected:', xeditId);
+            // Remove previous highlights
+            document.querySelectorAll('.function-item').forEach(item => {{
+                item.style.background = '#333';
+            }});
+            // Highlight selected
+            event.target.style.background = '#00ff00';
+            event.target.style.color = '#000';
+        }}
+        
+        console.log('🦚 XEdit Interface Loaded');
+        console.log('Session: {session_timestamp}');
+        console.log('Project: {project_name}');
+    </script>
+</body>
+</html>"""
     
     def deploy_and_run(self, project_files, project_name):
         """Deploy and run a PCOCK project"""

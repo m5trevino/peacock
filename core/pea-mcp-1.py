@@ -35,15 +35,6 @@ PROCESS_PATH = "/process"
 DEPLOY_PATH = "/deploy" # New endpoint for deployment
 LOGGING_ENABLED = False
 
-# BIRD-SPECIFIC API KEYS
-# Load bird API keys from environment
-BIRD_API_KEYS = {
-    "spark": os.getenv("BIRD_API_KEY_SPARK"),
-    "falcon": os.getenv("BIRD_API_KEY_FALCON"),
-    "eagle": os.getenv("BIRD_API_KEY_EAGLE"),
-    "hawk": os.getenv("BIRD_API_KEY_HAWK")
-}
-
 # CHAMPION MODEL STRATEGY
 PEACOCK_MODEL_STRATEGY = {
     "primary_model": "meta-llama/llama-4-scout-17b-16e-instruct",
@@ -184,7 +175,7 @@ def log_to_file(log_type: str, content: str):
         return
     
     timestamp = datetime.datetime.now().isoformat()
-    log_dir = Path("/home/flintx/peacock/logs")
+    log_dir = Path("/home/flintx/peacock/core/logs")
     
     if not log_dir.exists():
         log_dir.mkdir(parents=True, exist_ok=True)
@@ -380,7 +371,7 @@ def main():
     
     # Create logs directory
     if LOGGING_ENABLED:
-        Path("/home/flintx/peacock/logs").mkdir(parents=True, exist_ok=True)
+        Path("/home/flintx/peacock/core/logs").mkdir(parents=True, exist_ok=True)
     
     # PERFECT STARTUP SEQUENCE WITH UNIFORM BORDERS
     
