@@ -22,7 +22,7 @@ from pathlib import Path
 # Add aviary to path for bird imports
 sys.path.insert(0, "/home/flintx/peacock/aviary")
 sys.path.append(str(Path(__file__).parent.parent / "aviary"))
-from out_homing import OutHomingOrchestrator
+from out_homing import create_homing_orchestrator
 from in_homing import InHomingProcessor
 
 # --- CYBERPUNK CONFIGURATION ---
@@ -33,12 +33,11 @@ DEPLOY_PATH = "/deploy" # New endpoint for deployment
 LOGGING_ENABLED = False
 
 # BIRD-SPECIFIC API KEYS
-# Load bird API keys from environment
 BIRD_API_KEYS = {
-    "spark": os.getenv("BIRD_API_KEY_SPARK"),
-    "falcon": os.getenv("BIRD_API_KEY_FALCON"),
-    "eagle": os.getenv("BIRD_API_KEY_EAGLE"),
-    "hawk": os.getenv("BIRD_API_KEY_HAWK")
+    "spark": os.getenv("BIRD_API_KEY_SPARK", "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"),
+    "falcon": os.getenv("BIRD_API_KEY_FALCON", "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"),
+    "eagle": os.getenv("BIRD_API_KEY_EAGLE", "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"),
+    "hawk": os.getenv("BIRD_API_KEY_HAWK", "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")
 }
 
 # CHAMPION MODEL STRATEGY
@@ -280,59 +279,50 @@ class CyberpunkRequestHandler(http.server.BaseHTTPRequestHandler):
     def process_with_birds(self, user_request: str, session_timestamp: str, final_model_choice: str):
         """Process using OUT-HOMING bird orchestration with FIXED character count handling"""
         
-        show_uniform_box("Starting OUT-HOMING orchestration", "🐦")
-        log_to_file('mcp', f"Starting bird orchestration for: {user_request[:100]}...")
+        show_uniform_box(f"Starting OUT-HOMING orchestration with {final_model_choice}", "🐦")
+        log_to_file('mcp', f"Starting bird orchestration for: {user_request[:100]}... using {final_model_choice}")
         
         try:
             # Create orchestrator and run pipeline
-            orchestrator = OutHomingOrchestrator()
-            pipeline_result = orchestrator.orchestrate_full_pipeline(user_request, final_model_choice)
+            homing = create_homing_orchestrator()
+            pipeline_result = homing.orchestrate_full_pipeline(user_request, final_model_choice)
             
             if not pipeline_result.get("success"):
                 error_msg = f"Pipeline failed: {pipeline_result.get('error', 'Unknown error')}"
                 log_to_file('mcp', f"Pipeline failed: {error_msg}")
                 return {"success": False, "error": error_msg}
-            
-            # FIXED: Extract character counts properly
+
+            # Show the character count summary in terminal
             stage_results = pipeline_result.get("stage_results", {})
+            show_character_count_summary(stage_results)
             
-            # Build the response data that matches what the web UI expects
-            response_stage_data = {}
+            log_to_file('mcp', f"Pipeline completed successfully")
             
+            # FIXED: Properly format the response for the frontend with character counts
+            formatted_stage_results = {}
             for stage_name, stage_data in stage_results.items():
-                # Get character count from multiple possible sources
-                char_count = (
-                    stage_data.get("char_count") or 
-                    stage_data.get("response_length") or 
-                    len(stage_data.get("response", "")) or 
-                    0
-                )
-                
-                response_stage_data[stage_name] = {
-                    "chars": char_count,  # This is what the web UI looks for
-                    "char_count": char_count,  # Backup field
+                # Make sure both 'chars' and 'char_count' are available
+                char_count = stage_data.get("char_count", stage_data.get("chars", 0))
+                formatted_stage_results[stage_name] = {
+                    "chars": char_count,
+                    "char_count": char_count,
                     "model": stage_data.get("model", "unknown"),
-                    "success": stage_data.get("success", False),
-                    "response": stage_data.get("response", "")
+                    "response": stage_data.get("response", ""),
+                    "success": stage_data.get("success", True)
                 }
             
-            # Show the character count summary in terminal
-            show_character_count_summary(response_stage_data)
-            
-            log_to_file('mcp', f"Pipeline completed successfully with counts: {response_stage_data}")
-            
-            # CRITICAL: Return data in the exact format the web UI expects
+            # Return a clean, explicit JSON response for the client
             return {
                 "success": True,
                 "xedit_file_path": pipeline_result.get("xedit_file_path"),
                 "project_files": pipeline_result.get("project_files", []),
                 "pipeline_result": {
-                    "stage_results": response_stage_data,  # This is what the JS looks for
-                    "total_chars": sum(data["chars"] for data in response_stage_data.values()),
-                    "session": session_timestamp
+                    "stage_results": formatted_stage_results,
+                    "session_timestamp": session_timestamp,
+                    "api_calls_made": pipeline_result.get("api_calls_made", 0),
+                    "model_used": pipeline_result.get("model_used", final_model_choice)
                 },
-                "stage_results": response_stage_data,  # Also include at top level
-                "message": "Peacock pipeline completed with real API calls"
+                "stage_results": formatted_stage_results
             }
             
         except Exception as e:

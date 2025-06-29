@@ -1,11 +1,4 @@
-import os
-from dotenv import load_dotenv
-load_dotenv()
-
 #!/usr/bin/env python3
-import os
-from dotenv import load_dotenv
-load_dotenv()
 """
 WIRE #3 FIX: out_homing.py - Mixed Content Generation for Parser + REAL LLM CALLS + XEDIT
 The key fix: Generate SINGLE MIXED CONTENT response that xedit.py can parse
@@ -31,7 +24,7 @@ from hawk import create_hawk_qa_specialist
 # Import XEdit module with proper path handling
 sys.path.insert(0, str(Path(__file__).parent.parent / "core"))
 try:
-    from xedit import EnhancedXEditGenerator
+    from xedit import EnhancedXEditGenerator, PeacockResponseParser
     XEDIT_AVAILABLE = True
     print("✅ XEdit module loaded successfully")
 except ImportError as e:
@@ -40,12 +33,11 @@ except ImportError as e:
 
 # GROQ API CONFIGURATION WITH KEY ROTATION
 # Load API keys from environment
-# Load API keys from environment
 GROQ_API_KEYS = [
-    os.getenv("GROQ_API_KEY_1"),
-    os.getenv("GROQ_API_KEY_2"),
-    os.getenv("GROQ_API_KEY_3"),
-    os.getenv("GROQ_API_KEY_4")
+    "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",
+    "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",
+    "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",
+    "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"
 ]
 
 # PROXY CONFIGURATION
@@ -60,6 +52,7 @@ STAGE_MODEL_ASSIGNMENTS = {
     "falcon": "meta-llama/llama-4-maverick-17b-128e-instruct",
     "eagle": "meta-llama/llama-4-scout-17b-16e-instruct",
     "hawk": "meta-llama/llama-4-maverick-17b-128e-instruct",
+    "final": "meta-llama/llama-4-maverick-17b-128e-instruct"
 }
 
 # FINAL CODE GENERATOR CONFIGURATION (DATA-DRIVEN)
@@ -133,16 +126,17 @@ class OutHomingOrchestrator:
                 }
 
             # Step 2: ASSEMBLE MEGA PROMPT AND GENERATE FINAL CODE
-            print("🧠 ASSEMBLING MEGA PROMPT FROM ALL 4 BIRDS...")
             mega_prompt = self._assemble_mega_prompt(user_request, bird_results["stage_results"])
             final_code_result = self._generate_final_code_with_mega_prompt(mega_prompt, final_model_choice)
             
             if not final_code_result["success"]:
                 print(f"⚠️ Final code generation failed: {final_code_result.get('error')}")
-                # Even if final code gen fails, we can still try to parse the Eagle output
-                final_code_result["final_code"] = bird_results.get("eagle", {}).get("response", "")
+                # Continue with mixed content as fallback
             else:
                 print(f"✅ FINAL CODE GENERATED: {final_code_result['characters']} characters")
+            
+            # Store final code result for later use
+            bird_results["final_code_result"] = final_code_result
             
             # Step 3: Process with IN-HOMING and generate XEdit
             print("🔄 IN-HOMING: Processing final code and generating XEdit...")
@@ -405,12 +399,17 @@ Be specific and actionable."""
             }
     
     def _assemble_mega_prompt(self, user_request: str, bird_results: Dict[str, Any]) -> str:
+        """Assemble mega prompt from all 4 bird outputs"""
+        
+        # Get individual bird responses
         spark_response = bird_results.get("spark", {}).get("response", "")
-        falcon_response = bird_results.get("falcon", {}).get("response", "")
+        falcon_response = bird_results.get("falcon", {}).get("response", "")  
         eagle_response = bird_results.get("eagle", {}).get("response", "")
         hawk_response = bird_results.get("hawk", {}).get("response", "")
         
-        mega_prompt = f"""COMPREHENSIVE PROJECT GENERATION REQUEST
+        # Assemble the mega prompt
+        mega_prompt = f"""
+COMPREHENSIVE PROJECT GENERATION REQUEST
 
 ORIGINAL USER REQUEST: {user_request}
 
@@ -427,14 +426,51 @@ QUALITY ASSURANCE STRATEGY (HAWK):
 {hawk_response}
 
 FINAL INSTRUCTION:
-Generate COMPLETE, EXECUTABLE CODE FILES for "{user_request}".
-Return ONLY the code files in proper format.
-DO NOT RETURN ANYTHING EXCEPT THE CODE FILES."""
+Based on the above comprehensive analysis, generate COMPLETE, EXECUTABLE CODE FILES for "{user_request}".
+
+CRITICAL OUTPUT FORMAT - YOU MUST RETURN EXACTLY THIS:
+
+```filename: index.html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{user_request}</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    [COMPLETE HTML IMPLEMENTATION]
+    <script src="script.js"></script>
+</body>
+</html>
+```
+
+```filename: style.css
+[COMPLETE CSS STYLING FOR THE APPLICATION]
+```
+
+```filename: script.js
+[COMPLETE JAVASCRIPT IMPLEMENTATION WITH ALL FUNCTIONS]
+```
+
+CRITICAL REQUIREMENTS:
+- Return ONLY the code files in the exact format above
+- NO documentation, explanations, or QA procedures
+- All code must be complete and functional
+- Include ALL necessary functions and styling
+- Make it a fully working application
+
+DO NOT RETURN ANYTHING EXCEPT THE CODE FILES.
+"""
+        
+        # Log the mega prompt
+        self._log_mega_prompt(mega_prompt)
         
         return mega_prompt
 
-    def _generate_final_code_with_mega_prompt(self, mega_prompt: str, model_choice: str) -> Dict[str, Any]:
-        print(f"🎯 SENDING MEGA PROMPT TO GROQ FOR FINAL CODE GENERATION...")
+    def _generate_final_code_with_mega_prompt(self, mega_prompt: str, model_choice: str = "qwen-32b-instruct") -> Dict[str, Any]:
+        """Send mega prompt to Groq and get final code generation"""
+        
+        print("🎯 SENDING MEGA PROMPT TO GROQ FOR FINAL CODE GENERATION...")
         
         generator_config = FINAL_CODE_GENERATORS.get(model_choice)
         if not generator_config:
@@ -533,11 +569,56 @@ Return the response as valid JSON matching the schema above."""
             print(f"❌ FINAL CODE GENERATION failed: {e}")
             return {"success": False, "error": str(e), "final_code": ""}
 
+    def _log_mega_prompt(self, mega_prompt: str):
+        """Log the assembled mega prompt"""
+        import os
+        
+        # Ensure logs directory exists
+        logs_dir = "/home/flintx/peacock/core/logs"
+        os.makedirs(logs_dir, exist_ok=True)
+        
+        # Write mega prompt log
+        mega_log_path = f"{logs_dir}/megapromptlog-{self.session_timestamp}.txt"
+        
+        with open(mega_log_path, "w") as f:
+            f.write(f"[{datetime.datetime.now().isoformat()}] ASSEMBLED MEGA PROMPT\n")
+            f.write(f"Session: {self.session_timestamp}\n")
+            f.write("=" * 60 + "\n")
+            f.write("MEGA PROMPT CONTENT:\n")
+            f.write("=" * 60 + "\n")
+            f.write(mega_prompt)
+            f.write("\n" + "=" * 60 + "\n")
+        
+        print(f"✅ Mega prompt logged: {mega_log_path}")
+
+    def _log_final_response(self, final_response: str, model_used: str):
+        """Log the final code generation response"""
+        import os
+        
+        # Ensure logs directory exists
+        logs_dir = "/home/flintx/peacock/core/logs"
+        os.makedirs(logs_dir, exist_ok=True)
+        
+        # Write final response log
+        final_log_path = f"{logs_dir}/finalresponselog-{self.session_timestamp}.txt"
+        
+        with open(final_log_path, "w") as f:
+            f.write(f"[{datetime.datetime.now().isoformat()}] FINAL CODE GENERATION RESPONSE\n")
+            f.write(f"Session: {self.session_timestamp}\n")
+            f.write(f"Model: {model_used}\n")
+            f.write("=" * 60 + "\n")
+            f.write("FINAL CODE RESPONSE:\n")
+            f.write("=" * 60 + "\n")
+            f.write(final_response)
+            f.write("\n" + "=" * 60 + "\n")
+        
+        print(f"✅ Final response logged: {final_log_path}")
 
 def create_homing_orchestrator() -> OutHomingOrchestrator:
     """Factory function to create OUT-HOMING orchestrator instance"""
     return OutHomingOrchestrator()
 
+# Test function for OUT-HOMING bird
 def test_out_homing_pipeline():
     """Test the complete OUT-HOMING pipeline orchestration"""
     homing = create_homing_orchestrator()

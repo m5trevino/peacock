@@ -299,6 +299,7 @@ def generate_advanced_dashboard(session_timestamp):
             gap: 12px; 
             justify-content: center; 
             margin-top: 16px; 
+            flex-wrap: wrap;
         }}
         
         .log-link {{ 
@@ -426,12 +427,12 @@ def generate_advanced_dashboard(session_timestamp):
                 </button>
                 
                 <div class="log-links">
-                    <a href="file:///home/flintx/peacock/core/logs/promptlog-{session_timestamp}.txt" class="log-link" target="_blank">📝 Prompt Log</a>
-                    <a href="file:///home/flintx/peacock/core/logs/responselog-{session_timestamp}.txt" class="log-link" target="_blank">📋 Response Log</a>
-                    <a href="file:///home/flintx/peacock/core/logs/mcplog-{session_timestamp}.txt" class="log-link" target="_blank">🔧 MCP Log</a>
-                    <a href="file:///home/flintx/peacock/core/logs/xeditlog-{session_timestamp}.txt" class="log-link" target="_blank">🎯 XEdit Log</a>
-                    <a href="file:///home/flintx/peacock/core/logs/megapromptlog-{session_timestamp}.txt" class="log-link" target="_blank">🔥 Mega Prompt Log</a>
-                    <a href="file:///home/flintx/peacock/core/logs/finalresponselog-{session_timestamp}.txt" class="log-link" target="_blank">✅ Final Response Log</a>
+                    <a href="#" class="log-link" id="promptLogLink" target="_blank">📝 Prompt Log</a>
+                    <a href="#" class="log-link" id="responseLogLink" target="_blank">📋 Response Log</a>
+                    <a href="#" class="log-link" id="mcpLogLink" target="_blank">🔧 MCP Log</a>
+                    <a href="#" class="log-link" id="xeditLogLink" target="_blank">🎯 XEdit Log</a>
+                    <a href="#" class="log-link" id="megaPromptLogLink" target="_blank">🔥 Mega Prompt Log</a>
+                    <a href="#" class="log-link" id="finalResponseLogLink" target="_blank">✅ Final Response Log</a>
                 </div>
             </div>
         </div>
@@ -520,30 +521,37 @@ def generate_advanced_dashboard(session_timestamp):
                 
                 if (result.success) {{
                     // Show completion for all stages
-                    const stageData = result.pipeline_result?.stage_results || {{}};
+                    const stageData = result.stage_results || {{}};
                     
                     // Update each stage with actual data
                     if (stageData.spark) {{
-                        updateStageStatus('spark', 'completed', 'Requirements complete', stageData.spark.chars || 0);
+                        updateStageStatus('spark', 'completed', 'Requirements complete', stageData.spark.chars || stageData.spark.char_count || 0);
                     }}
                     if (stageData.falcon) {{
-                        updateStageStatus('falcon', 'completed', 'Architecture complete', stageData.falcon.chars || 0);
+                        updateStageStatus('falcon', 'completed', 'Architecture complete', stageData.falcon.chars || stageData.falcon.char_count || 0);
                     }}
                     if (stageData.eagle) {{
-                        updateStageStatus('eagle', 'completed', 'Code complete', stageData.eagle.chars || 0);
+                        updateStageStatus('eagle', 'completed', 'Code complete', stageData.eagle.chars || stageData.eagle.char_count || 0);
                     }}
                     if (stageData.hawk) {{
-                        updateStageStatus('hawk', 'completed', 'QA complete', stageData.hawk.chars || 0);
+                        updateStageStatus('hawk', 'completed', 'QA complete', stageData.hawk.chars || stageData.hawk.char_count || 0);
                     }}
                     
                     // Calculate totals
-                    const totalChars = Object.values(stageData).reduce((sum, stage) => sum + (stage.chars || 0), 0);
+                    const totalChars = Object.values(stageData).reduce((sum, stage) => {
+                        const chars = stage.chars || stage.char_count || 0;
+                        return sum + chars;
+                    }, 0);
+                    
                     const totalTime = Math.round((Date.now() - pipelineStartTime) / 1000);
                     
                     // Show final results
                     document.getElementById('totalChars').textContent = totalChars.toLocaleString();
                     document.getElementById('totalTime').textContent = totalTime + 's';
-                    document.getElementById('filesGenerated').textContent = result.project_files?.length || '5+';
+                    document.getElementById('filesGenerated').textContent = result.project_files?.length || '1';
+                    
+                    // Update log links
+                    updateLogLinks(sessionTimestamp);
                     
                     finalSection.classList.add('show');
                     pipelineResults = result;
@@ -572,14 +580,20 @@ def generate_advanced_dashboard(session_timestamp):
             }}
         }}
         
+        function updateLogLinks(sessionId) {{
+            // Update all log links with correct session ID
+            document.getElementById('promptLogLink').href = `file:///home/flintx/peacock/core/logs/promptlog-${{sessionId}}.txt`;
+            document.getElementById('responseLogLink').href = `file:///home/flintx/peacock/core/logs/responselog-${{sessionId}}.txt`;
+            document.getElementById('mcpLogLink').href = `file:///home/flintx/peacock/core/logs/mcplog-${{sessionId}}.txt`;
+            document.getElementById('xeditLogLink').href = `file:///home/flintx/peacock/core/logs/xeditlog-${{sessionId}}.txt`;
+            document.getElementById('megaPromptLogLink').href = `file:///home/flintx/peacock/core/logs/megapromptlog-${{sessionId}}.txt`;
+            document.getElementById('finalResponseLogLink').href = `file:///home/flintx/peacock/core/logs/finalresponselog-${{sessionId}}.txt`;
+        }}
+        
         function openXEdit() {{
-            if (pipelineResults && pipelineResults.xedit_file_path) {{
-                window.open('file://' + pipelineResults.xedit_file_path, '_blank');
-            }} else {{
-                // Fallback to expected path
-                const xeditPath = `file:///home/flintx/peacock/html/xedit-${{sessionTimestamp}}.html`;
-                window.open(xeditPath, '_blank');
-            }}
+            // Directly construct the XEdit URL with the current session ID
+            const xeditPath = `file:///home/flintx/peacock/html/xedit-${{sessionTimestamp}}.html`;
+            window.open(xeditPath, '_blank');
         }}
 
         // Enable Enter key to start pipeline
@@ -589,10 +603,12 @@ def generate_advanced_dashboard(session_timestamp):
             }}
         }});
 
-        // Log session info on load
-        console.log('🦚 Peacock Dashboard Loaded');
-        console.log('📅 Session:', sessionTimestamp);
-        console.log('🔍 Enhanced logging and real-time progress enabled');
+        // Initialize log links on page load
+        document.addEventListener('DOMContentLoaded', function() {{
+            updateLogLinks(sessionTimestamp);
+            console.log('🦚 Peacock Dashboard Loaded');
+            console.log('📅 Session:', sessionTimestamp);
+        }});
     </script>
 </body>
 </html>"""
