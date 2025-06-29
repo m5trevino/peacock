@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """
 1prompt.py - ADVANCED PEACOCK DASHBOARD WITH BIRD PROGRESS
@@ -166,6 +167,7 @@ def generate_advanced_dashboard(session_timestamp):
         }}
         
         .stage-card {{ 
+
             background: #0d1117; 
             border: 2px solid #30363d; 
             border-radius: 8px; 
@@ -334,6 +336,13 @@ def generate_advanced_dashboard(session_timestamp):
                        class="prompt-input" 
                        id="promptInput" 
                        placeholder="Describe your project in detail..." />
+                <select id="modelChoice" class="prompt-input" style="flex: 0.5;">
+
+                    <option value="qwen-32b-instruct">Qwen 32B Instruct</option>
+                    <option value="qwen-32b-legacy-qwq">Qwen 32B Legacy</option>
+                    <option value="deepseek-coder-v2">Deepseek Coder V2</option>
+                    <option value="llama-3.1-70b-versatile">Llama 3.1 70B</option>
+                </select>
                 <button class="send-btn" id="sendBtn" onclick="startPipeline()">
                     Start Pipeline
                 </button>
@@ -420,10 +429,12 @@ def generate_advanced_dashboard(session_timestamp):
                 </button>
                 
                 <div class="log-links">
-                    <a href="file:///home/flintx/peacock/logs/promptlog-{session_timestamp}.txt" class="log-link" target="_blank">📝 Prompt Log</a>
-                    <a href="file:///home/flintx/peacock/logs/responselog-{session_timestamp}.txt" class="log-link" target="_blank">📋 Response Log</a>
-                    <a href="file:///home/flintx/peacock/logs/mcplog-{session_timestamp}.txt" class="log-link" target="_blank">🔧 MCP Log</a>
-                    <a href="file:///home/flintx/peacock/logs/xeditlog-{session_timestamp}.txt" class="log-link" target="_blank">🎯 XEdit Log</a>
+                    <a href="file:///home/flintx/peacock/core/logs/promptlog-{session_timestamp}.txt" class="log-link" target="_blank">📝 Prompt Log</a>
+                    <a href="file:///home/flintx/peacock/core/logs/responselog-{session_timestamp}.txt" class="log-link" target="_blank">📋 Response Log</a>
+                    <a href="file:///home/flintx/peacock/core/logs/mcplog-{session_timestamp}.txt" class="log-link" target="_blank">🔧 MCP Log</a>
+                    <a href="file:///home/flintx/peacock/core/logs/xeditlog-{session_timestamp}.txt" class="log-link" target="_blank">🎯 XEdit Log</a>
+                    <a href="file:///home/flintx/peacock/core/logs/megapromptlog-{session_timestamp}.txt" class="log-link" target="_blank">🔥 Mega Prompt Log</a>
+                    <a href="file:///home/flintx/peacock/core/logs/finalresponselog-{session_timestamp}.txt" class="log-link" target="_blank">✅ Final Response Log</a>
                 </div>
             </div>
         </div>
@@ -465,6 +476,7 @@ def generate_advanced_dashboard(session_timestamp):
         
         async function startPipeline() {{
             const promptInput = document.getElementById('promptInput');
+            const modelChoice = document.getElementById('modelChoice').value;
             const sendBtn = document.getElementById('sendBtn');
             const finalSection = document.getElementById('finalSection');
             
@@ -495,9 +507,11 @@ def generate_advanced_dashboard(session_timestamp):
                     method: 'POST',
                     headers: {{ 'Content-Type': 'application/json' }},
                     body: JSON.stringify({{
+
                         command: 'peacock_full',
                         text: prompt,
-                        timestamp: sessionTimestamp
+                        timestamp: sessionTimestamp,
+                        final_model_choice: modelChoice
                     }})
                 }});
 
@@ -533,10 +547,11 @@ def generate_advanced_dashboard(session_timestamp):
                     // Show final results
                     document.getElementById('totalChars').textContent = totalChars.toLocaleString();
                     document.getElementById('totalTime').textContent = totalTime + 's';
-                    document.getElementById('filesGenerated').textContent = '5+';
+                    document.getElementById('filesGenerated').textContent = result.project_files?.length || 'N/A';
                     
                     finalSection.classList.add('show');
                     pipelineResults = result;
+                    openXEdit(); // Automatically open XEdit on success
                     
                 }} else {{
                     throw new Error(result.error || 'Pipeline failed');
@@ -563,13 +578,9 @@ def generate_advanced_dashboard(session_timestamp):
         }}
         
         function openXEdit() {{
-            if (pipelineResults && pipelineResults.xedit_interface && pipelineResults.xedit_interface.html_file) {{
-                window.open(pipelineResults.xedit_interface.html_file, '_blank');
-            }} else {{
-                // Fallback to expected path
-                const xeditPath = `file:///home/flintx/peacock/html/xedit-${{sessionTimestamp}}.html`;
-                window.open(xeditPath, '_blank');
-            }}
+            // NEW, SIMPLER LOGIC: Construct the filename directly.
+            const xeditPath = `file:///home/flintx/peacock/html/xedit-${{sessionTimestamp}}.html`;
+            window.open(xeditPath, '_blank');
         }}
 
         // Enable Enter key to start pipeline
