@@ -272,7 +272,7 @@ class CyberpunkRequestHandler(http.server.BaseHTTPRequestHandler):
         log_to_file('response', response_data)
     
     def process_with_birds(self, user_request: str, session_timestamp: str, final_model_choice: str):
-        """Process using OUT-HOMING bird orchestration with FIXED character count handling"""
+        """Process using OUT-HOMING bird orchestration - EXACT COPY FROM WORKING VERSION"""
         
         show_uniform_box(f"Starting OUT-HOMING orchestration with {final_model_choice}", "🐦")
         log_to_file('mcp', f"Starting bird orchestration for: {user_request[:100]}... using {final_model_choice}")
@@ -287,14 +287,14 @@ class CyberpunkRequestHandler(http.server.BaseHTTPRequestHandler):
                 log_to_file('mcp', f"Pipeline failed: {error_msg}")
                 return {"success": False, "error": error_msg}
 
-            # FIXED: Extract character counts from the correct location (like the working version)
+            # EXACT COPY FROM WORKING VERSION - Extract character counts properly
             stage_results = pipeline_result.get("stage_results", {})
             
-            # Build response data in the EXACT format the dashboard expects (from working version)
+            # Build the response data that matches what the web UI expects - EXACT COPY
             response_stage_data = {}
             
             for stage_name, stage_data in stage_results.items():
-                # Extract character count from multiple possible sources (like the working version)
+                # Get character count from multiple possible sources - EXACT COPY
                 char_count = (
                     stage_data.get("char_count") or 
                     stage_data.get("chars") or
@@ -304,11 +304,11 @@ class CyberpunkRequestHandler(http.server.BaseHTTPRequestHandler):
                 )
                 
                 response_stage_data[stage_name] = {
-                    "chars": char_count,  # This is what the dashboard JS looks for
+                    "chars": char_count,  # This is what the web UI looks for
                     "char_count": char_count,  # Backup field
                     "model": stage_data.get("model", "unknown"),
-                    "response": stage_data.get("response", stage_data.get("text", "")),
-                    "success": stage_data.get("success", True)
+                    "success": stage_data.get("success", False),
+                    "response": stage_data.get("response", stage_data.get("text", ""))
                 }
 
             # Show the character count summary in terminal
