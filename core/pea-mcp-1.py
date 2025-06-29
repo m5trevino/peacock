@@ -4,10 +4,13 @@
 Real API integration with multiple keys, proxy support, and SICK terminal styling
 """
 
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 import http.server
 import socketserver
 import json
-import os
 import sys
 import argparse
 import datetime
@@ -33,11 +36,12 @@ DEPLOY_PATH = "/deploy" # New endpoint for deployment
 LOGGING_ENABLED = False
 
 # BIRD-SPECIFIC API KEYS
+# Load bird API keys from environment
 BIRD_API_KEYS = {
-    "spark": os.getenv("BIRD_API_KEY_SPARK", "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"),
-    "falcon": os.getenv("BIRD_API_KEY_FALCON", "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"),
-    "eagle": os.getenv("BIRD_API_KEY_EAGLE", "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"),
-    "hawk": os.getenv("BIRD_API_KEY_HAWK", "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")
+    "spark": os.getenv("BIRD_API_KEY_SPARK"),
+    "falcon": os.getenv("BIRD_API_KEY_FALCON"),
+    "eagle": os.getenv("BIRD_API_KEY_EAGLE"),
+    "hawk": os.getenv("BIRD_API_KEY_HAWK")
 }
 
 # CHAMPION MODEL STRATEGY
@@ -75,7 +79,7 @@ class CyberStyle:
     ELECTRIC_BLUE = '\033[94m'
     HOT_PINK = '\033[35m'
 
-# MASSIVE CYBERPUNK CFONTS ARSENAL - THE FULL EXPERIENCE!
+# CYBERPUNK CFONTS ARSENAL
 CYBERPUNK_CFONTS = [
     # Gradient combinations (the sickest ones)
     "cfonts 'PEACOCK' -f pallet -g yellow,red",
