@@ -466,7 +466,7 @@ def generate_advanced_dashboard(session_timestamp):
                 progressEl.textContent = progress;
             }}
             
-            // Update character count - FIXED
+            // Update character count
             if (chars > 0) {{
                 charsEl.textContent = chars.toLocaleString() + ' chars';
             }}
@@ -545,11 +545,11 @@ def generate_advanced_dashboard(session_timestamp):
                 console.log('🦚 Full pipeline result:', result);
                 
                 if (result.success) {{
-                    // FIXED: Extract stage data from the correct location
-                    const stageData = result.stage_results || {{}};
+                    // EXACT COPY FROM WORKING VERSION - Extract stage data from the correct location
+                    const stageData = result.pipeline_result?.stage_results || result.stage_results || {{}};
                     console.log('🦚 Stage data received:', stageData);
                     
-                    // Update each stage with actual data - FIXED character count handling
+                    // Update each stage with actual data - EXACT COPY FROM WORKING VERSION
                     if (stageData.spark) {{
                         const sparkChars = stageData.spark.chars || stageData.spark.char_count || 0;
                         console.log('SPARK chars:', sparkChars);
@@ -571,7 +571,7 @@ def generate_advanced_dashboard(session_timestamp):
                         updateStageStatus('hawk', 'completed', 'QA complete', hawkChars);
                     }}
                     
-                    // Calculate totals with proper fallback
+                    // Calculate totals with proper fallback - EXACT COPY FROM WORKING VERSION
                     const totalChars = Object.values(stageData).reduce((sum, stage) => {{
                         const chars = stage.chars || stage.char_count || 0;
                         return sum + chars;
