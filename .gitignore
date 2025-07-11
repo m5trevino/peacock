@@ -1,26 +1,17 @@
-# Python stuff
+# Secrets and environment files
+*.env
+good_keys.txt
+good_keys_2.txt
+api-test-synth.txt
+merged_content.txt
+
+# Python cache and artifacts
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-*.so
 
-# Environment variables
-.env
-.env.*
-
-# Secrets & sensitive files
-*.keys
-good_keys.txt
-good_keys_2.txt
-credentials.json
-
-# Test outputs that might contain secrets
-api-test-synth.txt
-writeup.txt
-
-# IDE / Editor folders
-.vscode/
-.idea/
-*.swp
-*.swo
+# Virtual environment folders
+venv/
+env/
+.venv/
