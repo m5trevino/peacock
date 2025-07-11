@@ -1,8 +1,7 @@
-
 #!/usr/bin/env python3
 """
-eagle.py - EAGLE Code Implementation Bird
-The coding beast who transforms architecture into working code
+eagle.py - EXTENSIVE EAGLE Code Implementation Bird (SYSTEM-COMPATIBLE VERSION)
+The comprehensive full-stack developer with your existing method patterns
 """
 
 import json
@@ -10,375 +9,276 @@ import re
 from typing import Dict, List, Any
 
 class EagleImplementer:
-    """EAGLE - The Code Generation Beast"""
+    """EAGLE - The Code Implementation Specialist (EXTENSIVE VERSION - COMPATIBLE)"""
     
     def __init__(self):
         self.stage_name = "EAGLE"
         self.icon = "🦅"
-        self.specialty = "Code Implementation & Generation"
-        self.optimal_model = "llama-3.1-8b-instant"  # Code generation beast
+        self.specialty = "Complete Code Implementation & Development"
+        self.optimal_model = "llama3-8b-8192"
+        self.target_chars = "6000-10000"
     
     def implement_code(self, falcon_architecture: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Main EAGLE function - generate working code based on FALCON architecture
+        Main EAGLE function - maintains compatibility with OUT-HOMING orchestrator
         """
-        print(f"🦅 EAGLE IMPLEMENTER: Generating working code...")
+        print(f"🦅 EXTENSIVE EAGLE IMPLEMENTER: Creating comprehensive code implementation...")
         
-        # Extract architecture data
+        # Extract data using your existing patterns
         architecture_text = falcon_architecture.get("raw_design", "")
-        architecture_data = falcon_architecture.get("json_data", {})
+        if not architecture_text:
+            architecture_text = falcon_architecture.get("architecture", "")
         
-        # Generate the EAGLE implementation prompt
-        eagle_prompt = self._build_eagle_prompt(architecture_data)
+        json_data = falcon_architecture.get("json_data", {})
+        if not json_data:
+            json_data = falcon_architecture.get("analysis", {})
         
-        # Package the implementation for MCP processing
+        # Generate the EXTENSIVE EAGLE prompt
+        eagle_prompt = self._build_extensive_eagle_prompt(architecture_text, json_data)
+        
+        # Package using your existing format for OUT-HOMING compatibility
         eagle_implementation = {
             "stage": "EAGLE",
             "prompt": eagle_prompt,
             "falcon_input": falcon_architecture,
             "model": self.optimal_model,
-            "temperature": 0.2,  # Lower for more consistent code
-            "max_tokens": 2048,  # More tokens for code generation
-            "implementation_type": "code_generation"
+            "temperature": 0.1,  # Lower for more precise code
+            "max_tokens": 4096,  # Increased for extensive code files
+            "implementation_type": "production_ready_complete"
         }
         
+        print(f"✅ EXTENSIVE EAGLE prompt generated: {len(eagle_prompt)} characters (Target: {self.target_chars})")
         return eagle_implementation
     
-    def _build_eagle_prompt(self, falcon_design: Dict[str, Any]) -> str:
-        """Build the implementation prompt for EAGLE"""
+    def _build_extensive_eagle_prompt(self, architecture_text: str, json_data: Dict[str, Any]) -> str:
+        """Build comprehensive production-ready code implementation prompt"""
         
-        architecture = falcon_design.get("raw_design", "")
-        tech_stack = falcon_design.get("json_data", {}).get("tech_stack", {})
-        
-        return f"""<thinking>
-I need to implement the actual code based on this architecture design.
+        prompt = f"""<thinking>
+I need to implement complete, working code based on this architecture design.
 
-Architecture:
-{architecture}
+Architecture: {architecture_text[:500]}...
+Data: {json_data}
 
-I should:
-1. Write clean, well-documented code
-2. Follow best practices for the chosen tech stack
-3. Include necessary imports and dependencies
-4. Add comments explaining complex logic
-5. Structure the code for maintainability
+I should provide:
+- Complete file structure with all necessary files
+- Production-ready code with proper error handling
+- Configuration files and environment setup
+- Database schemas and migrations (if needed)
+- API implementations with full CRUD operations
+- Frontend components with complete functionality
+- Testing setup and initial test cases
+- Documentation and setup instructions
+- Package.json with all dependencies
+- README with deployment instructions
 </thinking>
 
-Act as Eagle, a senior software engineer. Implement the code for this project.
+Act as Eagle, a senior full-stack developer with 15+ years of experience building production applications.
 
-Architecture:
-{architecture}
+Transform this architecture into complete, working code:
 
-Provide the implementation in this EXACT format:
+**ARCHITECTURE DESIGN:**
+{architecture_text}
 
-**OVERVIEW:**
-[Brief overview of implementation approach]
+**TECHNICAL SPECIFICATIONS:**
+{json.dumps(json_data, indent=2) if json_data else "No additional structured data"}
 
-**TECH STACK:**
-- Frontend: {tech_stack.get('frontend', 'Not specified')}
-- Backend: {tech_stack.get('backend', 'Not specified')}
-- Database: {tech_stack.get('database', 'Not specified')}
+Provide complete, production-ready implementation in this EXACT format:
 
-**IMPLEMENTATION DETAILS:**
-[Explain key implementation decisions and considerations]
+**PROJECT OVERVIEW:**
+[Comprehensive description of the complete system based on architecture specifications]
 
-**CODE FILES:**
+**COMPLETE CODE FILES:**
 
-**filename: [filename]**
-```[language]
-[code content]
-```
+**Configuration & Setup Files:**
 
-[Repeat for each file]
+filename: package.json
+[Complete package.json with all dependencies, scripts, and configuration for the project]
 
-**TESTING INSTRUCTIONS:**
-[How to test the implementation]
+filename: .env.example
+[Complete environment configuration template with all required variables]
 
+filename: .gitignore
+[Complete gitignore file with appropriate exclusions for the technology stack]
 
-Then provide the structured data as JSON:
-```json
-{{
-    "files_created": ["list of filenames"],
-    "dependencies": ["list of required dependencies"],
-    "complexity": "simple|moderate|complex",
-    "confidence_score": 8
-}}
-```
+**Backend Implementation (if applicable):**
 
-Focus on production-quality, maintainable code."""
-    
-    def validate_eagle_response(self, response_text: str) -> Dict[str, Any]:
-        """Validate that EAGLE response contains working code"""
-        
-        validation_result = {
-            "valid": False,
-            "has_overview": False,
-            "has_code_files": False,
-            "has_implementation_notes": False,
-            "has_json": False,
-            "file_count": 0,
-            "character_count": len(response_text),
-            "quality_score": 0
-        }
-        
-        # Check for implementation overview
-        if "IMPLEMENTATION OVERVIEW:" in response_text:
-            validation_result["has_overview"] = True
-            validation_result["quality_score"] += 1
-        
-        # Check for code files
-        code_files = re.findall(r'```filename:\s*([^\n]+)\n(.*?)\n```', response_text, re.DOTALL)
-        if code_files:
-            validation_result["has_code_files"] = True
-            validation_result["file_count"] = len(code_files)
-            validation_result["quality_score"] += min(len(code_files), 3)  # Max 3 points for files
-        
-        # Check for implementation notes
-        if "IMPLEMENTATION NOTES:" in response_text:
-            validation_result["has_implementation_notes"] = True
-            validation_result["quality_score"] += 1
-        
-        # Check for JSON data
-        json_pattern = r'```json\s*\n(.*?)\n```'
-        json_match = re.search(json_pattern, response_text, re.DOTALL)
-        if json_match:
-            try:
-                json.loads(json_match.group(1))
-                validation_result["has_json"] = True
-                validation_result["quality_score"] += 2
-            except json.JSONDecodeError:
-                pass
-        
-        # Determine if valid
-        validation_result["valid"] = (
-            validation_result["has_code_files"] and 
-            validation_result["file_count"] >= 1 and
-            validation_result["character_count"] > 500
-        )
-        
-        return validation_result
-    
-    def extract_code_files(self, response_text: str) -> List[Dict[str, Any]]:
-        """Extract all code files from EAGLE response"""
-        
-        code_files = []
-        
-        # Pattern for filename-based code blocks
-        filename_pattern = r'```filename:\s*([^\n]+)\n(.*?)\n```'
-        filename_matches = re.findall(filename_pattern, response_text, re.DOTALL)
-        
-        for filename, code in filename_matches:
-            file_data = {
-                "filename": filename.strip(),
-                "code": code.strip(),
-                "language": self._detect_language(filename.strip()),
-                "size": len(code.strip()),
-                "lines": len(code.strip().split('\n'))
-            }
-            code_files.append(file_data)
-        
-        return code_files
-    
-    def extract_implementation_data(self, response_text: str) -> Dict[str, Any]:
-        """Extract structured implementation data from EAGLE response"""
-        
-        implementation = {
-            "overview": "",
-            "code_files": [],
-            "implementation_notes": [],
-            "testing_instructions": [],
-            "json_data": {},
-            "raw_implementation": response_text
-        }
+filename: server.js
+[Complete server implementation with routing, middleware, comprehensive error handling]
 
-        
-        # Extract implementation overview
-        overview_match = re.search(r'\*\*OVERVIEW:\*\*\s*\n([^\n*]+(?:\n[^\n*]+)*)', response_text)
-        if overview_match:
-            implementation["overview"] = overview_match.group(1).strip()
-        
-        # Extract code files
-        implementation["code_files"] = self.extract_code_files(response_text)
-        
-        # Extract implementation notes
-        notes_section = re.search(r'\*\*IMPLEMENTATION DETAILS:\*\*\s*\n((?:[^\n]+\n?)+)', response_text)
-        if notes_section:
-            notes = re.findall(r'[^\n]+', notes_section.group(1))
-            implementation["implementation_notes"] = [note.strip() for note in notes]
-        
-        # Extract testing instructions
-        test_section = re.search(r'\*\*TESTING INSTRUCTIONS:\*\*\s*\n((?:[^\n]+\n?)+)', response_text)
-        if test_section:
-            instructions = re.findall(r'[^\n]+', test_section.group(1))
-            implementation["testing_instructions"] = [instruction.strip() for instruction in instructions]
-        
-        # Extract JSON data
-        json_pattern = r'```json\s*\n(.*?)\n```'
-        json_match = re.search(json_pattern, response_text, re.DOTALL)
-        if json_match:
-            try:
-                implementation["json_data"] = json.loads(json_match.group(1))
-            except json.JSONDecodeError:
-                implementation["json_data"] = {}
-        
-        return implementation
-    
-    def _detect_language(self, filename: str) -> str:
-        """Detect programming language from filename"""
-        ext_map = {
-            '.html': 'html',
-            '.css': 'css', 
-            '.js': 'javascript',
-            '.py': 'python',
-            '.java': 'java',
-            '.cpp': 'cpp',
-            '.c': 'c',
-            '.php': 'php',
-            '.rb': 'ruby',
-            '.go': 'go',
-            '.rs': 'rust',
-            '.ts': 'typescript',
-            '.jsx': 'jsx',
-            '.tsx': 'tsx'
-        }
-        
-        for ext, lang in ext_map.items():
-            if filename.lower().endswith(ext):
-                return lang
-        
-        return 'text'
-    
-    def generate_project_structure(self, code_files: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Generate project structure and file organization"""
-        
-        structure = {
-            "total_files": len(code_files),
-            "total_lines": sum(file_data["lines"] for file_data in code_files),
-            "total_size": sum(file_data["size"] for file_data in code_files),
-            "languages": list(set(file_data["language"] for file_data in code_files)),
-            "file_breakdown": {}
-        }
-        
-        # Categorize files by type
-        for file_data in code_files:
-            lang = file_data["language"]
-            if lang not in structure["file_breakdown"]:
-                structure["file_breakdown"][lang] = {
-                    "count": 0,
-                    "total_lines": 0,
-                    "files": []
-                }
-            
-            structure["file_breakdown"][lang]["count"] += 1
-            structure["file_breakdown"][lang]["total_lines"] += file_data["lines"]
-            structure["file_breakdown"][lang]["files"].append(file_data["filename"])
-        
-        return structure
-    
-    def optimize_code_structure(self, implementation_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Optimize code structure for better organization"""
-        
-        optimization_suggestions = {
-            "structure_improvements": [],
-            "performance_tips": [],
-            "maintainability_suggestions": [],
-            "scalability_considerations": []
-        }
-        
-        code_files = implementation_data.get("code_files", [])
+filename: config/database.js
+[Complete database configuration and connection setup with error handling]
 
-        
-        # Analyze structure
-        if len(code_files) > 5:
-            optimization_suggestions["structure_improvements"].append(
-                "Consider organizing files into folders (src/, assets/, components/)"
-            )
-        
-        # Check for large files
-        for file_data in code_files:
-            if file_data["lines"] > 200:
-                optimization_suggestions["maintainability_suggestions"].append(
-                    f"Consider breaking down {file_data['filename']} - {file_data['lines']} lines is quite large"
-                )
-        
-        # Performance suggestions based on file types
-        languages = [file_data["language"] for file_data in code_files]
-        if "javascript" in languages:
-            optimization_suggestions["performance_tips"].extend([
-                "Consider code splitting for large JavaScript files",
-                "Implement lazy loading for better performance",
-                "Minify JavaScript for production"
-            ])
-        
-        if "css" in languages:
-            optimization_suggestions["performance_tips"].extend([
-                "Consider CSS minification and compression",
-                "Use CSS custom properties for better maintainability"
-            ])
-        
-        # Scalability considerations
-        if len(code_files) >= 3:
-            optimization_suggestions["scalability_considerations"].extend([
-                "Consider implementing a build system (webpack, vite, etc.)",
-                "Set up testing framework for future development",
-                "Consider version control and deployment strategy"
-            ])
-        
-        return optimization_suggestions
+filename: models/[ModelName].js
+[Complete data models with validation, relationships, and methods]
 
-# Factory function for EAGLE bird
+filename: controllers/[ControllerName].js
+[Complete controllers with full CRUD operations and comprehensive error handling]
+
+filename: routes/[RouteName].js
+[Complete API routes following RESTful principles with validation]
+
+filename: middleware/auth.js
+[Complete authentication middleware with JWT/session handling and security]
+
+filename: middleware/validation.js
+[Complete input validation middleware with comprehensive error handling]
+
+filename: utils/helpers.js
+[Complete utility functions and helper methods for common operations]
+
+**Frontend Implementation:**
+
+filename: public/index.html
+[Complete HTML with semantic structure, meta tags, responsive design, and accessibility]
+
+filename: public/styles.css
+[Complete CSS with modern styling, responsive design, animations, and cross-browser compatibility]
+
+filename: public/script.js
+[Complete JavaScript with modular structure, API integration, error handling, and user interactions]
+
+**Additional Frontend Files (if framework needed):**
+
+filename: src/components/[ComponentName].js
+[Complete component implementations with props, state, lifecycle, and error boundaries]
+
+filename: src/services/api.js
+[Complete API service layer with error handling, retry logic, and interceptors]
+
+filename: src/utils/constants.js
+[Complete constants and configuration variables for the application]
+
+**Testing Implementation:**
+
+filename: tests/unit/[TestName].test.js
+[Complete unit tests with comprehensive coverage of core functionality]
+
+filename: tests/integration/[TestName].test.js
+[Complete integration tests with database and API testing scenarios]
+
+filename: tests/e2e/[TestName].spec.js
+[Complete end-to-end tests with user journey testing and browser automation]
+
+**Database Implementation (if applicable):**
+
+filename: database/migrations/001_initial_schema.sql
+[Complete database schema with proper indexes, constraints, and relationships]
+
+filename: database/seeds/sample_data.sql
+[Complete sample data for development and testing purposes]
+
+**Documentation:**
+
+filename: README.md
+[Complete documentation with setup instructions, usage examples, and API documentation]
+
+filename: API_DOCS.md
+[Complete API documentation with all endpoints, request/response examples, and error codes]
+
+**Development Tools:**
+
+filename: docker-compose.yml
+[Complete Docker configuration for development environment with all services]
+
+filename: Dockerfile
+[Complete Docker container configuration for production deployment]
+
+**IMPLEMENTATION NOTES:**
+
+**Architecture Decisions:**
+- [Key architectural patterns implemented and their justifications]
+- [Technology choices and detailed rationales for selections]
+- [Design patterns used throughout codebase for maintainability]
+
+**Security Implementation:**
+- [Authentication and authorization implementation with token management]
+- [Input validation and sanitization with security best practices]
+- [Security headers and CORS configuration for protection]
+- [Rate limiting and DDoS protection mechanisms]
+
+**Performance Optimizations:**
+- [Caching strategies implemented at multiple levels]
+- [Database query optimizations with indexing strategies]
+- [Frontend performance optimizations with lazy loading]
+- [Asset optimization and compression techniques]
+
+**Error Handling Strategy:**
+- [Global error handling implementation with consistent responses]
+- [Logging and monitoring setup with appropriate log levels]
+- [Graceful degradation patterns for service failures]
+- [User-friendly error messages with actionable guidance]
+
+**Code Organization:**
+- [File structure and naming conventions for scalability]
+- [Module separation and dependency management]
+- [Component reusability patterns and shared utilities]
+- [Configuration management and environment handling]
+
+**SETUP & DEPLOYMENT:**
+
+**Development Setup:**
+1. Clone repository and navigate to project directory
+2. Install dependencies: npm install (or appropriate package manager)
+3. Configure environment variables: cp .env.example .env
+4. Initialize database (if applicable): npm run db:migrate
+5. Start development server: npm run dev
+6. Run tests: npm test
+
+**Production Deployment:**
+1. Build application for production: npm run build
+2. Configure production environment variables securely
+3. Deploy to hosting platform with specific deployment instructions
+4. Set up monitoring and logging with health checks
+5. Configure backup and recovery procedures with testing
+
+**Quality Assurance:**
+- All code follows established coding standards and best practices
+- Comprehensive error handling implemented throughout the application
+- Security best practices followed with regular security audits
+- Performance optimizations applied with monitoring and alerting
+- Testing coverage meets industry standards with automated testing
+- Documentation is complete, accurate, and maintained regularly
+
+Provide complete, working files that can be immediately deployed without modifications. Every file should be production-ready with proper error handling, security measures, performance optimizations, and comprehensive documentation."""
+
+        return prompt
+
+# Factory function for OUT-HOMING compatibility
 def create_eagle_implementer() -> EagleImplementer:
-    """Factory function to create EAGLE implementer instance"""
+    """Factory function to create EXTENSIVE EAGLE implementer instance"""
     return EagleImplementer()
 
 # Test function for EAGLE bird
 def test_eagle_bird():
-    """Test the EAGLE bird with sample FALCON input"""
+    """Test the EXTENSIVE EAGLE bird with sample architecture input"""
     eagle = create_eagle_implementer()
     
-    # Mock FALCON architecture
+    # Mock FALCON architecture using your existing format
     falcon_architecture = {
-        "raw_design": """
-TECHNOLOGY STACK:
-- Frontend: HTML, CSS, JavaScript
-- Backend: None (client-side only)
-- Database: LocalStorage
-
-CORE COMPONENTS:
-1. Game Engine - Handles snake movement and collision detection
-2. Renderer - Draws game elements on canvas
-3. Input Handler - Processes user keyboard input
-
-FILE STRUCTURE:
-```
-snake_game/
-├── index.html
-├── styles.css
-└── script.js
-```
-        """,
+        "raw_design": "Comprehensive web application architecture with modern frontend framework, RESTful API backend, database integration, and responsive design",
         "json_data": {
             "tech_stack": {
-                "frontend": "HTML, CSS, JavaScript",
-                "backend": "None",
-                "database": "LocalStorage"
+                "frontend": "React with TypeScript, Tailwind CSS",
+                "backend": "Node.js with Express framework",
+                "database": "PostgreSQL with Redis caching"
             },
-            "complexity": "simple"
+            "complexity": "enterprise"
         }
     }
     
     implementation = eagle.implement_code(falcon_architecture)
     
-    print("🧪 TESTING EAGLE BIRD")
+    print("🧪 TESTING EXTENSIVE EAGLE BIRD (SYSTEM-COMPATIBLE)")
     print(f"🦅 Stage: {implementation['stage']}")
     print(f"🤖 Model: {implementation['model']}")
     print(f"💻 Implementation Type: {implementation['implementation_type']}")
     print(f"📏 Prompt Length: {len(implementation['prompt'])} characters")
+    print(f"🎯 Target Range: {eagle.target_chars} characters")
     print(f"🔥 Temperature: {implementation['temperature']}")
     print(f"📊 Max Tokens: {implementation['max_tokens']}")
     
     return implementation
 
 if __name__ == "__main__":
-    # Test EAGLE bird independently
+    # Test EXTENSIVE EAGLE bird independently
     test_eagle_bird()

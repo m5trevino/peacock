@@ -7,8 +7,8 @@ from .spark import SparkAnalyst
 from .falcon import FalconArchitect  
 from .eagle import EagleImplementer
 from .hawk import HawkQASpecialist
-from .homing import HomingOrchestrator
-from .return_homing import ReturnHomingProcessor
+from .out_homing import OutHomingOrchestrator as HomingOrchestrator
+from .in_homing import InHomingProcessor as ReturnHomingProcessor
 
 __version__ = "2.0.0"
 __author__ = "Peacock Development Team"
@@ -42,7 +42,8 @@ def create_hawk_qa_specialist():
 
 def create_homing_orchestrator():
     """Factory function for HOMING pipeline orchestrator"""
-    return HomingOrchestrator()
+    from .out_homing import OutHomingOrchestrator
+    return OutHomingOrchestrator()
 
 def create_return_homing_processor():
     """Factory function for RETURN-HOMING response processor"""

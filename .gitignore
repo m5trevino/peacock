@@ -1,55 +1,26 @@
-# Environment and secrets
-.env
-*.env
-
-# Python cache and compiled
+# Python stuff
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
+*.so
 
-# Generated files and outputs
-*.log
-logs/
-html/
-apps/
+# Environment variables
+.env
+.env.*
 
-# Backup and temp files
-*.tar.gz
-*.zip
-*.bak
-*.tmp
-*~
+# Secrets & sensitive files
+*.keys
+good_keys.txt
+good_keys_2.txt
+credentials.json
 
-# IDE and editor files
+# Test outputs that might contain secrets
+api-test-synth.txt
+writeup.txt
+
+# IDE / Editor folders
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Project specific ignores
-notes/
-clean_markers.py
-remove_markers.sh
-Untitled Folder/
-core/html/
-core/logs/
-core/__pycache__/
-aviary/__pycache__/

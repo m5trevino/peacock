@@ -1,8 +1,7 @@
-
 #!/usr/bin/env python3
 """
-falcon.py - FALCON Architecture Design Bird
-The senior architect who designs technical systems and component structures
+falcon.py - EXTENSIVE FALCON Architecture Design Bird (SYSTEM-COMPATIBLE VERSION)
+The comprehensive system architect with your existing factory function pattern
 """
 
 import json
@@ -10,283 +9,335 @@ import re
 from typing import Dict, List, Any
 
 class FalconArchitect:
-    """FALCON - The System Architect"""
+    """FALCON - The System Architect (EXTENSIVE VERSION - COMPATIBLE)"""
     
     def __init__(self):
         self.stage_name = "FALCON"
         self.icon = "🦅"
-        self.specialty = "Technical Architecture Design"
-        self.optimal_model = "gemma2-9b-it"  # Structure champion
+        self.specialty = "Comprehensive Technical Architecture Design"
+        self.optimal_model = "gemma2-9b-it"
+        self.target_chars = "4000-6000"
     
     def design_architecture(self, spark_requirements: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Generate architecture design prompt based on SPARK requirements.
-        MCP will handle the actual LLM call.
+        Main FALCON function - maintains compatibility with OUT-HOMING orchestrator
         """
-        print(f"🦅 FALCON ARCHITECT: Generating architecture design prompt...")
+        print(f"🦅 EXTENSIVE FALCON ARCHITECT: Generating comprehensive architecture design...")
         
-        # Extract key data from SPARK analysis
-        spark_analysis = spark_requirements.get("analysis", {})
-        spark_text = spark_requirements.get("raw_response", "")
+        # Extract data using your existing patterns
+        spark_text = spark_requirements.get("raw_analysis", "")
+        if not spark_text:
+            spark_text = spark_requirements.get("analysis", "")
         
-        if not spark_text and isinstance(spark_analysis, dict):
-            spark_text = "\n".join(f"{k}: {v}" for k, v in spark_analysis.items())
+        requirements_data = spark_requirements.get("json_data", {})
+        if not requirements_data:
+            requirements_data = spark_requirements.get("analysis", {})
         
-        # Generate the FALCON architecture prompt
-        falcon_prompt = self._build_falcon_prompt(spark_text, spark_analysis)
+        # Generate the EXTENSIVE FALCON prompt
+        falcon_prompt = self._build_extensive_falcon_prompt(spark_text, requirements_data)
         
-        # Package the prompt for MCP processing
+        # Package using your existing format for OUT-HOMING compatibility
         falcon_design = {
             "stage": "FALCON",
             "prompt": falcon_prompt,
             "spark_input": spark_requirements,
             "model": self.optimal_model,
             "temperature": 0.3,
-            "max_tokens": 1024,
-            "design_type": "technical_architecture"
+            "max_tokens": 2048,  # Increased for extensive content
+            "design_type": "comprehensive_enterprise_architecture"
         }
         
-        print(f"✅ FALCON prompt generated: {len(falcon_prompt)} characters")
+        print(f"✅ EXTENSIVE FALCON prompt generated: {len(falcon_prompt)} characters (Target: {self.target_chars})")
         return falcon_design
     
-    def _build_falcon_prompt(self, spark_text: str, requirements_data: Dict[str, Any]) -> str:
-        """Build the technical architecture design prompt"""
+    def _build_extensive_falcon_prompt(self, spark_text: str, requirements_data: Dict[str, Any]) -> str:
+        """Build comprehensive enterprise-grade architecture prompt"""
         
-        return f"""<thinking>
-Based on the requirements from Spark, I need to design a technical architecture.
+        prompt = f"""<thinking>
+I need to design a comprehensive technical architecture based on these requirements from SPARK.
 
 Requirements: {spark_text}
+Data: {requirements_data}
 
-I should think about:
-- What technologies would work best
-- How to structure the codebase
-- What components are needed
-- How they interact
+I should provide:
+- Complete technology stack recommendations with justifications
+- Detailed system architecture with all components
+- Database design with relationships and data flow
+- Complete API specifications with endpoints
+- Security architecture with threat model
+- Deployment and infrastructure strategy
+- Scalability and performance strategy
+- Integration patterns and workflows
+- Development methodology and CI/CD
+- Technical debt considerations and future planning
 </thinking>
 
-Act as Falcon, a senior software architect. Design the technical architecture for this project.
+Act as Falcon, a senior solution architect with 15+ years of experience designing enterprise-grade, scalable applications.
 
-Requirements Analysis:
+Design the complete technical architecture for this system:
+
+**REQUIREMENTS ANALYSIS:**
 {spark_text}
 
-Provide architecture design in this EXACT format:
+**ADDITIONAL CONTEXT:**
+{json.dumps(requirements_data, indent=2) if requirements_data else "No additional structured data"}
 
+Provide comprehensive enterprise architecture design in this EXACT format:
 
-**TECHNOLOGY STACK:**
-- Frontend: [Technology choices]
-- Backend: [Technology choices]  
-- Database: [Technology choices]
-- Additional: [Other technologies]
+**1. TECHNOLOGY STACK RECOMMENDATIONS:**
 
-**CORE COMPONENTS:**
-1. [Component Name] - [Purpose and functionality]
-2. [Component Name] - [Purpose and functionality]
-3. [Component Name] - [Purpose and functionality]
+**Frontend Technology:**
+- Framework: [Specific framework with version and detailed justification]
+- UI Component Library: [Library with design system rationale and implementation strategy]
+- State Management: [Solution with complexity justification and data flow patterns]
+- Build Tools: [Webpack/Vite with configuration rationale and optimization strategy]
+- Testing Framework: [Jest/Cypress with comprehensive testing strategy]
+- Performance Optimization: [Lazy loading, code splitting, CDN strategies]
 
-**FILE STRUCTURE:**
+**Backend Technology:**
+- Runtime Environment: [Node.js/Python with version justification and performance analysis]
+- Framework: [Express/Django/FastAPI with detailed feature comparison]
+- Authentication: [JWT/OAuth/Session with comprehensive security analysis]
+- Validation: [Joi/Yup with data integrity strategy and error handling]
+- API Documentation: [Swagger/OpenAPI with maintenance strategy and versioning]
+- Background Processing: [Queue system with job scheduling and failure handling]
+
+**Database Strategy:**
+- Primary Database: [PostgreSQL/MongoDB with detailed data model justification]
+- Caching Layer: [Redis/Memcached with comprehensive caching strategy]
+- Search Engine: [Elasticsearch with indexing strategy and query optimization]
+- Data Migration: [Migration strategy, versioning, and rollback procedures]
+
+**DevOps & Infrastructure:**
+- Containerization: [Docker with orchestration strategy and scaling policies]
+- Cloud Platform: [AWS/GCP/Azure with detailed service selection rationale]
+- CI/CD Pipeline: [GitHub Actions/Jenkins with comprehensive workflow design]
+- Monitoring: [Application and infrastructure monitoring with alerting strategies]
+
+**2. SYSTEM ARCHITECTURE DIAGRAM:**
+
+**High-Level Architecture:**
 ```
-project_root/
-├── [folder1]/
-│   ├── [file1.ext]
-│   └── [file2.ext]
-├── [folder2]/
-└── [file3.ext]
+[Browser/Mobile] ↔ [Load Balancer/CDN] ↔ [API Gateway] ↔ [Microservices] ↔ [Database Cluster]
+        ↓                    ↓                ↓              ↓                ↓
+[PWA Cache]         [SSL Termination]   [Rate Limiting]  [Service Mesh]   [Backup Systems]
+        ↓                    ↓                ↓              ↓                ↓
+[Offline Support]   [Security Headers]  [Authentication] [Load Balancing]  [Disaster Recovery]
 ```
 
-**COMPONENT INTERACTIONS:**
-[Describe how components communicate and data flows]
+**Component Interactions:**
+- User authentication and authorization flow with multi-factor support
+- Data processing pipeline with real-time and batch processing
+- Real-time communication architecture (WebSockets/Server-Sent Events)
+- File upload/storage system with CDN integration
+- Third-party integrations with circuit breaker patterns
 
-Then provide the structured data as JSON:
-```json
-{{
-    "tech_stack": {{
-        "frontend": "string",
-        "backend": "string",
-        "database": "string"
-    }},
-    "components": ["list"],
-    "complexity": "simple|moderate|complex",
-    "file_structure": ["list"],
-    "interactions": "string"
-}}
-"""
-        
-    def validate_falcon_response(self, response_text: str) -> Dict[str, Any]:
-        """Validate that FALCON response contains required architecture elements"""
-        
-        validation_result = {
-            "valid": False,
-            "has_tech_stack": False,
-            "has_components": False,
-            "has_file_structure": False,
-            "has_json": False,
-            "character_count": len(response_text),
-            "quality_score": 0
-        }
-        
-        # Check for technology stack
-        if "TECHNOLOGY STACK:" in response_text:
-            validation_result["has_tech_stack"] = True
-            validation_result["quality_score"] += 2
-        
-        # Check for core components
-        if "CORE COMPONENTS:" in response_text:
-            validation_result["has_components"] = True
-            validation_result["quality_score"] += 2
-        
-        # Check for file structure
-        if "FILE STRUCTURE:" in response_text and "project_root/" in response_text:
-            validation_result["has_file_structure"] = True
-            validation_result["quality_score"] += 2
-        
-        # Check for JSON data
-        json_pattern = r'```json\s*\n(.*?)\n```'
-        json_match = re.search(json_pattern, response_text, re.DOTALL)
-        if json_match:
-            try:
+**3. DATABASE DESIGN:**
 
-                json.loads(json_match.group(1))
-                validation_result["has_json"] = True
-                validation_result["quality_score"] += 3
-            except json.JSONDecodeError:
-                pass
-        
-        # Determine if valid
-        validation_result["valid"] = (
-            validation_result["has_tech_stack"] and 
-            validation_result["has_components"] and
-            validation_result["character_count"] > 300
-        )
-        
-        return validation_result
-    
-    def extract_architecture_data(self, response_text: str) -> Dict[str, Any]:
-        """Extract structured architecture data from FALCON response"""
-        
-        architecture = {
-            "tech_stack": {},
-            "components": [],
-            "file_structure": "",
-            "component_interactions": "",
-            "json_data": {},
-            "raw_design": response_text
-        }
-        
-        # Extract technology stack
-        tech_section = re.search(r'\*\*TECHNOLOGY STACK:\*\*\s*\n((?:- [^\n]+\n?)+)', response_text)
-        if tech_section:
-            tech_items = re.findall(r'- ([^:]+): ([^\n]+)', tech_section.group(1))
-            for category, tech in tech_items:
-                architecture["tech_stack"][category.strip().lower()] = tech.strip()
-        
-        # Extract core components
-        comp_section = re.search(r'\*\*CORE COMPONENTS:\*\*\s*\n((?:\d+\. [^\n]+\n?)+)', response_text)
-        if comp_section:
-            components = re.findall(r'\d+\. ([^-]+) - ([^\n]+)', comp_section.group(1))
-            for name, purpose in components:
-                architecture["components"].append({
-                    "name": name.strip(),
-                    "purpose": purpose.strip()
-                })
-        
-        # Extract file structure
-        file_match = re.search(r'\*\*FILE STRUCTURE:\*\*\s*\n```\s*\n(.*?)\n```', response_text, re.DOTALL)
-        if file_match:
-            architecture["file_structure"] = file_match.group(1).strip()
-        
-        # Extract component interactions
-        interact_match = re.search(r'\*\*COMPONENT INTERACTIONS:\*\*\s*\n([^\n*]+(?:\n[^\n*]+)*)', response_text)
-        if interact_match:
-            architecture["component_interactions"] = interact_match.group(1).strip()
-        
-        # Extract JSON data
-        json_pattern = r'```json\s*\n(.*?)\n```'
-        json_match = re.search(json_pattern, response_text, re.DOTALL)
-        if json_match:
-            try:
-                architecture["json_data"] = json.loads(json_match.group(1))
-            except json.JSONDecodeError:
-                architecture["json_data"] = {}
-        
-        return architecture
-    
-    def generate_component_specs(self, architecture_data: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Generate detailed specifications for each component"""
-        
-        component_specs = []
-        
-        for component in architecture_data.get("components", []):
-            spec = {
+**Entity Relationship Model:**
+```sql
+-- Primary entities with comprehensive relationships
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    -- Additional fields based on requirements
+);
 
-                "name": component["name"],
-                "purpose": component["purpose"],
-                "technologies": self._suggest_technologies_for_component(component["name"]),
-                "interfaces": self._define_component_interfaces(component["name"]),
-                "dependencies": self._identify_dependencies(component["name"], architecture_data)
-            }
-            component_specs.append(spec)
-        
-        return component_specs
-    
-    def _suggest_technologies_for_component(self, component_name: str) -> List[str]:
-        """Suggest appropriate technologies for a component"""
-        name_lower = component_name.lower()
-        
-        if any(term in name_lower for term in ['ui', 'interface', 'frontend', 'view']):
-            return ['HTML', 'CSS', 'JavaScript']
-        elif any(term in name_lower for term in ['api', 'server', 'backend', 'service']):
-            return ['Python', 'Node.js', 'Express']
-        elif any(term in name_lower for term in ['database', 'storage', 'data']):
-            return ['SQLite', 'PostgreSQL', 'MongoDB']
-        elif any(term in name_lower for term in ['auth', 'security', 'login']):
-            return ['JWT', 'OAuth', 'bcrypt']
-        else:
-            return ['JavaScript', 'Python']
-    
-    def _define_component_interfaces(self, component_name: str) -> Dict[str, List[str]]:
-        """Define interfaces for component communication"""
-        return {
-            "inputs": ["data", "user_actions", "events"],
-            "outputs": ["responses", "updates", "notifications"],
-            "methods": ["initialize", "process", "validate", "cleanup"]
-        }
-    
-    def _identify_dependencies(self, component_name: str, architecture_data: Dict[str, Any]) -> List[str]:
-        """Identify dependencies between components"""
-        all_components = [comp["name"] for comp in architecture_data.get("components", [])]
-        # Simple dependency logic - can be enhanced
-        return [comp for comp in all_components if comp != component_name]
+CREATE TABLE [business_entities] (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    -- Complete schema design based on domain requirements
+);
 
-# Factory function for FALCON bird
+-- Indexes for performance optimization
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_business_entities_user_id ON [business_entities](user_id);
+```
+
+**Data Flow Architecture:**
+- CRUD operation patterns with optimistic locking
+- Data validation layers with comprehensive error handling
+- Query optimization strategy with prepared statements
+- Indexing strategy with performance monitoring
+- Data archival and retention policy with compliance considerations
+
+**4. API ARCHITECTURE:**
+
+**RESTful API Design:**
+```
+# User Management
+GET    /api/v1/users              # List users with pagination, filtering, sorting
+POST   /api/v1/users              # Create user with comprehensive validation
+GET    /api/v1/users/:id          # Get user details with privacy controls
+PUT    /api/v1/users/:id          # Update user with versioning and audit trail
+DELETE /api/v1/users/:id          # Soft delete with audit trail and recovery
+
+# Business Logic Endpoints (based on requirements)
+GET    /api/v1/[resources]        # List with advanced filtering and pagination
+POST   /api/v1/[resources]        # Create with validation and business rules
+GET    /api/v1/[resources]/:id    # Retrieve with access control
+PUT    /api/v1/[resources]/:id    # Update with conflict resolution
+DELETE /api/v1/[resources]/:id    # Delete with cascade handling
+
+# Administrative Endpoints
+GET    /api/v1/admin/metrics      # System metrics and health checks
+POST   /api/v1/admin/maintenance  # Maintenance mode controls
+GET    /api/v1/admin/logs         # Log access with security controls
+```
+
+**API Standards:**
+- Request/Response format standardization with JSON:API compliance
+- Comprehensive error handling with detailed error codes and messages
+- Rate limiting and throttling with different tiers for user types
+- API versioning strategy with backward compatibility guarantees
+- Complete documentation with interactive API explorer
+
+**5. SECURITY ARCHITECTURE:**
+
+**Authentication & Authorization:**
+- Multi-factor authentication with TOTP and backup codes
+- Role-based access control (RBAC) with fine-grained permissions
+- JWT token management with refresh token rotation
+- Session security with secure cookie handling and timeout policies
+- OAuth 2.0 integration with social providers and enterprise SSO
+
+**Data Protection:**
+- Encryption at rest using AES-256 for database and file storage
+- Encryption in transit with TLS 1.3 and certificate pinning
+- Comprehensive input validation with whitelist-based sanitization
+- SQL injection prevention with parameterized queries and ORM protections
+- XSS and CSRF protection with Content Security Policy and token validation
+
+**Infrastructure Security:**
+- Network security with VPC, subnets, and security groups
+- DDoS protection with rate limiting and traffic analysis
+- Security headers implementation (HSTS, CSP, X-Frame-Options)
+- Vulnerability scanning with automated security testing in CI/CD
+- Penetration testing schedule and security audit procedures
+
+**6. SCALABILITY STRATEGY:**
+
+**Horizontal Scaling:**
+- Load balancing strategy with health checks and failover
+- Database sharding/partitioning with consistent hashing
+- Microservices decomposition with domain-driven design
+- CDN and edge computing with global distribution strategy
+
+**Performance Optimization:**
+- Multi-level caching strategy (browser, CDN, application, database)
+- Database query optimization with query analysis and indexing
+- Asset optimization with compression and minification
+- Real-time performance monitoring with APM tools and alerting
+
+**7. DEPLOYMENT ARCHITECTURE:**
+
+**Environment Strategy:**
+- Development environment with Docker Compose for local development
+- Staging environment mirroring production with blue-green deployment
+- Production environment with high availability and disaster recovery
+- Environment-specific configurations with secret management
+
+**CI/CD Pipeline:**
+- Automated testing stages (unit, integration, end-to-end, security)
+- Code quality gates with static analysis and coverage requirements
+- Deployment automation with rollback capabilities and canary releases
+- Infrastructure as Code with Terraform/CloudFormation
+
+**Infrastructure as Code:**
+- Container orchestration with Kubernetes or Docker Swarm
+- Infrastructure provisioning with automated scaling policies
+- Configuration management with centralized secret storage
+- Monitoring and alerting setup with PagerDuty/Slack integration
+
+**8. INTEGRATION STRATEGY:**
+
+**Third-Party Integrations:**
+- Payment processing with PCI compliance and fraud detection
+- Email and notification services with template management
+- Analytics and monitoring tools with data pipeline integration
+- Social media or external APIs with rate limiting and error handling
+
+**Data Integration:**
+- API integration patterns with circuit breaker and retry logic
+- Webhook implementations with signature validation and replay protection
+- Message queue systems with dead letter queues and monitoring
+- Event-driven architecture with event sourcing and CQRS patterns
+
+**9. DEVELOPMENT WORKFLOW:**
+
+**Code Organization:**
+- Monorepo vs microrepo strategy with dependency management
+- Component architecture patterns with clear separation of concerns
+- Code reuse strategies with shared libraries and design systems
+- Documentation standards with automated documentation generation
+
+**Quality Assurance:**
+- Comprehensive testing strategy (unit, integration, e2e, performance)
+- Code review processes with automated checks and security scanning
+- Performance testing with load testing and stress testing
+- Security testing with SAST, DAST, and dependency scanning
+
+**10. TECHNICAL DEBT & FUTURE CONSIDERATIONS:**
+
+**Architecture Evolution:**
+- Technology upgrade roadmap with migration strategies
+- Scalability enhancement opportunities with performance benchmarks
+- Security enhancement priorities with threat modeling updates
+- Feature roadmap alignment with architectural decisions
+
+**Maintenance Strategy:**
+- Dependency management with automated updates and security patches
+- Technical debt tracking with prioritization matrix
+- Refactoring priorities with code quality metrics
+- Documentation maintenance with automated updates
+
+**Long-term Sustainability:**
+- Team training and knowledge transfer strategies
+- Code maintainability standards with complexity analysis
+- Performance monitoring and optimization roadmap
+- Security posture improvement with regular audits
+
+Provide detailed, production-ready architecture that can be directly implemented by development teams. Focus on enterprise-grade solutions that scale gracefully and maintain high security and performance standards over time."""
+
+        return prompt
+
+# Factory function for OUT-HOMING compatibility
 def create_falcon_architect() -> FalconArchitect:
-    """Factory function to create FALCON architect instance"""
+    """Factory function to create EXTENSIVE FALCON architect instance"""
     return FalconArchitect()
 
 # Test function for FALCON bird
 def test_falcon_bird():
-    """Test the FALCON bird with sample SPARK input"""
+    """Test the EXTENSIVE FALCON bird with sample SPARK input"""
     falcon = create_falcon_architect()
     
-    # Mock SPARK requirements
+    # Mock SPARK requirements using your existing format
     spark_requirements = {
-        "raw_response": "Build a snake game with HTML, CSS, and JavaScript",
-        "analysis": {
-            "core_objective": "Create an interactive snake game",
-            "in_scope": ["Game mechanics", "Score tracking", "Visual interface"],
-            "complexity": "simple"
+        "raw_analysis": "Build a comprehensive snake game with HTML, CSS, and JavaScript featuring modern game mechanics, responsive design, and progressive web app capabilities",
+        "json_data": {
+            "core_objective": "Create an interactive snake game with enterprise-grade architecture",
+            "in_scope": ["Game mechanics", "Score tracking", "Visual interface", "PWA features", "Responsive design"],
+            "out_of_scope": ["Multiplayer features", "Backend user accounts"],
+            "complexity": "moderate"
         }
     }
     
     design = falcon.design_architecture(spark_requirements)
     
-    print("🧪 TESTING FALCON BIRD")
+    print("🧪 TESTING EXTENSIVE FALCON BIRD (SYSTEM-COMPATIBLE)")
     print(f"🦅 Stage: {design['stage']}")
     print(f"🤖 Model: {design['model']}")
     print(f"🏗️ Design Type: {design['design_type']}")
     print(f"📏 Prompt Length: {len(design['prompt'])} characters")
+    print(f"🎯 Target Range: {falcon.target_chars} characters")
+    print(f"🔥 Temperature: {design['temperature']}")
+    print(f"📊 Max Tokens: {design['max_tokens']}")
     
     return design
 
 if __name__ == "__main__":
-    # Test FALCON bird independently
+    # Test EXTENSIVE FALCON bird independently
     test_falcon_bird()

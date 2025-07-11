@@ -1,698 +1,192 @@
 #!/usr/bin/env python3
 """
-🦚 XEDIT - ENHANCED PEACOCK CODE INTERFACE GENERATOR 
-Enhanced for Qwen+Llama compatibility and .pcock deployment
+🦚 XEDIT - v2.0 - Professional Peacock Code Interface Generator
+Generates the final, interactive, three-panel HTML UI based on the target design.
 """
 
 import json
 import re
 import datetime
-import os
-import sys
-import argparse
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
+from dataclasses import dataclass
 from pathlib import Path
+import hashlib
 
-class EnhancedXEditGenerator:
-    """Enhanced XEdit generator with Qwen/Llama support and PCOCK deployment"""
-    
+# --- Data Classes for Structured Parsing ---
+@dataclass
+class CodeFile:
+    filename: str
+    content: str
+    language: str
+    size_chars: int
+    functions: List[str]
+    classes: List[str]
+    xedit_id: str
+
+@dataclass
+class ParsedResponse:
+    project_overview: str
+    code_files: List[CodeFile]
+    total_files: int
+    total_chars: int
+    xedit_paths: List[Dict[str, Any]]
+    parsing_success: bool
+
+# --- The Main Parser and UI Generator Class ---
+class EnhancedXEditParser:
     def __init__(self):
-        self.html_dir = "/home/flintx/peacock/html"
-        self.apps_dir = "/home/flintx/peacock/apps"
-        os.makedirs(self.html_dir, exist_ok=True)
-        os.makedirs(self.apps_dir, exist_ok=True)
+        self.language_patterns = {
+            r'\.py$': 'python', r'\.js$': 'javascript', r'\.html?$': 'html',
+            r'\.css$': 'css', r'\.json$': 'json', r'\.md$': 'markdown'
+        }
+        self.extraction_patterns = {
+            'python': {'functions': [r'def\s+([a-zA-Z_][a-zA-Z0-9_]*)'], 'classes': [r'class\s+([a-zA-Z_][a-zA-Z0-9_]*)']},
+            'javascript': {'functions': [r'function\s+([a-zA-Z_$][a-zA-Z0-9_$]*)'], 'classes': [r'class\s+([a-zA-Z_$][a-zA-Z0-9_$]*)']}
+        }
 
-    def generate_enhanced_xedit_html(self, parsed_data: Dict[str, Any], xedit_paths: Dict[str, Dict[str, Any]], session_id: str) -> str:
-        """Generate enhanced XEdit HTML with PCOCK deployment"""
+    def parse_llm_response(self, raw_response: str) -> ParsedResponse:
+        print(f"🔍 Parsing LLM code response ({len(raw_response)} chars)...")
+        code_files = []
+        # A more robust regex to handle code blocks that might not end with a newline before the next ```
+        file_matches = re.findall(r"```filename:\s*([^\n]+)\n(.*?)(?=```filename:|\Z)", raw_response, re.DOTALL)
+        for filename, content in file_matches:
+            if filename.strip() and content.strip():
+                code_files.append(self._create_code_file(filename.strip(), content.strip()))
         
-        project_name = parsed_data.get("project_name", "Generated Project")
-        model_used = parsed_data.get("model_used", "unknown")
-        model_type = self._get_model_type(model_used)
-        code_files = parsed_data.get("code_files", [])
+        overview_match = re.search(r'\*\*PROJECT OVERVIEW:\*\*\s*(.*?)(?=\*\*COMPLETE CODE FILES:\*\*)', raw_response, re.DOTALL)
+        overview = overview_match.group(1).strip() if overview_match else "Project overview not generated."
         
-        # Generate functions list HTML
-        functions_html = self._generate_functions_html(xedit_paths)
-        
-        # Generate combined code HTML
-        code_html = self._generate_code_html(code_files)
-        
-        # Generate main HTML with FIXED JavaScript syntax
-        html_content = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🦚 XEdit - {project_name}</title>
-    <style>
-        * {{
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }}
-        
-        body {{
-            font-family: 'Courier New', monospace;
-            background: #0a0a0a;
-            color: #00ff00;
-            overflow: hidden;
-        }}
-        
-        .xedit-container {{
-            display: flex;
-            height: 100vh;
-            border: 2px solid #00ff00;
-        }}
-        
-        .left-panel {{
-            width: 25%;
-            background: #1a1a1a;
-            border-right: 1px solid #00ff00;
-            padding: 10px;
-            overflow-y: auto;
-        }}
-        
-        .center-panel {{
-            width: 50%;
-            background: #0f0f0f;
-            padding: 10px;
-            overflow-y: auto;
-            border-right: 1px solid #00ff00;
-        }}
-        
-        .right-panel {{
-            width: 25%;
-            background: #1a1a1a;
-            padding: 10px;
-            overflow-y: auto;
-        }}
-        
-        .panel-header {{
-            color: #00ffff;
-            font-weight: bold;
-            margin-bottom: 10px;
-            padding: 5px;
-            background: #333;
-            border: 1px solid #00ff00;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }}
-        
-        .model-indicator {{
-            font-size: 0.8em;
-            color: #ffff00;
-            background: #444;
-            padding: 2px 8px;
-            border-radius: 3px;
-        }}
-        
-        .function-item, .class-item {{
-            padding: 8px;
-            margin: 3px 0;
-            background: #2a2a2a;
-            border: 1px solid #444;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }}
-        
-        .function-item:hover, .class-item:hover {{
-            background: #00ff00;
-            color: #000;
-            border-color: #00ff00;
-        }}
-        
-        .function-item:hover .hover-button, .class-item:hover .hover-button {{
-            display: inline-block;
-        }}
-        
-        .hover-button {{
-            display: none;
-            position: absolute;
-            right: 5px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: #ff6600;
-            color: white;
-            border: none;
-            padding: 2px 6px;
-            font-size: 0.7em;
-            cursor: pointer;
-            border-radius: 2px;
-        }}
-        
-        .hover-button:hover {{
-            background: #ff8800;
-        }}
-        
-        .function-icon {{
-            color: #ff6600;
-            margin-right: 8px;
-        }}
-        
-        .class-icon {{
-            color: #6600ff;
-            margin-right: 8px;
-        }}
-        
-        .code-display {{
-            background: #000;
-            color: #00ff00;
-            padding: 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            line-height: 1.4;
-            white-space: pre-wrap;
-            border: 1px solid #333;
-            border-radius: 4px;
-            max-height: calc(100vh - 200px);
-            overflow-y: auto;
-        }}
-        
-        .highlighted {{
-            background: #004400 !important;
-            border-color: #00ff00 !important;
-        }}
-        
-        .code-line {{
-            display: flex;
-        }}
-        
-        .code-line.highlight {{
-            background-color: #004400;
-        }}
-        
-        .line-number {{
-            color: #666;
-            margin-right: 10px;
-            user-select: none;
-            min-width: 30px;
-            text-align: right;
-        }}
-        
-        .line-content {{
-            flex: 1;
-        }}
-        
-        .payload-section {{
-            background: #2a2a2a;
-            border: 1px solid #444;
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 4px;
-        }}
-        
-        .payload-item {{
-            background: #333;
-            color: #ffff00;
-            padding: 8px;
-            margin: 5px 0;
-            border-radius: 3px;
-            font-size: 0.9em;
-        }}
-        
-        .pcock-deploy-btn {{
-            background: linear-gradient(45deg, #00ff00, #00cc00);
-            color: #000;
-            border: none;
-            padding: 12px 20px;
-            font-weight: bold;
-            font-family: 'Courier New', monospace;
-            cursor: pointer;
-            border-radius: 5px;
-            margin: 10px 0;
-            width: 100%;
-            transition: all 0.3s ease;
-        }}
-        
-        .pcock-deploy-btn:hover {{
-            background: linear-gradient(45deg, #00cc00, #009900);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 255, 0, 0.3);
-        }}
-        
-        .status-indicator {{
-            padding: 4px 8px;
-            border-radius: 3px;
-            font-size: 0.8em;
-            margin-left: 10px;
-        }}
-        
-        .status-success {{
-            background: #00ff00;
-            color: #000;
-        }}
-        
-        .status-qwen {{
-            background: #ff6600;
-            color: white;
-        }}
-        
-        .status-llama {{
-            background: #0066ff;
-            color: white;
-        }}
-    </style>
-</head>
-<body>
-    <div class="xedit-container">
-        <!-- LEFT PANEL: Functions & Classes -->
-        <div class="left-panel">
-            <div class="panel-header">
-                🔧 Functions & Classes
-                <span class="model-indicator">{model_type.upper()}</span>
-            </div>
-            {functions_html}
-            
-            <div class="panel-header" style="margin-top: 20px;">
-                🚀 Deploy
-            </div>
-            <button class="pcock-deploy-btn" onclick="deployToPcock()">
-                🦚 PCOCK Deploy
-            </button>
-            <div id="deploy-status"></div>
-        </div>
-        
-        <!-- CENTER PANEL: Code Display -->
-        <div class="center-panel">
-            <div class="panel-header">
-                💻 Generated Code
-                <span class="status-indicator status-{model_type}">{model_used}</span>
-            </div>
-            <div class="code-display" id="code-display">
-{code_html}
-            </div>
-        </div>
-        
-        <!-- RIGHT PANEL: Payload -->
-        <div class="right-panel">
-            <div class="panel-header">
-                🎯 Payload
-            </div>
-            <div class="payload-section">
-                <div class="payload-item">
-                    <strong>Project:</strong> {project_name}
-                </div>
-                <div class="payload-item">
-                    <strong>Session:</strong> {session_id}
-                </div>
-                <div class="payload-item">
-                    <strong>Model:</strong> {model_used}
-                </div>
-                <div class="payload-item">
-                    <strong>Files:</strong> {len(code_files)}
-                </div>
-            </div>
-            
-            <div class="panel-header" style="margin-top: 10px;">
-                ⚠️ Issues
-            </div>
-            <div id="payload-issues">
-                <div style="color: #666; text-align: center; padding: 20px;">
-                    No issues detected
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        /* XEdit navigation paths */
-        const xeditPaths = {json.dumps(xedit_paths, indent=2)};
-        
-        /* Project data for deployment */
-        const projectData = {json.dumps(parsed_data, indent=2)};
-        
-        function highlightFunction(xeditId) {{
-            /* Remove existing highlights */
-            document.querySelectorAll('.function-item, .class-item').forEach(item => {{
-                item.classList.remove('highlighted');
-            }});
-            
-            /* Highlight selected item */
-            event.target.closest('.function-item, .class-item').classList.add('highlighted');
-            
-            /* Get path data */
-            const pathData = xeditPaths[xeditId];
-            if (!pathData) return;
-            
-            /* Clear previous highlights */
-            document.querySelectorAll('.code-line').forEach(line => {{
-                line.classList.remove('highlight');
-            }});
-            
-            /* Highlight the code lines */
-            const lineStart = parseInt(pathData.line_start || 1);
-            const lineEnd = parseInt(pathData.line_end || lineStart + 10);
-            
-            for (let i = lineStart; i <= lineEnd; i++) {{
-                const lineElement = document.querySelector(`.code-line[data-line="${i}"]`);
-                if (lineElement) {{
-                    lineElement.classList.add('highlight');
-                    
-                    /* Scroll to the first highlighted line */
-                    if (i === lineStart) {{
-                        lineElement.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
-                    }}
-                }}
-            }}
-        }}
-        
-        function addToPayload(functionName, issue) {{
-            const payloadIssues = document.getElementById('payload-issues');
-            
-            /* Remove "no issues" message */
-            if (payloadIssues.textContent.includes('No issues detected')) {{
-                payloadIssues.innerHTML = '';
-            }}
-            
-            /* Add new issue */
-            const issueDiv = document.createElement('div');
-            issueDiv.className = 'payload-item';
-            issueDiv.innerHTML = `
-                <strong>${{functionName}}:</strong><br>
-                ${{issue}}
-                <button style="float: right; background: #ff0000; color: white; border: none; padding: 2px 6px; cursor: pointer;" onclick="this.parentElement.remove()">×</button>
-            `;
-            payloadIssues.appendChild(issueDiv);
-        }}
-        
-        function deployToPcock() {{
-            const deployBtn = document.querySelector('.pcock-deploy-btn');
-            const deployStatus = document.getElementById('deploy-status');
-            
-            /* Show loading state */
-            deployBtn.disabled = true;
-            deployBtn.textContent = '🔄 Deploying...';
-            deployStatus.innerHTML = '<div style="color: #ffff00;">Preparing deployment...</div>';
-            
-            /* Prepare deployment data */
-            const deploymentData = {{
-                project_name: projectData.project_name || "Peacock Project",
-                session_id: '{session_id}',
-                project_files: projectData.code_files || [],
-                timestamp: new Date().toISOString()
-            }};
-            
-            /* Call deployment API */
-            fetch('http://127.0.0.1:8000/deploy', {{
-                method: 'POST',
-                headers: {{
-                    'Content-Type': 'application/json'
-                }},
-                body: JSON.stringify(deploymentData)
-            }})
-            .then(response => response.json())
-            .then(data => {{
-                if (data.success) {{
-                    deployBtn.textContent = '✅ Deployed!';
-                    deployBtn.style.background = 'linear-gradient(45deg, #00ff00, #00cc00)';
-                    deployStatus.innerHTML = `
-                        <div style="color: #00ff00;">
-                            ✅ Deployment successful!<br>
-                            📦 .pcock file created<br>
-                            🌐 <a href="${{data.app_url}}" target="_blank" style="color: #00ffff;">Open App</a>
-                        </div>
-                    `;
-                    
-                    /* Auto-open app if requested */
-                    if (data.app_url) {{
-                        setTimeout(() => {{
-                            window.open(data.app_url, '_blank');
-                        }}, 1000);
-                    }}
-                }} else {{
-                    throw new Error(data.error || 'Deployment failed');
-                }}
-            }})
-            .catch(error => {{
-                deployBtn.textContent = '❌ Deploy Failed';
-                deployBtn.style.background = 'linear-gradient(45deg, #ff0000, #cc0000)';
-                deployStatus.innerHTML = `
-                    <div style="color: #ff0000;">
-                        ❌ Deployment failed:<br>
-                        ${{error.message}}
-                    </div>
-                `;
-            }})
-            .finally(() => {{
-                deployBtn.disabled = false;
-                setTimeout(() => {{
-                    deployBtn.textContent = '🦚 PCOCK Deploy';
-                    deployBtn.style.background = 'linear-gradient(45deg, #00ff00, #00cc00)';
-                }}, 3000);
-            }});
-        }}
-        
-        /* Initialize page */
-        document.addEventListener('DOMContentLoaded', function() {{
-            console.log('🦚 XEdit Enhanced Interface Loaded');
-            console.log('Model Type:', '{model_type}');
-            console.log('XEdit Paths:', Object.keys(xeditPaths).length);
-        }});
-    </script>
-</body>
-</html>"""
-        
-        # Save HTML file
-        html_filename = f"xedit-{session_id}.html"
-        html_filepath = os.path.join(self.html_dir, html_filename)
-        
-        with open(html_filepath, 'w', encoding='utf-8') as f:
-            f.write(html_content)
-        
-        print(f"✅ Enhanced XEdit HTML generated: {html_filepath}")
-        return html_filepath
+        return ParsedResponse(
+            project_overview=overview,
+            code_files=code_files,
+            total_files=len(code_files),
+            total_chars=sum(cf.size_chars for cf in code_files),
+            xedit_paths=self._generate_xedit_paths(code_files),
+            parsing_success=len(code_files) > 0
+        )
 
-    def _get_model_type(self, model_name: str) -> str:
-        """Determine model type from model name"""
-        model_name = model_name.lower()
-        if "qwen" in model_name:
-            return "qwen"
-        elif "llama" in model_name:
-            return "llama"
-        elif "gemma" in model_name:
-            return "gemma"
-        else:
-            return "unknown"
+    def _create_code_file(self, filename: str, content: str) -> CodeFile:
+        lang = self._detect_language(filename)
+        # Clean up the start/end of the code block
+        content = re.sub(r'^```[a-zA-Z]*\n|```\s*$', '', content).strip()
+        return CodeFile(filename=filename, content=content, language=lang, size_chars=len(content),
+                        functions=self._extract_patterns(content, lang, 'functions'),
+                        classes=self._extract_patterns(content, lang, 'classes'),
+                        xedit_id=f"file_{hashlib.md5(filename.encode()).hexdigest()[:6]}")
 
-    def _generate_functions_html(self, xedit_paths: Dict[str, Dict[str, Any]]) -> str:
-        """Generate HTML for functions and classes list"""
-        
-        if not xedit_paths:
-            return '<div style="color: #666; text-align: center; padding: 20px;">No functions found</div>'
+    def _detect_language(self, filename: str) -> str:
+        for pattern, lang in self.language_patterns.items():
+            if re.search(pattern, filename): return lang
+        return 'text'
+
+    def _extract_patterns(self, content: str, lang: str, p_type: str) -> List[str]:
+        patterns = self.extraction_patterns.get(lang, {}).get(p_type, [])
+        return re.findall(r'|'.join(patterns), content) if patterns else []
+
+    def _generate_xedit_paths(self, code_files: List[CodeFile]) -> List[Dict[str, Any]]:
+        paths = []
+        for cf in code_files:
+            for i, func in enumerate(cf.functions):
+                paths.append({'id': f"{cf.xedit_id}_f{i}", 'name': func, 'type': 'FUNCTION', 'file': cf.filename})
+            for i, cls in enumerate(cf.classes):
+                paths.append({'id': f"{cf.xedit_id}_c{i}", 'name': cls, 'type': 'CLASS', 'file': cf.filename})
+        return paths
+
+    def _escape_html(self, text: str) -> str:
+        """Properly escape text for HTML display."""
+        return text.replace('&', '&').replace('<', '<').replace('>', '>').replace('"', '"').replace("'", ''')
+
+    def generate_xedit_html(self, parsed_data: ParsedResponse, session_id: str, project_name: str) -> str:
+        html_dir = Path("/home/flintx/peacock/html")
+        html_dir.mkdir(exist_ok=True)
+        output_path = html_dir / f"xedit-{session_id}.html"
+
+        if not parsed_data.parsing_success:
+            error_html = f"<h1>XEdit Parsing Error</h1><p>{self._escape_html(parsed_data.project_overview)}</p>"
+            with open(output_path, 'w', encoding='utf-8') as f: f.write(error_html)
+            return str(output_path)
         
         functions_html = ""
-        
-        # Group by type
-        functions = {k: v for k, v in xedit_paths.items() if v["type"] == "function"}
-        classes = {k: v for k, v in xedit_paths.items() if v["type"] == "class"}
-        
-        # Functions section
-        if functions:
-            functions_html += '<div style="margin-bottom: 15px;"><strong style="color: #ff6600;">⚡ Functions:</strong></div>'
-            for xedit_id, data in functions.items():
-                functions_html += f'''
-                <div class="function-item" onclick="highlightFunction('{xedit_id}')">
-                    <span class="function-icon">⚡</span>
-                    <strong>{data["display_name"]}</strong>
-                    <div style="font-size: 0.8em; color: #888; margin-top: 3px;">
-                        {data["filename"]} • Lines {data["lines_display"]}
-                    </div>
-                    <button class="hover-button" onclick="event.stopPropagation(); addToPayload('{data['display_name']}', 'Function needs review')">+</button>
-                </div>
-                '''
-        
-        # Classes section  
-        if classes:
-            functions_html += '<div style="margin: 15px 0;"><strong style="color: #6600ff;">🏗️ Classes:</strong></div>'
-            for xedit_id, data in classes.items():
-                functions_html += f'''
-                <div class="class-item" onclick="highlightFunction('{xedit_id}')">
-                    <span class="class-icon">🏗️</span>
-                    <strong>{data["display_name"]}</strong>
-                    <div style="font-size: 0.8em; color: #888; margin-top: 3px;">
-                        {data["filename"]} • Lines {data["lines_display"]}
-                    </div>
-                    <button class="hover-button" onclick="event.stopPropagation(); addToPayload('{data['display_name']}', 'Class needs review')">+</button>
-                </div>
-                '''
-        
-        return functions_html
+        for path in parsed_data.xedit_paths:
+            icon = "⚡" if path['type'] == 'FUNCTION' else "🏗️"
+            # Using single quotes for JS onclick to avoid escaping hell
+            functions_html += f"""
+            <div class='function-item' onclick='highlightCode(`{path['name']}`, `{path['type']}`)'>
+                <span>{icon} {path['name']}()</span>
+                <span class='item-type'>{path['type']}</span>
+                <button class='add-btn' onclick="event.stopPropagation(); addToPayload('{path['id']}', '{path['name']}')">+</button>
+            </div>"""
 
-    def _generate_code_html(self, code_files: List[Dict[str, Any]]) -> str:
-        """Generate HTML for code display with line numbers and data attributes for highlighting"""
-        
-        if not code_files:
-            return "No code files found"
-        
         code_html = ""
-        
-        for i, file_data in enumerate(code_files):
-            # Add file separator
-            if i > 0:
-                code_html += "\n" + "="*80 + "\n"
-            
-            # Add file header
-            code_html += f"// FILE: {file_data['filename']} ({file_data['language']})\n"
-            code_html += "//" + "="*78 + "\n\n"
-            
-            # Add code content with line numbers and data attributes
-            lines = file_data['code'].split('\n')
-            for line_num, line in enumerate(lines, 1):
-                # Escape HTML characters
-                escaped_line = line.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-                code_html += f'<div class="code-line" data-line="{line_num}"><span class="line-number">{line_num}</span><span class="line-content">{escaped_line}</span></div>\n'
-            
-            code_html += "\n"
-        
-        return code_html
+        for cf in parsed_data.code_files:
+            escaped_code = self._escape_html(cf.content)
+            code_html += f"<h3>{cf.filename}</h3><pre><code class='language-{cf.language}'>{escaped_code}</code></pre>"
 
-def get_session_timestamp():
-    """Generate session timestamp in week-day-hourminute format"""
-    now = datetime.datetime.now()
-    week = now.isocalendar()[1]
-    day = now.day
-    hour_minute = now.strftime("%H%M")
-    return f"{week}-{day}-{hour_minute}"
+        final_html = f"""
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<title>🦚 Peacock XEdit Interface - {project_name}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+    body, html {{ margin: 0; padding: 0; font-family: 'SF Mono', 'Menlo', monospace; background: #0d1117; color: #c9d1d9; }}
+    .container {{ display: flex; height: 100vh; }}
+    .sidebar, .main, .payload-bar {{ padding: 15px; overflow-y: auto; }}
+    .sidebar {{ width: 25%; background: #161b22; border-right: 1px solid #30363d; }}
+    .main {{ width: 50%; }}
+    .payload-bar {{ width: 25%; background: #161b22; border-left: 1px solid #30363d;}}
+    .function-item {{ display: flex; justify-content: space-between; align-items: center; padding: 8px; margin-bottom: 5px; background: #21262d; border-radius: 6px; cursor: pointer; border: 1px solid #30363d; transition: background-color 0.2s; }}
+    .function-item:hover {{ background-color: #30363d; }}
+    .item-type {{ font-size: 0.7em; padding: 2px 5px; background: #30363d; border-radius: 4px; }}
+    .add-btn {{ background: #c9d1d9; color: #161b22; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-weight: bold; }}
+    h2 {{ color: #58a6ff; border-bottom: 1px solid #30363d; padding-bottom: 10px; margin-bottom: 10px;}}
+    h3 {{ color: #c9d1d9; margin-top: 20px; margin-bottom: 10px; }}
+    pre code {{ border-radius: 6px; padding: 1em !important; }}
+    .highlight {{ background-color: rgba(255, 229, 100, 0.15); box-shadow: -3px 0 0 0 #ffaf38; }}
+</style>
+</head><body><div class="container">
+<div class="sidebar"><h2>Functions & Classes</h2><div id="functions-list">{functions_html}</div></div>
+<div class="main"><h2>Generated Code</h2><div id="code-container">{code_html}</div></div>
+<div class="payload-bar"><h2>Optimized Payload</h2><div id="payload-display">Click functions to add to payload...</div></div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());
+    const payload = [];
+    function highlightCode(name, type) {{
+        document.querySelectorAll('span.highlight').forEach(el => el.classList.remove('highlight'));
+        // Build a robust regex to find the function/class definition
+        const cleanedName = name.replace(/[-\/\\^$*+?.()|[\]{{}}]/g, '\\\\$&');
+        const regex = new RegExp('(class|def|function)\\\\s+' + cleanedName + '[\\\\s(:]', 'g');
+        const codeElements = document.querySelectorAll('code');
+        codeElements.forEach(el => {{
+            const codeText = el.textContent;
+            if (codeText.match(regex)) {{
+                const highlightedText = codeText.replace(regex, `<span class="highlight">$&</span>`);
+                el.innerHTML = highlightedText;
+                // Scroll to the highlighted element
+                const highlightedEl = el.querySelector('.highlight');
+                if(highlightedEl) highlightedEl.scrollIntoView({{behavior: 'smooth', block: 'center'}});
+            }}
+        }});
+    }}
+    function addToPayload(id, name) {{
+        if (!payload.find(p => p.id === id)) {{
+            payload.push({{id, name}});
+            updatePayloadUI();
+        }}
+    }}
+    function updatePayloadUI() {{
+        const container = document.getElementById('payload-display');
+        container.innerHTML = payload.map(p => `<div class="payload-item">${{p.name}}</div>`).join('');
+    }}
+</script>
+</body></html>"""
+        
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(final_html)
+        print(f"✅ Professional XEdit HTML generated: {output_path}")
+        return str(output_path)
 
-class PeacockResponseParser:
-    """Parse LLM responses into structured content for XEdit generation"""
-    
-    def __init__(self):
-        self.session_timestamp = get_session_timestamp()
-        
-    def parse_llm_response(self, response_text: str, project_name: str = "Generated Project") -> Dict[str, Any]:
-        """Main parsing function - converts raw LLM response to structured data"""
-        parsed_data = {
-            "project_name": project_name,
-            "session_timestamp": self.session_timestamp,
-            "code_files": self._extract_code_files(response_text),
-            "parsing_success": True
-        }
-        return parsed_data
-    
-    def _extract_code_files(self, text: str) -> List[Dict[str, Any]]:
-        """Extract code files from response"""
-        code_files = []
-        
-        # First try to find filename-based code blocks
-        filename_pattern = r'```filename:\s*([^\n]+)\n(.*?)\n```'
-        filename_matches = re.findall(filename_pattern, text, re.DOTALL)
-        
-        if filename_matches:
-            for filename, code in filename_matches:
-                language = self._detect_language_from_filename(filename.strip())
-                code_files.append({
-                    "id": f"file{len(code_files)+1:03d}",
-                    "filename": filename.strip(),
-                    "language": language,
-                    "code": code.strip(),
-                    "size": len(code.strip()),
-                    "type": "code_file"
-                })
-        else:
-            # Fallback to standard code blocks
-            pattern = r'```(\w+)?\s*(.*?)```'
-            matches = re.findall(pattern, text, re.DOTALL)
-            
-            for i, (language, code) in enumerate(matches):
-                if len(code.strip()) > 50:  # Only substantial code blocks
-                    lang = language.strip() if language else "text"
-                    filename = self._infer_filename(lang, i)
-                    code_files.append({
-                        "id": f"file{len(code_files)+1:03d}",
-                        "filename": filename,
-                        "language": lang,
-                        "code": code.strip(),
-                        "size": len(code.strip()),
-                        "type": "code_file"
-                    })
-        
-        return code_files
-    
-    def _detect_language_from_filename(self, filename: str) -> str:
-        """Detect language from filename extension"""
-        ext_map = {
-            '.py': 'python',
-            '.js': 'javascript',
-            '.html': 'html',
-            '.css': 'css',
-            '.json': 'json',
-            '.md': 'markdown',
-            '.txt': 'text',
-            '.sh': 'bash',
-            '.sql': 'sql'
-        }
-        
-        for ext, lang in ext_map.items():
-            if filename.lower().endswith(ext):
-                return lang
-        
-        return 'text'
-    
-    def _infer_filename(self, language: str, index: int) -> str:
-        """Infer a filename based on language and index"""
-        if language == 'python':
-            return f"script{index+1}.py"
-        elif language == 'javascript':
-            return f"script{index+1}.js"
-        elif language == 'html':
-            return "index.html"
-        elif language == 'css':
-            return "style.css"
-        else:
-            return f"file{index+1}.{language}"
+def create_enhanced_xedit_parser(): return EnhancedXEditParser()
 
-class XEditInterfaceGenerator:
-    """Generate HTML XEdit interfaces"""
-    
-    def generate_xedit_interface_html(self, parsed_data: Dict[str, Any], xedit_paths: List[Dict[str, Any]]) -> str:
-        """Generate complete XEdit HTML interface"""
-        # Create enhanced generator and use it
-        generator = EnhancedXEditGenerator()
-        
-        # Convert xedit_paths list to dictionary with ID keys
-        xedit_paths_dict = {}
-        for i, path in enumerate(xedit_paths):
-            path_id = path.get("id", f"7x{i+1:03d}")
-            xedit_paths_dict[path_id] = path
-        
-        # Generate the HTML
-        return generator.generate_enhanced_xedit_html(parsed_data, xedit_paths_dict, parsed_data.get("session_timestamp", get_session_timestamp()))
-
-def main():
-    """Main entry point for enhanced XEdit generation"""
-    parser = argparse.ArgumentParser(description='Enhanced XEdit Generator')
-    parser.add_argument('--data-file', required=True, help='Path to JSON data file')
-    parser.add_argument('--session-id', required=True, help='Session ID')
-    
-    args = parser.parse_args()
-    
-    # Load data
-    try:
-        with open(args.data_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        
-        parsed_data = data['parsed_data']
-        xedit_paths = data['xedit_paths']
-        
-    except Exception as e:
-        print(json.dumps({"success": False, "error": f"Failed to load data: {e}"}))
-        return
-    
-    # Generate XEdit interface
-    try:
-        generator = EnhancedXEditGenerator()
-        xedit_file = generator.generate_enhanced_xedit_html(parsed_data, xedit_paths, args.session_id)
-        
-        print(json.dumps({
-            "success": True,
-            "xedit_file": xedit_file,
-            "message": "Enhanced XEdit interface generated successfully"
-        }))
-        
-    except Exception as e:
-        print(json.dumps({"success": False, "error": f"XEdit generation failed: {e}"}))
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    print("This is a library module. It should be imported by the MCP.")

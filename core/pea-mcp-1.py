@@ -23,9 +23,9 @@ import requests
 from pathlib import Path
 
 # Add aviary to path for bird imports
-sys.path.insert(0, "/home/flintx/peacock/aviary")
-sys.path.append(str(Path(__file__).parent.parent / "aviary"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "aviary"))
 from out_homing import create_homing_orchestrator
+from enhanced_xedit_parser import create_enhanced_xedit_parser
 from in_homing import InHomingProcessor
 
 # --- CYBERPUNK CONFIGURATION ---
@@ -33,14 +33,41 @@ HOST = "127.0.0.1"
 PORT = 8000
 PROCESS_PATH = "/process"
 DEPLOY_PATH = "/deploy" # New endpoint for deployment
+LOG_INPUT_PATH = "/log_input" # New endpoint for input logging
 LOGGING_ENABLED = False
 
-# CHAMPION MODEL STRATEGY
+# CHAMPION MODEL STRATEGY (Championship Configuration)
 PEACOCK_MODEL_STRATEGY = {
-    "primary_model": "meta-llama/llama-4-scout-17b-16e-instruct",
-    "detailed_model": "meta-llama/llama-4-maverick-17b-128e-instruct", 
-    "speed_model": "llama-3.1-8b-instant",
-    "fallback_model": "llama-3.3-70b-versatile"
+    "scout_model": "meta-llama/llama-4-scout-17b-16e-instruct",      # Spark/Falcon
+    "maverick_model": "meta-llama/llama-4-maverick-17b-128e-instruct", # Eagle/Hawk
+    "final_model": "qwen/qwen3-32b",                                 # Final generation
+    "fallback_model": "llama-3.3-70b-versatile"                     # Emergency fallback
+}
+
+# API KEY ROTATION CONFIGURATION
+GROQ_API_KEYS = [
+    os.getenv("GROQ_API_KEY"),
+    os.getenv("GROQ_API_KEY_1"),
+    os.getenv("GROQ_API_KEY_3"),
+    os.getenv("GROQ_API_KEY_4"),
+    os.getenv("GROQ_API_KEY_6"),
+    os.getenv("GROQ_API_KEY_7"),
+    os.getenv("GROQ_API_KEY_8"),
+    os.getenv("GROQ_API_KEY_9"),
+    os.getenv("GROQ_API_KEY_10")
+]
+
+# Filter out None values and track current key
+GROQ_API_KEYS = [key for key in GROQ_API_KEYS if key]
+CURRENT_KEY_INDEX = 0
+
+# STANDARDIZED MODEL PARAMETERS (per championship guide)
+STANDARD_MODEL_PARAMS = {
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "top_k": 20,
+    "min_p": 0,
+    "max_tokens": 4096
 }
 
 # SESSION MANAGEMENT
@@ -135,8 +162,8 @@ def show_init_box():
 def show_config_box():
     """Show configuration box"""
     print(f"╔═════════════════════════════════════════════════════════════╗")
-    print(f"   ♔ Primary Model: {PEACOCK_MODEL_STRATEGY['primary_model']}")
-    print(f"   ♖ Speed Model: {PEACOCK_MODEL_STRATEGY['speed_model']}")
+    print(f"   ♔ Scout Model: {PEACOCK_MODEL_STRATEGY['scout_model']}")
+    print(f"   ♖ Maverick Model: {PEACOCK_MODEL_STRATEGY['maverick_model']}")
     print(f"   📊 Logging: {'Enabled' if LOGGING_ENABLED else 'Disabled'}")
     print(f"   👉 Session: {SESSION_TIMESTAMP}")
     print(f"╚═════════════════════════════════════════════════════════════╝")
@@ -168,10 +195,10 @@ def show_character_count_summary(stage_results: dict):
     
     print(f"┕━━━━━»•» 🌺 «•«━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┙")
 
-def log_to_file(log_type: str, content: str):
+def log_to_file(log_type: str, content: str, force_log: bool = False):
     """Enhanced logging with cyberpunk timestamps"""
     global LOGGING_ENABLED
-    if not LOGGING_ENABLED:
+    if not LOGGING_ENABLED and not force_log:
         return
     
     timestamp = datetime.datetime.now().isoformat()
@@ -207,7 +234,7 @@ class CyberpunkRequestHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        """Handle GET requests - health check"""
+        """Handle GET requests - health check and file serving"""
         if self.path == "/":
             self.send_response(200)
             self.send_header("Content-type", "application/json")
@@ -222,6 +249,22 @@ class CyberpunkRequestHandler(http.server.BaseHTTPRequestHandler):
                 "cyberpunk_mode": True
             }
             self.wfile.write(json.dumps(health_data).encode("utf-8"))
+        elif self.path.startswith("/xedit/"):
+            # Serve XEdit HTML files
+            filename = self.path[7:]  # Remove '/xedit/' prefix
+            filepath = Path("/home/flintx/peacock/html") / filename
+            
+            if filepath.exists() and filepath.suffix == '.html':
+                self.send_response(200)
+                self.send_header("Content-type", "text/html")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                
+                with open(filepath, 'rb') as f:
+                    self.wfile.write(f.read())
+            else:
+                self.send_response(404)
+                self.end_headers()
         else:
             self.send_response(404)
             self.end_headers()
@@ -236,13 +279,15 @@ class CyberpunkRequestHandler(http.server.BaseHTTPRequestHandler):
             command = received_data.get('command', 'unknown')
             text_to_process = received_data.get('text', '')
             timestamp = received_data.get('timestamp', SESSION_TIMESTAMP)
-            final_model_choice = received_data.get('final_model_choice', 'qwen-32b-instruct') # Get model choice
+            final_model_choice = received_data.get('final_model_choice', 'qwen-32b-instruct')
+            enable_logging = received_data.get('enable_logging', True)
 
             show_uniform_box(f"Processing command: {command} with model {final_model_choice}", "🚀")
-            log_to_file('prompt', f"Command: {command}\nInput: {text_to_process}\nModel: {final_model_choice}\n{'-'*40}")
+            log_to_file('prompt', f"Command: {command}\nInput: {text_to_process}\nModel: {final_model_choice}\n{'-'*40}", force_log=enable_logging)
+            log_to_file('mcp', f"Processing command: {command} for session: {timestamp}", force_log=enable_logging)
 
             if command == "peacock_full":
-                result = self.process_with_birds(text_to_process, timestamp, final_model_choice)
+                result = self.process_with_birds(text_to_process, timestamp, final_model_choice, enable_logging)
             else:
                 result = {"success": False, "error": f"Unknown command: {command}"}
 
@@ -251,6 +296,21 @@ class CyberpunkRequestHandler(http.server.BaseHTTPRequestHandler):
             project_files = received_data.get('project_files', [])
             show_uniform_box(f"Deploying project: {project_name}", "🦚")
             result = self.deploy_pcock_project(project_name, project_files)
+
+        elif self.path == LOG_INPUT_PATH:
+            prompt = received_data.get('prompt', '')
+            session = received_data.get('session', SESSION_TIMESTAMP)
+            model_choice = received_data.get('model_choice', 'unknown')
+            
+            show_uniform_box(f"Logging user input for session: {session}", "📝")
+            
+            # Force log user input regardless of LOGGING_ENABLED
+            timestamp = datetime.datetime.now().isoformat()
+            log_to_file('prompt', f"[{timestamp}] USER INPUT: {prompt}", force_log=True)
+            log_to_file('prompt', f"[{timestamp}] MODEL CHOICE: {model_choice}", force_log=True)
+            log_to_file('prompt', f"[{timestamp}] SESSION: {session}", force_log=True)
+            
+            result = {"success": True, "message": "Input logged successfully"}
 
         else:
             result = {"success": False, "error": f"Unknown endpoint: {self.path}"}
@@ -269,72 +329,38 @@ class CyberpunkRequestHandler(http.server.BaseHTTPRequestHandler):
         else:
             show_uniform_box(f"ERROR: Request to {self.path} failed", "❌")
             
-        log_to_file('response', response_data)
+        # Always log responses for debugging
+        log_to_file('response', response_data, force_log=True)
     
-    def process_with_birds(self, user_request: str, session_timestamp: str, final_model_choice: str):
-        """Process using OUT-HOMING bird orchestration - EXACT COPY FROM WORKING VERSION"""
-        
-        show_uniform_box(f"Starting OUT-HOMING orchestration with {final_model_choice}", "🐦")
-        log_to_file('mcp', f"Starting bird orchestration for: {user_request[:100]}... using {final_model_choice}")
-        
+    def process_with_birds(self, user_request: str, session_timestamp: str, final_model_choice: str, enable_logging: bool = True):
+        show_uniform_box(f"Starting Championship Pipeline for: {user_request[:50]}...", "🏆")
         try:
-            # Create orchestrator and run pipeline
             homing = create_homing_orchestrator()
-            pipeline_result = homing.orchestrate_full_pipeline(user_request, final_model_choice)
-            
+            pipeline_result = homing.orchestrate_full_pipeline(user_request)
+
             if not pipeline_result.get("success"):
-                error_msg = f"Pipeline failed: {pipeline_result.get('error', 'Unknown error')}"
-                log_to_file('mcp', f"Pipeline failed: {error_msg}")
-                return {"success": False, "error": error_msg}
+                return {"success": False, "error": pipeline_result.get("error", "Unknown pipeline error")}
 
-            # EXACT COPY FROM WORKING VERSION - Extract character counts properly
-            stage_results = pipeline_result.get("stage_results", {})
-            
-            # Build the response data that matches what the web UI expects - EXACT COPY
-            response_stage_data = {}
-            
-            for stage_name, stage_data in stage_results.items():
-                # Get character count from multiple possible sources - EXACT COPY
-                char_count = (
-                    stage_data.get("char_count") or 
-                    stage_data.get("chars") or
-                    len(stage_data.get("response", "")) or 
-                    len(stage_data.get("text", "")) or
-                    0
-                )
-                
-                response_stage_data[stage_name] = {
-                    "chars": char_count,  # This is what the web UI looks for
-                    "char_count": char_count,  # Backup field
-                    "model": stage_data.get("model", "unknown"),
-                    "success": stage_data.get("success", False),
-                    "response": stage_data.get("response", stage_data.get("text", ""))
-                }
+            raw_code_output = pipeline_result.get("final_response")
+            session_id = pipeline_result.get("session_id", session_timestamp)
 
-            # Show the character count summary in terminal
-            show_character_count_summary(response_stage_data)
-            
-            log_to_file('mcp', f"Pipeline completed successfully")
-            
-            # CRITICAL: Return data in the EXACT format the working dashboard expects
+            if not raw_code_output or raw_code_output.startswith("# API CALL FAILED"):
+                return {"success": False, "error": f"Code generation failed: {raw_code_output}"}
+
+            parser = create_enhanced_xedit_parser()
+            parsed_data = parser.parse_llm_response(raw_code_output)
+            xedit_file_path = parser.generate_xedit_html(parsed_data, session_id, user_request[:50])
+
             return {
                 "success": True,
-                "xedit_file_path": pipeline_result.get("xedit_file_path"),
-                "project_files": pipeline_result.get("project_files", []),
-                "pipeline_result": {
-                    "stage_results": response_stage_data,  # This is what the JS looks for
-                    "session_timestamp": session_timestamp,
-                    "api_calls_made": pipeline_result.get("api_calls_made", 0),
-                    "model_used": pipeline_result.get("model_used", final_model_choice)
-                },
-                "stage_results": response_stage_data  # Also include at top level for compatibility
+                "xedit_file_path": xedit_file_path,
+                "session_id": session_id,
+                "project_files": [{"name": cf.filename, "content": cf.content} for cf in parsed_data.code_files]
             }
-            
         except Exception as e:
-            error_msg = f"Birds error: {str(e)}"
-            print(f"{CyberStyle.NEON_RED}❌ {error_msg}{CyberStyle.RESET}")
-            log_to_file('mcp', error_msg)
-            return {"success": False, "error": error_msg}
+            import traceback
+            traceback.print_exc()
+            return {"success": False, "error": f"MCP error: {str(e)}"}
 
     def deploy_pcock_project(self, project_name: str, project_files: list):
         """Handles the deployment of a PCOCK project."""
@@ -343,9 +369,9 @@ class CyberpunkRequestHandler(http.server.BaseHTTPRequestHandler):
             deploy_result = in_homing_processor.deploy_and_run(project_files, project_name)
             return deploy_result
         except Exception as e:
-            error_msg = f"PCOCK Deploy error: {str(e)}"
+            error_msg = f"Peacock Build error: {str(e)}"
             print(f"{CyberStyle.NEON_RED}❌ {error_msg}{CyberStyle.RESET}")
-            log_to_file('mcp', error_msg)
+            log_to_file('mcp', error_msg, force_log=True)
             return {"success": False, "error": error_msg}
 
 def log_enhanced_response(response_payload, parsing_result):
@@ -370,14 +396,9 @@ def main():
     """Main server startup with UNIFORM CYBERPUNK LAYOUT"""
     global LOGGING_ENABLED, PORT
     
-    parser = argparse.ArgumentParser(description="Peacock MCP Server - Cyberpunk Edition")
-    parser.add_argument("--log", action="store_true", help="Enable comprehensive logging")
-    parser.add_argument("--port", type=int, default=8000, help="Server port (default: 8000)")
-    
-    args = parser.parse_args()
-    
-    LOGGING_ENABLED = args.log
-    PORT = args.port
+    # Hardcode logging to TRUE for development. No more forgetting the flag.
+    LOGGING_ENABLED = True
+    PORT = 8000
     
     # Create logs directory
     if LOGGING_ENABLED:
