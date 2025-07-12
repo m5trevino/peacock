@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦚 Peacock XEdit Interface (Optimized)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'SF Mono', monospace; background: #0d1117; color: #e6edf3; height: 100vh; overflow: hidden; }
+        .header { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .peacock-logo { font-size: 18px; font-weight: bold; color: #ff6b35; }
+        .nav-links { display: flex; gap: 16px; align-items: center; }
+        .nav-link { background: #21262d; border: 1px solid #30363d; color: #e6edf3; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .nav-link.active { background: #ff6b35; color: #0d1117; }
+        .project-info { color: #8b949e; font-size: 14px; }
+        .session-info { background: rgba(0, 255, 136, 0.1); border: 1px solid #00ff88; border-radius: 6px; padding: 4px 8px; font-size: 12px; color: #00ff88; }
+        .optimization-badge { background: rgba(255, 107, 53, 0.1); border: 1px solid #ff6b35; border-radius: 6px; padding: 4px 8px; font-size: 12px; color: #ff6b35; margin-left: 8px; }
+        .main-container { display: flex; height: calc(100vh - 60px); }
+        .left-panel { width: 320px; background: #161b22; border-right: 1px solid #30363d; display: flex; flex-direction: column; }
+        .panel-header { background: #21262d; padding: 12px 16px; border-bottom: 1px solid #30363d; font-weight: 600; font-size: 13px; color: #7c3aed; display: flex; justify-content: space-between; align-items: center; }
+        .optimization-info { font-size: 11px; color: #ff6b35; }
+        .functions-list { flex: 1; overflow-y: auto; padding: 8px; }
+        .function-item { background: #21262d; border: 1px solid #30363d; border-radius: 6px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; position: relative; }
+        .function-item:hover { border-color: #ff6b35; background: #2d333b; transform: translateX(3px); }
+        .function-item.selected { border-color: #ff6b35; background: #2d333b; box-shadow: 0 0 0 1px #ff6b35; }
+        .function-info { display: flex; align-items: center; gap: 8px; }
+        .function-name { font-weight: 600; color: #79c0ff; }
+        .function-type { background: #30363d; color: #8b949e; padding: 2px 6px; border-radius: 3px; font-size: 10px; text-transform: uppercase; }
+        .model-indicator { background: #ff6b35; color: #0d1117; padding: 2px 4px; border-radius: 3px; font-size: 10px; margin-left: auto; }
+        .add-btn { position: absolute; top: 8px; right: 8px; background: #238636; border: none; color: white; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 14px; opacity: 0; transition: opacity 0.2s; }
+        .function-item:hover .add-btn { opacity: 1; }
+        .middle-panel { width: 340px; background: #161b22; border-right: 1px solid #30363d; display: flex; flex-direction: column; }
+        .payload-header { background: #238636; color: white; padding: 12px 16px; font-weight: 600; font-size: 14px; text-align: center; }
+        .payload-container { flex: 1; padding: 16px; display: flex; flex-direction: column; }
+        .payload-list { flex: 1; background: #21262d; border: 1px solid #30363d; border-radius: 8px; padding: 16px; margin-bottom: 16px; overflow-y: auto; min-height: 200px; }
+        .payload-empty { color: #6e7681; text-align: center; font-style: italic; margin-top: 50px; }
+        .payload-item { background: #2d333b; border: 1px solid #30363d; border-radius: 6px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .payload-item-info { display: flex; flex-direction: column; gap: 4px; }
+        .xedit-id { font-family: 'SF Mono', monospace; background: #30363d; color: #ff6b35; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .payload-model { font-size: 10px; color: #8b949e; }
+        .remove-btn { background: #da3633; border: none; color: white; width: 20px; height: 20px; border-radius: 3px; cursor: pointer; font-size: 12px; }
+        .strategy-overview { background: rgba(255, 107, 53, 0.1); border: 1px solid #ff6b35; border-radius: 8px; padding: 12px; margin-bottom: 16px; }
+        .strategy-title { color: #ff6b35; font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+        .strategy-models { font-size: 10px; color: #8b949e; line-height: 1.4; }
+        .send-button { width: 100%; background: #238636; border: none; color: white; padding: 15px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-bottom: 15px; }
+        .send-button:disabled { background: #30363d; color: #8b949e; cursor: not-allowed; }
+        .deploy-section { padding: 15px; background: rgba(46, 204, 113, 0.1); border: 1px solid #2ecc71; border-radius: 8px; }
+        .deploy-title { color: #2ecc71; margin-bottom: 10px; font-weight: 600; }
+        .deploy-info { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 12px; color: #8b949e; }
+        .deploy-button { width: 100%; padding: 12px; background: linear-gradient(45deg, #2ecc71, #27ae60); border: none; border-radius: 6px; color: white; font-weight: 600; cursor: pointer; }
+        .right-panel { flex: 1; background: #0d1117; display: flex; flex-direction: column; }
+        .code-header { background: #21262d; padding: 12px 16px; border-bottom: 1px solid #30363d; font-weight: 600; font-size: 13px; color: #f0883e; display: flex; justify-content: space-between; align-items: center; }
+        .model-status { font-size: 11px; color: #ff6b35; }
+        .code-container { flex: 1; overflow: auto; padding: 16px; }
+        .code-content { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 16px; font-family: 'SF Mono', monospace; font-size: 13px; line-height: 1.6; }
+        .code-line { display: flex; min-height: 20px; }
+        .code-line.highlighted { background: #2d333b; border-left: 3px solid #ff6b35; padding-left: 13px; }
+        .line-number { color: #6e7681; user-select: none; margin-right: 16px; min-width: 30px; text-align: right; }
+        .line-content { color: #e6edf3; flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="peacock-logo">🦚 Peacock XEdit Interface</div>
+        <div class="nav-links">
+            <div class="nav-link active">📝 XEdit</div>
+            <div class="nav-link">🤖 Models</div>
+            <div class="nav-link">💬 Senior Dev</div>
+        </div>
+        <div class="project-info">
+            Project: Restful Api • Session: <span class="session-info">test-20250711-214947</span>
+            <span class="optimization-badge">Multi-Model</span>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <div class="panel-header">
+                📋 Functions & Classes
+                <span class="optimization-info">Optimized</span>
+            </div>
+            <div class="functions-list">
+                
+            <div class="function-item" onclick="highlightFunction('7x001', 'pre', 12, 22)" data-id="7x001">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">pre</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('pre', 'function', '7x001')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x002', 'function', 19, 23)" data-id="7x002">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">function</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('function', 'function', '7x002')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x003', 'if', 7, 17)" data-id="7x003">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x003')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x004', 'catch', 15, 25)" data-id="7x004">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">catch</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('catch', 'function', '7x004')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x005', 'catch', 24, 34)" data-id="7x005">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">catch</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('catch', 'function', '7x005')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x006', 'catch', 34, 44)" data-id="7x006">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">catch</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('catch', 'function', '7x006')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x007', 'catch', 49, 59)" data-id="7x007">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">catch</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('catch', 'function', '7x007')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x008', 'catch', 59, 62)" data-id="7x008">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">catch</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('catch', 'function', '7x008')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x009', 'if', 8, 18)" data-id="7x009">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x009')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x010', 'catch', 17, 27)" data-id="7x010">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">catch</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('catch', 'function', '7x010')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x011', 'if', 25, 35)" data-id="7x011">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x011')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x012', 'if', 31, 40)" data-id="7x012">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x012')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x013', 'catch', 37, 40)" data-id="7x013">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">catch</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('catch', 'function', '7x013')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x014', 'if', 16, 20)" data-id="7x014">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x014')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x015', 'if', 9, 19)" data-id="7x015">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x015')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x016', 'if', 21, 26)" data-id="7x016">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x016')" title="Add to payload">+</button>
+            </div>
+            
+            </div>
+        </div>
+
+        <div class="middle-panel">
+            <div class="payload-header">Optimized Payload</div>
+            <div class="payload-container">
+                <div class="strategy-overview">
+                    <div class="strategy-title">🧠 Model Strategy</div>
+                    <div class="strategy-models">
+                        <strong>Code Analysis:</strong> llama3-8b-8192<br>
+                        <strong>Structure:</strong> gemma2-9b-it<br>
+                        <strong>Speed:</strong> llama3-8b-8192
+                    </div>
+                </div>
+                
+                <div class="payload-list" id="payload-list">
+                    <div class="payload-empty">Click functions to add XEdit-Paths</div>
+                </div>
+                <button class="send-button" id="send-button" disabled>
+                    🚀 Send 0 to Optimized Pipeline
+                </button>
+                
+                <div class="deploy-section">
+                    <div class="deploy-title">🚀 Deploy & Download</div>
+                    <div class="deploy-info">
+                        <strong>Project:</strong> Restful Api<br>
+                        <strong>Session:</strong> test-20250711-214947<br>
+                        <strong>Strategy:</strong> Multi-Model Optimized
+                    </div>
+                    <button class="deploy-button" onclick="deployToPcock()">📦 Download Optimized Setup</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="code-header">
+                📁 Restful Api: Generated Code
+                <span class="model-status">Multi-Model Ready</span>
+            </div>
+            <div class="code-container">
+                <div class="code-content">
+<div class="code-line" data-line="1"><span class="line-number">  1</span><span class="line-content">const express = require('express');</span></div>
+<div class="code-line" data-line="2"><span class="line-number">  2</span><span class="line-content">const mongoose = require('mongoose');</span></div>
+<div class="code-line" data-line="3"><span class="line-number">  3</span><span class="line-content">const cors = require('cors');</span></div>
+<div class="code-line" data-line="4"><span class="line-number">  4</span><span class="line-content">const dotenv = require('dotenv');</span></div>
+<div class="code-line" data-line="5"><span class="line-number">  5</span><span class="line-content">const authRoutes = require('./routes/auth');</span></div>
+<div class="code-line" data-line="6"><span class="line-number">  6</span><span class="line-content">const userRoutes = require('./routes/users');</span></div>
+<div class="code-line" data-line="7"><span class="line-number">  7</span><span class="line-content">const errorMiddleware = require('./middleware/error');</span></div>
+<div class="code-line" data-line="8"><span class="line-number">  8</span><span class="line-content">const { validateUser } = require('./middleware/validation');</span></div>
+<div class="code-line" data-line="9"><span class="line-number">  9</span><span class="line-content">const { authenticateToken } = require('./middleware/auth');</span></div>
+<div class="code-line" data-line="10"><span class="line-number"> 10</span><span class="line-content"></span></div>
+<div class="code-line" data-line="11"><span class="line-number"> 11</span><span class="line-content">dotenv.config();</span></div>
+<div class="code-line" data-line="12"><span class="line-number"> 12</span><span class="line-content"></span></div>
+<div class="code-line" data-line="13"><span class="line-number"> 13</span><span class="line-content">const app = express();</span></div>
+<div class="code-line" data-line="14"><span class="line-number"> 14</span><span class="line-content">const PORT = process.env.PORT || 3000;</span></div>
+<div class="code-line" data-line="15"><span class="line-number"> 15</span><span class="line-content"></span></div>
+<div class="code-line" data-line="16"><span class="line-number"> 16</span><span class="line-content">// Connect to MongoDB</span></div>
+<div class="code-line" data-line="17"><span class="line-number"> 17</span><span class="line-content">mongoose.connect(process.env.MONGO_URI, {</span></div>
+<div class="code-line" data-line="18"><span class="line-number"> 18</span><span class="line-content">  useNewUrlParser: true,</span></div>
+<div class="code-line" data-line="19"><span class="line-number"> 19</span><span class="line-content">  useUnifiedTopology: true,</span></div>
+<div class="code-line" data-line="20"><span class="line-number"> 20</span><span class="line-content">})</span></div>
+<div class="code-line" data-line="21"><span class="line-number"> 21</span><span class="line-content">  .then(() =&gt; console.log('MongoDB connected'))</span></div>
+<div class="code-line" data-line="22"><span class="line-number"> 22</span><span class="line-content">  .catch(err =&gt; console.error('MongoDB connection error:', err));</span></div>
+<div class="code-line" data-line="23"><span class="line-number"> 23</span><span class="line-content"></span></div>
+<div class="code-line" data-line="24"><span class="line-number"> 24</span><span class="line-content">// Middleware</span></div>
+<div class="code-line" data-line="25"><span class="line-number"> 25</span><span class="line-content">app.use(cors());</span></div>
+<div class="code-line" data-line="26"><span class="line-number"> 26</span><span class="line-content">app.use(express.json());</span></div>
+<div class="code-line" data-line="27"><span class="line-number"> 27</span><span class="line-content"></span></div>
+<div class="code-line" data-line="28"><span class="line-number"> 28</span><span class="line-content">// Routes</span></div>
+<div class="code-line" data-line="29"><span class="line-number"> 29</span><span class="line-content">app.use('/api/auth', authRoutes);</span></div>
+<div class="code-line" data-line="30"><span class="line-number"> 30</span><span class="line-content">app.use('/api/users', authenticateToken, userRoutes);</span></div>
+<div class="code-line" data-line="31"><span class="line-number"> 31</span><span class="line-content"></span></div>
+<div class="code-line" data-line="32"><span class="line-number"> 32</span><span class="line-content">// Error handling middleware</span></div>
+<div class="code-line" data-line="33"><span class="line-number"> 33</span><span class="line-content">app.use(errorMiddleware);</span></div>
+<div class="code-line" data-line="34"><span class="line-number"> 34</span><span class="line-content"></span></div>
+<div class="code-line" data-line="35"><span class="line-number"> 35</span><span class="line-content">// Start server</span></div>
+<div class="code-line" data-line="36"><span class="line-number"> 36</span><span class="line-content">app.listen(PORT, () =&gt; {</span></div>
+<div class="code-line" data-line="37"><span class="line-number"> 37</span><span class="line-content">  console.log(`Server running on port ${PORT}`);</span></div>
+<div class="code-line" data-line="38"><span class="line-number"> 38</span><span class="line-content">});</span></div>
+<div class="code-line" data-line="39"><span class="line-number"> 39</span><span class="line-content">const mongoose = require('mongoose');</span></div>
+<div class="code-line" data-line="40"><span class="line-number"> 40</span><span class="line-content">const bcrypt = require('bcrypt');</span></div>
+<div class="code-line" data-line="41"><span class="line-number"> 41</span><span class="line-content"></span></div>
+<div class="code-line" data-line="42"><span class="line-number"> 42</span><span class="line-content">const userSchema = new mongoose.Schema({</span></div>
+<div class="code-line" data-line="43"><span class="line-number"> 43</span><span class="line-content">  username: { type: String, required: true, unique: true },</span></div>
+<div class="code-line" data-line="44"><span class="line-number"> 44</span><span class="line-content">  email: { type: String, required: true, unique: true },</span></div>
+<div class="code-line" data-line="45"><span class="line-number"> 45</span><span class="line-content">  password: { type: String, required: true },</span></div>
+<div class="code-line" data-line="46"><span class="line-number"> 46</span><span class="line-content">  role: { type: String, enum: ['user', 'admin'], default: 'user' },</span></div>
+<div class="code-line" data-line="47"><span class="line-number"> 47</span><span class="line-content">}, { timestamps: true });</span></div>
+<div class="code-line" data-line="48"><span class="line-number"> 48</span><span class="line-content"></span></div>
+<div class="code-line" data-line="49"><span class="line-number"> 49</span><span class="line-content">// Hash password before saving</span></div>
+<div class="code-line" data-line="50"><span class="line-number"> 50</span><span class="line-content">userSchema.pre('save', async function (next) {</span></div>
+<div class="code-line" data-line="51"><span class="line-number"> 51</span><span class="line-content">  if (!this.isModified('password')) return next();</span></div>
+<div class="code-line" data-line="52"><span class="line-number"> 52</span><span class="line-content">  this.password = await bcrypt.hash(this.password, 10);</span></div>
+<div class="code-line" data-line="53"><span class="line-number"> 53</span><span class="line-content">  next();</span></div>
+<div class="code-line" data-line="54"><span class="line-number"> 54</span><span class="line-content">});</span></div>
+<div class="code-line" data-line="55"><span class="line-number"> 55</span><span class="line-content"></span></div>
+<div class="code-line" data-line="56"><span class="line-number"> 56</span><span class="line-content">// Compare password</span></div>
+<div class="code-line" data-line="57"><span class="line-number"> 57</span><span class="line-content">userSchema.methods.comparePassword = async function (candidatePassword) {</span></div>
+<div class="code-line" data-line="58"><span class="line-number"> 58</span><span class="line-content">  return await bcrypt.compare(candidatePassword, this.password);</span></div>
+<div class="code-line" data-line="59"><span class="line-number"> 59</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="60"><span class="line-number"> 60</span><span class="line-content"></span></div>
+<div class="code-line" data-line="61"><span class="line-number"> 61</span><span class="line-content">module.exports = mongoose.model('User', userSchema);</span></div>
+<div class="code-line" data-line="62"><span class="line-number"> 62</span><span class="line-content">const User = require('../models/User');</span></div>
+<div class="code-line" data-line="63"><span class="line-number"> 63</span><span class="line-content">const { validationResult } = require('express-validator');</span></div>
+<div class="code-line" data-line="64"><span class="line-number"> 64</span><span class="line-content"></span></div>
+<div class="code-line" data-line="65"><span class="line-number"> 65</span><span class="line-content">exports.createUser = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="66"><span class="line-number"> 66</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="67"><span class="line-number"> 67</span><span class="line-content">    const errors = validationResult(req);</span></div>
+<div class="code-line" data-line="68"><span class="line-number"> 68</span><span class="line-content">    if (!errors.isEmpty()) {</span></div>
+<div class="code-line" data-line="69"><span class="line-number"> 69</span><span class="line-content">      return res.status(400).json({ errors: errors.array() });</span></div>
+<div class="code-line" data-line="70"><span class="line-number"> 70</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="71"><span class="line-number"> 71</span><span class="line-content"></span></div>
+<div class="code-line" data-line="72"><span class="line-number"> 72</span><span class="line-content">    const { username, email, password, role } = req.body;</span></div>
+<div class="code-line" data-line="73"><span class="line-number"> 73</span><span class="line-content">    const user = new User({ username, email, password, role });</span></div>
+<div class="code-line" data-line="74"><span class="line-number"> 74</span><span class="line-content">    await user.save();</span></div>
+<div class="code-line" data-line="75"><span class="line-number"> 75</span><span class="line-content">    res.status(201).json({ message: 'User created successfully', user });</span></div>
+<div class="code-line" data-line="76"><span class="line-number"> 76</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="77"><span class="line-number"> 77</span><span class="line-content">    res.status(500).json({ error: error.message });</span></div>
+<div class="code-line" data-line="78"><span class="line-number"> 78</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="79"><span class="line-number"> 79</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="80"><span class="line-number"> 80</span><span class="line-content"></span></div>
+<div class="code-line" data-line="81"><span class="line-number"> 81</span><span class="line-content">exports.getAllUsers = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="82"><span class="line-number"> 82</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="83"><span class="line-number"> 83</span><span class="line-content">    const users = await User.find();</span></div>
+<div class="code-line" data-line="84"><span class="line-number"> 84</span><span class="line-content">    res.json(users);</span></div>
+<div class="code-line" data-line="85"><span class="line-number"> 85</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="86"><span class="line-number"> 86</span><span class="line-content">    res.status(500).json({ error: error.message });</span></div>
+<div class="code-line" data-line="87"><span class="line-number"> 87</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="88"><span class="line-number"> 88</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="89"><span class="line-number"> 89</span><span class="line-content"></span></div>
+<div class="code-line" data-line="90"><span class="line-number"> 90</span><span class="line-content">exports.getUserById = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="91"><span class="line-number"> 91</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="92"><span class="line-number"> 92</span><span class="line-content">    const user = await User.findById(req.params.id);</span></div>
+<div class="code-line" data-line="93"><span class="line-number"> 93</span><span class="line-content">    if (!user) return res.status(404).json({ message: 'User not found' });</span></div>
+<div class="code-line" data-line="94"><span class="line-number"> 94</span><span class="line-content">    res.json(user);</span></div>
+<div class="code-line" data-line="95"><span class="line-number"> 95</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="96"><span class="line-number"> 96</span><span class="line-content">    res.status(500).json({ error: error.message });</span></div>
+<div class="code-line" data-line="97"><span class="line-number"> 97</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="98"><span class="line-number"> 98</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="99"><span class="line-number"> 99</span><span class="line-content"></span></div>
+<div class="code-line" data-line="100"><span class="line-number">100</span><span class="line-content">exports.updateUser = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="101"><span class="line-number">101</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="102"><span class="line-number">102</span><span class="line-content">    const { username, email, role } = req.body;</span></div>
+<div class="code-line" data-line="103"><span class="line-number">103</span><span class="line-content">    const user = await User.findByIdAndUpdate(</span></div>
+<div class="code-line" data-line="104"><span class="line-number">104</span><span class="line-content">      req.params.id,</span></div>
+<div class="code-line" data-line="105"><span class="line-number">105</span><span class="line-content">      { username, email, role },</span></div>
+<div class="code-line" data-line="106"><span class="line-number">106</span><span class="line-content">      { new: true }</span></div>
+<div class="code-line" data-line="107"><span class="line-number">107</span><span class="line-content">    );</span></div>
+<div class="code-line" data-line="108"><span class="line-number">108</span><span class="line-content">    if (!user) return res.status(404).json({ message: 'User not found' });</span></div>
+<div class="code-line" data-line="109"><span class="line-number">109</span><span class="line-content">    res.json(user);</span></div>
+<div class="code-line" data-line="110"><span class="line-number">110</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="111"><span class="line-number">111</span><span class="line-content">    res.status(500).json({ error: error.message });</span></div>
+<div class="code-line" data-line="112"><span class="line-number">112</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="113"><span class="line-number">113</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="114"><span class="line-number">114</span><span class="line-content"></span></div>
+<div class="code-line" data-line="115"><span class="line-number">115</span><span class="line-content">exports.deleteUser = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="116"><span class="line-number">116</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="117"><span class="line-number">117</span><span class="line-content">    const user = await User.findByIdAndDelete(req.params.id);</span></div>
+<div class="code-line" data-line="118"><span class="line-number">118</span><span class="line-content">    if (!user) return res.status(404).json({ message: 'User not found' });</span></div>
+<div class="code-line" data-line="119"><span class="line-number">119</span><span class="line-content">    res.json({ message: 'User deleted successfully' });</span></div>
+<div class="code-line" data-line="120"><span class="line-number">120</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="121"><span class="line-number">121</span><span class="line-content">    res.status(500).json({ error: error.message });</span></div>
+<div class="code-line" data-line="122"><span class="line-number">122</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="123"><span class="line-number">123</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="124"><span class="line-number">124</span><span class="line-content">const express = require('express');</span></div>
+<div class="code-line" data-line="125"><span class="line-number">125</span><span class="line-content">const router = express.Router();</span></div>
+<div class="code-line" data-line="126"><span class="line-number">126</span><span class="line-content">const userController = require('../controllers/userController');</span></div>
+<div class="code-line" data-line="127"><span class="line-number">127</span><span class="line-content">const { validateUser } = require('../middleware/validation');</span></div>
+<div class="code-line" data-line="128"><span class="line-number">128</span><span class="line-content"></span></div>
+<div class="code-line" data-line="129"><span class="line-number">129</span><span class="line-content">router.post('/', validateUser, userController.createUser);</span></div>
+<div class="code-line" data-line="130"><span class="line-number">130</span><span class="line-content">router.get('/', userController.getAllUsers);</span></div>
+<div class="code-line" data-line="131"><span class="line-number">131</span><span class="line-content">router.get('/:id', userController.getUserById);</span></div>
+<div class="code-line" data-line="132"><span class="line-number">132</span><span class="line-content">router.put('/:id', validateUser, userController.updateUser);</span></div>
+<div class="code-line" data-line="133"><span class="line-number">133</span><span class="line-content">router.delete('/:id', userController.deleteUser);</span></div>
+<div class="code-line" data-line="134"><span class="line-number">134</span><span class="line-content"></span></div>
+<div class="code-line" data-line="135"><span class="line-number">135</span><span class="line-content">module.exports = router;</span></div>
+<div class="code-line" data-line="136"><span class="line-number">136</span><span class="line-content">const express = require('express');</span></div>
+<div class="code-line" data-line="137"><span class="line-number">137</span><span class="line-content">const router = express.Router();</span></div>
+<div class="code-line" data-line="138"><span class="line-number">138</span><span class="line-content">const { register, login } = require('../controllers/authController');</span></div>
+<div class="code-line" data-line="139"><span class="line-number">139</span><span class="line-content">const { validateAuth } = require('../middleware/validation');</span></div>
+<div class="code-line" data-line="140"><span class="line-number">140</span><span class="line-content"></span></div>
+<div class="code-line" data-line="141"><span class="line-number">141</span><span class="line-content">router.post('/register', validateAuth, register);</span></div>
+<div class="code-line" data-line="142"><span class="line-number">142</span><span class="line-content">router.post('/login', validateAuth, login);</span></div>
+<div class="code-line" data-line="143"><span class="line-number">143</span><span class="line-content"></span></div>
+<div class="code-line" data-line="144"><span class="line-number">144</span><span class="line-content">module.exports = router;</span></div>
+<div class="code-line" data-line="145"><span class="line-number">145</span><span class="line-content">const User = require('../models/User');</span></div>
+<div class="code-line" data-line="146"><span class="line-number">146</span><span class="line-content">const jwt = require('jsonwebtoken');</span></div>
+<div class="code-line" data-line="147"><span class="line-number">147</span><span class="line-content">const { validationResult } = require('express-validator');</span></div>
+<div class="code-line" data-line="148"><span class="line-number">148</span><span class="line-content"></span></div>
+<div class="code-line" data-line="149"><span class="line-number">149</span><span class="line-content">exports.register = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="150"><span class="line-number">150</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="151"><span class="line-number">151</span><span class="line-content">    const errors = validationResult(req);</span></div>
+<div class="code-line" data-line="152"><span class="line-number">152</span><span class="line-content">    if (!errors.isEmpty()) {</span></div>
+<div class="code-line" data-line="153"><span class="line-number">153</span><span class="line-content">      return res.status(400).json({ errors: errors.array() });</span></div>
+<div class="code-line" data-line="154"><span class="line-number">154</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="155"><span class="line-number">155</span><span class="line-content"></span></div>
+<div class="code-line" data-line="156"><span class="line-number">156</span><span class="line-content">    const { username, email, password, role } = req.body;</span></div>
+<div class="code-line" data-line="157"><span class="line-number">157</span><span class="line-content">    const user = new User({ username, email, password, role });</span></div>
+<div class="code-line" data-line="158"><span class="line-number">158</span><span class="line-content">    await user.save();</span></div>
+<div class="code-line" data-line="159"><span class="line-number">159</span><span class="line-content">    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });</span></div>
+<div class="code-line" data-line="160"><span class="line-number">160</span><span class="line-content">    res.status(201).json({ token });</span></div>
+<div class="code-line" data-line="161"><span class="line-number">161</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="162"><span class="line-number">162</span><span class="line-content">    res.status(500).json({ error: error.message });</span></div>
+<div class="code-line" data-line="163"><span class="line-number">163</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="164"><span class="line-number">164</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="165"><span class="line-number">165</span><span class="line-content"></span></div>
+<div class="code-line" data-line="166"><span class="line-number">166</span><span class="line-content">exports.login = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="167"><span class="line-number">167</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="168"><span class="line-number">168</span><span class="line-content">    const errors = validationResult(req);</span></div>
+<div class="code-line" data-line="169"><span class="line-number">169</span><span class="line-content">    if (!errors.isEmpty()) {</span></div>
+<div class="code-line" data-line="170"><span class="line-number">170</span><span class="line-content">      return res.status(400).json({ errors: errors.array() });</span></div>
+<div class="code-line" data-line="171"><span class="line-number">171</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="172"><span class="line-number">172</span><span class="line-content"></span></div>
+<div class="code-line" data-line="173"><span class="line-number">173</span><span class="line-content">    const { email, password } = req.body;</span></div>
+<div class="code-line" data-line="174"><span class="line-number">174</span><span class="line-content">    const user = await User.findOne({ email });</span></div>
+<div class="code-line" data-line="175"><span class="line-number">175</span><span class="line-content">    if (!user || !(await user.comparePassword(password))) {</span></div>
+<div class="code-line" data-line="176"><span class="line-number">176</span><span class="line-content">      return res.status(401).json({ message: 'Invalid credentials' });</span></div>
+<div class="code-line" data-line="177"><span class="line-number">177</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="178"><span class="line-number">178</span><span class="line-content"></span></div>
+<div class="code-line" data-line="179"><span class="line-number">179</span><span class="line-content">    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });</span></div>
+<div class="code-line" data-line="180"><span class="line-number">180</span><span class="line-content">    res.json({ token });</span></div>
+<div class="code-line" data-line="181"><span class="line-number">181</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="182"><span class="line-number">182</span><span class="line-content">    res.status(500).json({ error: error.message });</span></div>
+<div class="code-line" data-line="183"><span class="line-number">183</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="184"><span class="line-number">184</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="185"><span class="line-number">185</span><span class="line-content">const jwt = require('jsonwebtoken');</span></div>
+<div class="code-line" data-line="186"><span class="line-number">186</span><span class="line-content"></span></div>
+<div class="code-line" data-line="187"><span class="line-number">187</span><span class="line-content">exports.authenticateToken = (req, res, next) =&gt; {</span></div>
+<div class="code-line" data-line="188"><span class="line-number">188</span><span class="line-content">  const authHeader = req.headers['authorization'];</span></div>
+<div class="code-line" data-line="189"><span class="line-number">189</span><span class="line-content">  const token = authHeader &amp;&amp; authHeader.split(' ')[1];</span></div>
+<div class="code-line" data-line="190"><span class="line-number">190</span><span class="line-content">  if (!token) return res.status(401).json({ message: 'Access denied' });</span></div>
+<div class="code-line" data-line="191"><span class="line-number">191</span><span class="line-content"></span></div>
+<div class="code-line" data-line="192"><span class="line-number">192</span><span class="line-content">  jwt.verify(token, process.env.JWT_SECRET, (err, user) =&gt; {</span></div>
+<div class="code-line" data-line="193"><span class="line-number">193</span><span class="line-content">    if (err) return res.status(403).json({ message: 'Invalid token' });</span></div>
+<div class="code-line" data-line="194"><span class="line-number">194</span><span class="line-content">    req.user = user;</span></div>
+<div class="code-line" data-line="195"><span class="line-number">195</span><span class="line-content">    next();</span></div>
+<div class="code-line" data-line="196"><span class="line-number">196</span><span class="line-content">  });</span></div>
+<div class="code-line" data-line="197"><span class="line-number">197</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="198"><span class="line-number">198</span><span class="line-content"></span></div>
+<div class="code-line" data-line="199"><span class="line-number">199</span><span class="line-content">exports.authorizeRole = (role) =&gt; (req, res, next) =&gt; {</span></div>
+<div class="code-line" data-line="200"><span class="line-number">200</span><span class="line-content">  if (req.user.role !== role) {</span></div>
+<div class="code-line" data-line="201"><span class="line-number">201</span><span class="line-content">    return res.status(403).json({ message: 'Forbidden' });</span></div>
+<div class="code-line" data-line="202"><span class="line-number">202</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="203"><span class="line-number">203</span><span class="line-content">  next();</span></div>
+<div class="code-line" data-line="204"><span class="line-number">204</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="205"><span class="line-number">205</span><span class="line-content">const { body, validationResult } = require('express-validator');</span></div>
+<div class="code-line" data-line="206"><span class="line-number">206</span><span class="line-content"></span></div>
+<div class="code-line" data-line="207"><span class="line-number">207</span><span class="line-content">exports.validateUser = [</span></div>
+<div class="code-line" data-line="208"><span class="line-number">208</span><span class="line-content">  body('username').notEmpty().withMessage('Username is required'),</span></div>
+<div class="code-line" data-line="209"><span class="line-number">209</span><span class="line-content">  body('email').isEmail().withMessage('Valid email is required'),</span></div>
+<div class="code-line" data-line="210"><span class="line-number">210</span><span class="line-content">  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),</span></div>
+<div class="code-line" data-line="211"><span class="line-number">211</span><span class="line-content">  (req, res, next) =&gt; {</span></div>
+<div class="code-line" data-line="212"><span class="line-number">212</span><span class="line-content">    const errors = validationResult(req);</span></div>
+<div class="code-line" data-line="213"><span class="line-number">213</span><span class="line-content">    if (!errors.isEmpty()) {</span></div>
+<div class="code-line" data-line="214"><span class="line-number">214</span><span class="line-content">      return res.status(400).json({ errors: errors.array() });</span></div>
+<div class="code-line" data-line="215"><span class="line-number">215</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="216"><span class="line-number">216</span><span class="line-content">    next();</span></div>
+<div class="code-line" data-line="217"><span class="line-number">217</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="218"><span class="line-number">218</span><span class="line-content">];</span></div>
+<div class="code-line" data-line="219"><span class="line-number">219</span><span class="line-content"></span></div>
+<div class="code-line" data-line="220"><span class="line-number">220</span><span class="line-content">exports.validateAuth = [</span></div>
+<div class="code-line" data-line="221"><span class="line-number">221</span><span class="line-content">  body('email').isEmail().withMessage('Valid email is required'),</span></div>
+<div class="code-line" data-line="222"><span class="line-number">222</span><span class="line-content">  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),</span></div>
+<div class="code-line" data-line="223"><span class="line-number">223</span><span class="line-content">  (req, res, next) =&gt; {</span></div>
+<div class="code-line" data-line="224"><span class="line-number">224</span><span class="line-content">    const errors = validationResult(req);</span></div>
+<div class="code-line" data-line="225"><span class="line-number">225</span><span class="line-content">    if (!errors.isEmpty()) {</span></div>
+<div class="code-line" data-line="226"><span class="line-number">226</span><span class="line-content">      return res.status(400).json({ errors: errors.array() });</span></div>
+<div class="code-line" data-line="227"><span class="line-number">227</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="228"><span class="line-number">228</span><span class="line-content">    next();</span></div>
+<div class="code-line" data-line="229"><span class="line-number">229</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="230"><span class="line-number">230</span><span class="line-content">];</span></div>
+<div class="code-line" data-line="231"><span class="line-number">231</span><span class="line-content">exports.errorMiddleware = (err, req, res, next) =&gt; {</span></div>
+<div class="code-line" data-line="232"><span class="line-number">232</span><span class="line-content">  console.error(err.stack);</span></div>
+<div class="code-line" data-line="233"><span class="line-number">233</span><span class="line-content">  res.status(500).json({ error: 'Internal Server Error' });</span></div>
+<div class="code-line" data-line="234"><span class="line-number">234</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="235"><span class="line-number">235</span><span class="line-content">{</span></div>
+<div class="code-line" data-line="236"><span class="line-number">236</span><span class="line-content">  "name": "restful-api",</span></div>
+<div class="code-line" data-line="237"><span class="line-number">237</span><span class="line-content">  "version": "1.0.0",</span></div>
+<div class="code-line" data-line="238"><span class="line-number">238</span><span class="line-content">  "description": "RESTful API with Node.js, Express, and MongoDB",</span></div>
+<div class="code-line" data-line="239"><span class="line-number">239</span><span class="line-content">  "main": "server.js",</span></div>
+<div class="code-line" data-line="240"><span class="line-number">240</span><span class="line-content">  "scripts": {</span></div>
+<div class="code-line" data-line="241"><span class="line-number">241</span><span class="line-content">    "start": "node server.js",</span></div>
+<div class="code-line" data-line="242"><span class="line-number">242</span><span class="line-content">    "dev": "nodemon server.js",</span></div>
+<div class="code-line" data-line="243"><span class="line-number">243</span><span class="line-content">    "test": "jest",</span></div>
+<div class="code-line" data-line="244"><span class="line-number">244</span><span class="line-content">    "db:migrate": "mongoDB-migrate"</span></div>
+<div class="code-line" data-line="245"><span class="line-number">245</span><span class="line-content">  },</span></div>
+<div class="code-line" data-line="246"><span class="line-number">246</span><span class="line-content">  "dependencies": {</span></div>
+<div class="code-line" data-line="247"><span class="line-number">247</span><span class="line-content">    "bcrypt": "^5.1.0",</span></div>
+<div class="code-line" data-line="248"><span class="line-number">248</span><span class="line-content">    "cors": "^2.8.5",</span></div>
+<div class="code-line" data-line="249"><span class="line-number">249</span><span class="line-content">    "dotenv": "^16.0.3",</span></div>
+<div class="code-line" data-line="250"><span class="line-number">250</span><span class="line-content">    "express": "^4.18.2",</span></div>
+<div class="code-line" data-line="251"><span class="line-number">251</span><span class="line-content">    "express-validator": "^6.18.1",</span></div>
+<div class="code-line" data-line="252"><span class="line-number">252</span><span class="line-content">    "jsonwebtoken": "^9.0.0",</span></div>
+<div class="code-line" data-line="253"><span class="line-number">253</span><span class="line-content">    "mongoose": "^6.10.2",</span></div>
+<div class="code-line" data-line="254"><span class="line-number">254</span><span class="line-content">    "nodemon": "^3.0.2"</span></div>
+<div class="code-line" data-line="255"><span class="line-number">255</span><span class="line-content">  },</span></div>
+<div class="code-line" data-line="256"><span class="line-number">256</span><span class="line-content">  "devDependencies": {</span></div>
+<div class="code-line" data-line="257"><span class="line-number">257</span><span class="line-content">    "jest": "^29.7.0",</span></div>
+<div class="code-line" data-line="258"><span class="line-number">258</span><span class="line-content">    "supertest": "^6.3.3"</span></div>
+<div class="code-line" data-line="259"><span class="line-number">259</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="260"><span class="line-number">260</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="261"><span class="line-number">261</span><span class="line-content">PORT=3000</span></div>
+<div class="code-line" data-line="262"><span class="line-number">262</span><span class="line-content">MONGO_URI=mongodb://localhost:27017/restful-api</span></div>
+<div class="code-line" data-line="263"><span class="line-number">263</span><span class="line-content">JWT_SECRET=your-secret-key</span></div>
+<div class="code-line" data-line="264"><span class="line-number">264</span><span class="line-content">NODE_ENV=development</span></div>
+<div class="code-line" data-line="265"><span class="line-number">265</span><span class="line-content"># Use an official Node.js runtime as a parent image</span></div>
+<div class="code-line" data-line="266"><span class="line-number">266</span><span class="line-content">FROM node:18</span></div>
+<div class="code-line" data-line="267"><span class="line-number">267</span><span class="line-content"></span></div>
+<div class="code-line" data-line="268"><span class="line-number">268</span><span class="line-content"># Set the working directory</span></div>
+<div class="code-line" data-line="269"><span class="line-number">269</span><span class="line-content">WORKDIR /app</span></div>
+<div class="code-line" data-line="270"><span class="line-number">270</span><span class="line-content"></span></div>
+<div class="code-line" data-line="271"><span class="line-number">271</span><span class="line-content"># Copy package.json and install dependencies</span></div>
+<div class="code-line" data-line="272"><span class="line-number">272</span><span class="line-content">COPY package*.json ./</span></div>
+<div class="code-line" data-line="273"><span class="line-number">273</span><span class="line-content">RUN npm install</span></div>
+<div class="code-line" data-line="274"><span class="line-number">274</span><span class="line-content"></span></div>
+<div class="code-line" data-line="275"><span class="line-number">275</span><span class="line-content"># Copy the rest of the application code</span></div>
+<div class="code-line" data-line="276"><span class="line-number">276</span><span class="line-content">COPY . .</span></div>
+<div class="code-line" data-line="277"><span class="line-number">277</span><span class="line-content"></span></div>
+<div class="code-line" data-line="278"><span class="line-number">278</span><span class="line-content"># Expose the port the app runs on</span></div>
+<div class="code-line" data-line="279"><span class="line-number">279</span><span class="line-content">EXPOSE 3000</span></div>
+<div class="code-line" data-line="280"><span class="line-number">280</span><span class="line-content"></span></div>
+<div class="code-line" data-line="281"><span class="line-number">281</span><span class="line-content"># Command to run the application</span></div>
+<div class="code-line" data-line="282"><span class="line-number">282</span><span class="line-content">CMD ["node", "server.js"]</span></div>
+<div class="code-line" data-line="283"><span class="line-number">283</span><span class="line-content">version: '3.8'</span></div>
+<div class="code-line" data-line="284"><span class="line-number">284</span><span class="line-content"></span></div>
+<div class="code-line" data-line="285"><span class="line-number">285</span><span class="line-content">services:</span></div>
+<div class="code-line" data-line="286"><span class="line-number">286</span><span class="line-content">  app:</span></div>
+<div class="code-line" data-line="287"><span class="line-number">287</span><span class="line-content">    build: .</span></div>
+<div class="code-line" data-line="288"><span class="line-number">288</span><span class="line-content">    ports:</span></div>
+<div class="code-line" data-line="289"><span class="line-number">289</span><span class="line-content">      - "3000:3000"</span></div>
+<div class="code-line" data-line="290"><span class="line-number">290</span><span class="line-content">    environment:</span></div>
+<div class="code-line" data-line="291"><span class="line-number">291</span><span class="line-content">      PORT: 3000</span></div>
+<div class="code-line" data-line="292"><span class="line-number">292</span><span class="line-content">      MONGO_URI: mongodb://mongo:27017/restful-api</span></div>
+<div class="code-line" data-line="293"><span class="line-number">293</span><span class="line-content">      JWT_SECRET: production-secret-key</span></div>
+<div class="code-line" data-line="294"><span class="line-number">294</span><span class="line-content">      NODE_ENV: production</span></div>
+<div class="code-line" data-line="295"><span class="line-number">295</span><span class="line-content">    depends_on:</span></div>
+<div class="code-line" data-line="296"><span class="line-number">296</span><span class="line-content">      - mongo</span></div>
+<div class="code-line" data-line="297"><span class="line-number">297</span><span class="line-content"></span></div>
+<div class="code-line" data-line="298"><span class="line-number">298</span><span class="line-content">  mongo:</span></div>
+<div class="code-line" data-line="299"><span class="line-number">299</span><span class="line-content">    image: mongo:5.0</span></div>
+<div class="code-line" data-line="300"><span class="line-number">300</span><span class="line-content">    ports:</span></div>
+<div class="code-line" data-line="301"><span class="line-number">301</span><span class="line-content">      - "27017:27017"</span></div>
+<div class="code-line" data-line="302"><span class="line-number">302</span><span class="line-content">    volumes:</span></div>
+<div class="code-line" data-line="303"><span class="line-number">303</span><span class="line-content">      - mongo-data:/data/db</span></div>
+<div class="code-line" data-line="304"><span class="line-number">304</span><span class="line-content"></span></div>
+<div class="code-line" data-line="305"><span class="line-number">305</span><span class="line-content">volumes:</span></div>
+<div class="code-line" data-line="306"><span class="line-number">306</span><span class="line-content">  mongo-data:</span></div>
+<div class="code-line" data-line="307"><span class="line-number">307</span><span class="line-content"># RESTful API with Node.js, Express, and MongoDB</span></div>
+<div class="code-line" data-line="308"><span class="line-number">308</span><span class="line-content"></span></div>
+<div class="code-line" data-line="309"><span class="line-number">309</span><span class="line-content">## Setup Instructions</span></div>
+<div class="code-line" data-line="310"><span class="line-number">310</span><span class="line-content"></span></div>
+<div class="code-line" data-line="311"><span class="line-number">311</span><span class="line-content">1. **Clone the repository**</span></div>
+<div class="code-line" data-line="312"><span class="line-number">312</span><span class="line-content"># API Documentation</span></div>
+<div class="code-line" data-line="313"><span class="line-number">313</span><span class="line-content"></span></div>
+<div class="code-line" data-line="314"><span class="line-number">314</span><span class="line-content">## Users</span></div>
+<div class="code-line" data-line="315"><span class="line-number">315</span><span class="line-content"></span></div>
+<div class="code-line" data-line="316"><span class="line-number">316</span><span class="line-content">### Create User</span></div>
+<div class="code-line" data-line="317"><span class="line-number">317</span><span class="line-content">**POST** `/api/users`</span></div>
+<div class="code-line" data-line="318"><span class="line-number">318</span><span class="line-content">- **Body**: `{ username, email, password, role }`</span></div>
+<div class="code-line" data-line="319"><span class="line-number">319</span><span class="line-content">- **Response**: `201 Created` with user data</span></div>
+<div class="code-line" data-line="320"><span class="line-number">320</span><span class="line-content"></span></div>
+<div class="code-line" data-line="321"><span class="line-number">321</span><span class="line-content">### Get All Users</span></div>
+<div class="code-line" data-line="322"><span class="line-number">322</span><span class="line-content">**GET** `/api/users`</span></div>
+<div class="code-line" data-line="323"><span class="line-number">323</span><span class="line-content">- **Response**: `200 OK` with user list</span></div>
+<div class="code-line" data-line="324"><span class="line-number">324</span><span class="line-content"></span></div>
+<div class="code-line" data-line="325"><span class="line-number">325</span><span class="line-content">### Get User by ID</span></div>
+<div class="code-line" data-line="326"><span class="line-number">326</span><span class="line-content">**GET** `/api/users/:id`</span></div>
+<div class="code-line" data-line="327"><span class="line-number">327</span><span class="line-content">- **Response**: `200 OK` with user data</span></div>
+<div class="code-line" data-line="328"><span class="line-number">328</span><span class="line-content"></span></div>
+<div class="code-line" data-line="329"><span class="line-number">329</span><span class="line-content">### Update User</span></div>
+<div class="code-line" data-line="330"><span class="line-number">330</span><span class="line-content">**PUT** `/api/users/:id`</span></div>
+<div class="code-line" data-line="331"><span class="line-number">331</span><span class="line-content">- **Body**: `{ username, email, role }`</span></div>
+<div class="code-line" data-line="332"><span class="line-number">332</span><span class="line-content">- **Response**: `200 OK` with updated user data</span></div>
+<div class="code-line" data-line="333"><span class="line-number">333</span><span class="line-content"></span></div>
+<div class="code-line" data-line="334"><span class="line-number">334</span><span class="line-content">### Delete User</span></div>
+<div class="code-line" data-line="335"><span class="line-number">335</span><span class="line-content">**DELETE** `/api/users/:id`</span></div>
+<div class="code-line" data-line="336"><span class="line-number">336</span><span class="line-content">- **Response**: `200 OK` with success message</span></div>
+<div class="code-line" data-line="337"><span class="line-number">337</span><span class="line-content"></span></div>
+<div class="code-line" data-line="338"><span class="line-number">338</span><span class="line-content">## Authentication</span></div>
+<div class="code-line" data-line="339"><span class="line-number">339</span><span class="line-content"></span></div>
+<div class="code-line" data-line="340"><span class="line-number">340</span><span class="line-content">### Register</span></div>
+<div class="code-line" data-line="341"><span class="line-number">341</span><span class="line-content">**POST** `/api/auth/register`</span></div>
+<div class="code-line" data-line="342"><span class="line-number">342</span><span class="line-content">- **Body**: `{ username, email, password, role }`</span></div>
+<div class="code-line" data-line="343"><span class="line-number">343</span><span class="line-content">- **Response**: `201 Created` with JWT token</span></div>
+<div class="code-line" data-line="344"><span class="line-number">344</span><span class="line-content"></span></div>
+<div class="code-line" data-line="345"><span class="line-number">345</span><span class="line-content">### Login</span></div>
+<div class="code-line" data-line="346"><span class="line-number">346</span><span class="line-content">**POST** `/api/auth/login`</span></div>
+<div class="code-line" data-line="347"><span class="line-number">347</span><span class="line-content">- **Body**: `{ email, password }`</span></div>
+<div class="code-line" data-line="348"><span class="line-number">348</span><span class="line-content">- **Response**: `200 OK` with JWT token</span></div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // XEdit data and state
+        const xeditPaths = {"7x001": {"display_name": "pre", "type": "function", "filename": "** `models/User.js`", "language": "text", "line_start": 12, "line_end": 22, "lines_display": "12-22", "technical_path": "** `models/User.js`::function.pre/lines[12-22]", "optimal_model": "meta-llama/llama-4-maverick-17b-128e-instruct"}, "7x002": {"display_name": "function", "type": "function", "filename": "** `models/User.js`", "language": "text", "line_start": 19, "line_end": 23, "lines_display": "19-23", "technical_path": "** `models/User.js`::function.function/lines[19-23]", "optimal_model": "meta-llama/llama-4-maverick-17b-128e-instruct"}, "7x003": {"display_name": "if", "type": "function", "filename": "** `controllers/userController.js`", "language": "text", "line_start": 7, "line_end": 17, "lines_display": "7-17", "technical_path": "** `controllers/userController.js`::function.if/lines[7-17]", "optimal_model": "meta-llama/llama-4-maverick-17b-128e-instruct"}, "7x004": {"display_name": "catch", "type": "function", "filename": "** `controllers/userController.js`", "language": "text", "line_start": 15, "line_end": 25, "lines_display": "15-25", "technical_path": "** `controllers/userController.js`::function.catch/lines[15-25]", "optimal_model": "meta-llama/llama-4-maverick-17b-128e-instruct"}, "7x005": {"display_name": "catch", "type": "function", "filename": "** `controllers/userController.js`", "language": "text", "line_start": 24, "line_end": 34, "lines_display": "24-34", "technical_path": "** `controllers/userController.js`::function.catch/lines[24-34]", "optimal_model": "meta-llama/llama-4-maverick-17b-128e-instruct"}, "7x006": {"display_name": "catch", "type": "function", "filename": "** `controllers/userController.js`", "language": "text", "line_start": 34, "line_end": 44, "lines_display": "34-44", "technical_path": "** `controllers/userController.js`::function.catch/lines[34-44]", "optimal_model": "meta-llama/llama-4-maverick-17b-128e-instruct"}, "7x007": {"display_name": "catch", "type": "function", "filename": "** `controllers/userController.js`", "language": "text", "line_start": 49, "line_end": 59, "lines_display": "49-59", "technical_path": "** `controllers/userController.js`::function.catch/lines[49-59]", "optimal_model": "meta-llama/llama-4-maverick-17b-128e-instruct"}, "7x008": {"display_name": "catch", "type": "function", "filename": "** `controllers/userController.js`", "language": "text", "line_start": 59, "line_end": 62, "lines_display": "59-62", "technical_path": "** `controllers/userController.js`::function.catch/lines[59-62]", "optimal_model": "meta-llama/llama-4-maverick-17b-128e-instruct"}, "7x009": {"display_name": "if", "type": "function", "filename": "** `controllers/authController.js`", "language": "text", "line_start": 8, "line_end": 18, "lines_display": "8-18", "technical_path": "** `controllers/authController.js`::function.if/lines[8-18]", "optimal_model": "meta-llama/llama-4-maverick-17b-128e-instruct"}, "7x010": {"display_name": "catch", "type": "function", "filename": "** `controllers/authController.js`", "language": "text", "line_start": 17, "line_end": 27, "lines_display": "17-27", "technical_path": "** `controllers/authController.js`::function.catch/lines[17-27]", "optimal_model": "meta-llama/llama-4-maverick-17b-128e-instruct"}, "7x011": {"display_name": "if", "type": "function", "filename": "** `controllers/authController.js`", "language": "text", "line_start": 25, "line_end": 35, "lines_display": "25-35", "technical_path": "** `controllers/authController.js`::function.if/lines[25-35]", "optimal_model": "meta-llama/llama-4-maverick-17b-128e-instruct"}, "7x012": {"display_name": "if", "type": "function", "filename": "** `controllers/authController.js`", "language": "text", "line_start": 31, "line_end": 40, "lines_display": "31-40", "technical_path": "** `controllers/authController.js`::function.if/lines[31-40]", "optimal_model": "meta-llama/llama-4-maverick-17b-128e-instruct"}, "7x013": {"display_name": "catch", "type": "function", "filename": "** `controllers/authController.js`", "language": "text", "line_start": 37, "line_end": 40, "lines_display": "37-40", "technical_path": "** `controllers/authController.js`::function.catch/lines[37-40]", "optimal_model": "meta-llama/llama-4-maverick-17b-128e-instruct"}, "7x014": {"display_name": "if", "type": "function", "filename": "** `middleware/auth.js`", "language": "text", "line_start": 16, "line_end": 20, "lines_display": "16-20", "technical_path": "** `middleware/auth.js`::function.if/lines[16-20]", "optimal_model": "meta-llama/llama-4-maverick-17b-128e-instruct"}, "7x015": {"display_name": "if", "type": "function", "filename": "** `middleware/validation.js`", "language": "text", "line_start": 9, "line_end": 19, "lines_display": "9-19", "technical_path": "** `middleware/validation.js`::function.if/lines[9-19]", "optimal_model": "meta-llama/llama-4-maverick-17b-128e-instruct"}, "7x016": {"display_name": "if", "type": "function", "filename": "** `middleware/validation.js`", "language": "text", "line_start": 21, "line_end": 26, "lines_display": "21-26", "technical_path": "** `middleware/validation.js`::function.if/lines[21-26]", "optimal_model": "meta-llama/llama-4-maverick-17b-128e-instruct"}};
+        const projectFiles = [{"filename":"** `server.js`","language":"text","code_b64":"Y29uc3QgZXhwcmVzcyA9IHJlcXVpcmUoJ2V4cHJlc3MnKTsKY29uc3QgbW9uZ29vc2UgPSByZXF1aXJlKCdtb25nb29zZScpOwpjb25zdCBjb3JzID0gcmVxdWlyZSgnY29ycycpOwpjb25zdCBkb3RlbnYgPSByZXF1aXJlKCdkb3RlbnYnKTsKY29uc3QgYXV0aFJvdXRlcyA9IHJlcXVpcmUoJy4vcm91dGVzL2F1dGgnKTsKY29uc3QgdXNlclJvdXRlcyA9IHJlcXVpcmUoJy4vcm91dGVzL3VzZXJzJyk7CmNvbnN0IGVycm9yTWlkZGxld2FyZSA9IHJlcXVpcmUoJy4vbWlkZGxld2FyZS9lcnJvcicpOwpjb25zdCB7IHZhbGlkYXRlVXNlciB9ID0gcmVxdWlyZSgnLi9taWRkbGV3YXJlL3ZhbGlkYXRpb24nKTsKY29uc3QgeyBhdXRoZW50aWNhdGVUb2tlbiB9ID0gcmVxdWlyZSgnLi9taWRkbGV3YXJlL2F1dGgnKTsKCmRvdGVudi5jb25maWcoKTsKCmNvbnN0IGFwcCA9IGV4cHJlc3MoKTsKY29uc3QgUE9SVCA9IHByb2Nlc3MuZW52LlBPUlQgfHwgMzAwMDsKCi8vIENvbm5lY3QgdG8gTW9uZ29EQgptb25nb29zZS5jb25uZWN0KHByb2Nlc3MuZW52Lk1PTkdPX1VSSSwgewogIHVzZU5ld1VybFBhcnNlcjogdHJ1ZSwKICB1c2VVbmlmaWVkVG9wb2xvZ3k6IHRydWUsCn0pCiAgLnRoZW4oKCkgPT4gY29uc29sZS5sb2coJ01vbmdvREIgY29ubmVjdGVkJykpCiAgLmNhdGNoKGVyciA9PiBjb25zb2xlLmVycm9yKCdNb25nb0RCIGNvbm5lY3Rpb24gZXJyb3I6JywgZXJyKSk7CgovLyBNaWRkbGV3YXJlCmFwcC51c2UoY29ycygpKTsKYXBwLnVzZShleHByZXNzLmpzb24oKSk7CgovLyBSb3V0ZXMKYXBwLnVzZSgnL2FwaS9hdXRoJywgYXV0aFJvdXRlcyk7CmFwcC51c2UoJy9hcGkvdXNlcnMnLCBhdXRoZW50aWNhdGVUb2tlbiwgdXNlclJvdXRlcyk7CgovLyBFcnJvciBoYW5kbGluZyBtaWRkbGV3YXJlCmFwcC51c2UoZXJyb3JNaWRkbGV3YXJlKTsKCi8vIFN0YXJ0IHNlcnZlcgphcHAubGlzdGVuKFBPUlQsICgpID0+IHsKICBjb25zb2xlLmxvZyhgU2VydmVyIHJ1bm5pbmcgb24gcG9ydCAke1BPUlR9YCk7Cn0pOw==","code":""},{"filename":"** `models/User.js`","language":"text","code_b64":"Y29uc3QgbW9uZ29vc2UgPSByZXF1aXJlKCdtb25nb29zZScpOwpjb25zdCBiY3J5cHQgPSByZXF1aXJlKCdiY3J5cHQnKTsKCmNvbnN0IHVzZXJTY2hlbWEgPSBuZXcgbW9uZ29vc2UuU2NoZW1hKHsKICB1c2VybmFtZTogeyB0eXBlOiBTdHJpbmcsIHJlcXVpcmVkOiB0cnVlLCB1bmlxdWU6IHRydWUgfSwKICBlbWFpbDogeyB0eXBlOiBTdHJpbmcsIHJlcXVpcmVkOiB0cnVlLCB1bmlxdWU6IHRydWUgfSwKICBwYXNzd29yZDogeyB0eXBlOiBTdHJpbmcsIHJlcXVpcmVkOiB0cnVlIH0sCiAgcm9sZTogeyB0eXBlOiBTdHJpbmcsIGVudW06IFsndXNlcicsICdhZG1pbiddLCBkZWZhdWx0OiAndXNlcicgfSwKfSwgeyB0aW1lc3RhbXBzOiB0cnVlIH0pOwoKLy8gSGFzaCBwYXNzd29yZCBiZWZvcmUgc2F2aW5nCnVzZXJTY2hlbWEucHJlKCdzYXZlJywgYXN5bmMgZnVuY3Rpb24gKG5leHQpIHsKICBpZiAoIXRoaXMuaXNNb2RpZmllZCgncGFzc3dvcmQnKSkgcmV0dXJuIG5leHQoKTsKICB0aGlzLnBhc3N3b3JkID0gYXdhaXQgYmNyeXB0Lmhhc2godGhpcy5wYXNzd29yZCwgMTApOwogIG5leHQoKTsKfSk7CgovLyBDb21wYXJlIHBhc3N3b3JkCnVzZXJTY2hlbWEubWV0aG9kcy5jb21wYXJlUGFzc3dvcmQgPSBhc3luYyBmdW5jdGlvbiAoY2FuZGlkYXRlUGFzc3dvcmQpIHsKICByZXR1cm4gYXdhaXQgYmNyeXB0LmNvbXBhcmUoY2FuZGlkYXRlUGFzc3dvcmQsIHRoaXMucGFzc3dvcmQpOwp9OwoKbW9kdWxlLmV4cG9ydHMgPSBtb25nb29zZS5tb2RlbCgnVXNlcicsIHVzZXJTY2hlbWEpOw==","code":""},{"filename":"** `controllers/userController.js`","language":"text","code_b64":"Y29uc3QgVXNlciA9IHJlcXVpcmUoJy4uL21vZGVscy9Vc2VyJyk7CmNvbnN0IHsgdmFsaWRhdGlvblJlc3VsdCB9ID0gcmVxdWlyZSgnZXhwcmVzcy12YWxpZGF0b3InKTsKCmV4cG9ydHMuY3JlYXRlVXNlciA9IGFzeW5jIChyZXEsIHJlcykgPT4gewogIHRyeSB7CiAgICBjb25zdCBlcnJvcnMgPSB2YWxpZGF0aW9uUmVzdWx0KHJlcSk7CiAgICBpZiAoIWVycm9ycy5pc0VtcHR5KCkpIHsKICAgICAgcmV0dXJuIHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgZXJyb3JzOiBlcnJvcnMuYXJyYXkoKSB9KTsKICAgIH0KCiAgICBjb25zdCB7IHVzZXJuYW1lLCBlbWFpbCwgcGFzc3dvcmQsIHJvbGUgfSA9IHJlcS5ib2R5OwogICAgY29uc3QgdXNlciA9IG5ldyBVc2VyKHsgdXNlcm5hbWUsIGVtYWlsLCBwYXNzd29yZCwgcm9sZSB9KTsKICAgIGF3YWl0IHVzZXIuc2F2ZSgpOwogICAgcmVzLnN0YXR1cygyMDEpLmpzb24oeyBtZXNzYWdlOiAnVXNlciBjcmVhdGVkIHN1Y2Nlc3NmdWxseScsIHVzZXIgfSk7CiAgfSBjYXRjaCAoZXJyb3IpIHsKICAgIHJlcy5zdGF0dXMoNTAwKS5qc29uKHsgZXJyb3I6IGVycm9yLm1lc3NhZ2UgfSk7CiAgfQp9OwoKZXhwb3J0cy5nZXRBbGxVc2VycyA9IGFzeW5jIChyZXEsIHJlcykgPT4gewogIHRyeSB7CiAgICBjb25zdCB1c2VycyA9IGF3YWl0IFVzZXIuZmluZCgpOwogICAgcmVzLmpzb24odXNlcnMpOwogIH0gY2F0Y2ggKGVycm9yKSB7CiAgICByZXMuc3RhdHVzKDUwMCkuanNvbih7IGVycm9yOiBlcnJvci5tZXNzYWdlIH0pOwogIH0KfTsKCmV4cG9ydHMuZ2V0VXNlckJ5SWQgPSBhc3luYyAocmVxLCByZXMpID0+IHsKICB0cnkgewogICAgY29uc3QgdXNlciA9IGF3YWl0IFVzZXIuZmluZEJ5SWQocmVxLnBhcmFtcy5pZCk7CiAgICBpZiAoIXVzZXIpIHJldHVybiByZXMuc3RhdHVzKDQwNCkuanNvbih7IG1lc3NhZ2U6ICdVc2VyIG5vdCBmb3VuZCcgfSk7CiAgICByZXMuanNvbih1c2VyKTsKICB9IGNhdGNoIChlcnJvcikgewogICAgcmVzLnN0YXR1cyg1MDApLmpzb24oeyBlcnJvcjogZXJyb3IubWVzc2FnZSB9KTsKICB9Cn07CgpleHBvcnRzLnVwZGF0ZVVzZXIgPSBhc3luYyAocmVxLCByZXMpID0+IHsKICB0cnkgewogICAgY29uc3QgeyB1c2VybmFtZSwgZW1haWwsIHJvbGUgfSA9IHJlcS5ib2R5OwogICAgY29uc3QgdXNlciA9IGF3YWl0IFVzZXIuZmluZEJ5SWRBbmRVcGRhdGUoCiAgICAgIHJlcS5wYXJhbXMuaWQsCiAgICAgIHsgdXNlcm5hbWUsIGVtYWlsLCByb2xlIH0sCiAgICAgIHsgbmV3OiB0cnVlIH0KICAgICk7CiAgICBpZiAoIXVzZXIpIHJldHVybiByZXMuc3RhdHVzKDQwNCkuanNvbih7IG1lc3NhZ2U6ICdVc2VyIG5vdCBmb3VuZCcgfSk7CiAgICByZXMuanNvbih1c2VyKTsKICB9IGNhdGNoIChlcnJvcikgewogICAgcmVzLnN0YXR1cyg1MDApLmpzb24oeyBlcnJvcjogZXJyb3IubWVzc2FnZSB9KTsKICB9Cn07CgpleHBvcnRzLmRlbGV0ZVVzZXIgPSBhc3luYyAocmVxLCByZXMpID0+IHsKICB0cnkgewogICAgY29uc3QgdXNlciA9IGF3YWl0IFVzZXIuZmluZEJ5SWRBbmREZWxldGUocmVxLnBhcmFtcy5pZCk7CiAgICBpZiAoIXVzZXIpIHJldHVybiByZXMuc3RhdHVzKDQwNCkuanNvbih7IG1lc3NhZ2U6ICdVc2VyIG5vdCBmb3VuZCcgfSk7CiAgICByZXMuanNvbih7IG1lc3NhZ2U6ICdVc2VyIGRlbGV0ZWQgc3VjY2Vzc2Z1bGx5JyB9KTsKICB9IGNhdGNoIChlcnJvcikgewogICAgcmVzLnN0YXR1cyg1MDApLmpzb24oeyBlcnJvcjogZXJyb3IubWVzc2FnZSB9KTsKICB9Cn07","code":""},{"filename":"** `routes/users.js`","language":"text","code_b64":"Y29uc3QgZXhwcmVzcyA9IHJlcXVpcmUoJ2V4cHJlc3MnKTsKY29uc3Qgcm91dGVyID0gZXhwcmVzcy5Sb3V0ZXIoKTsKY29uc3QgdXNlckNvbnRyb2xsZXIgPSByZXF1aXJlKCcuLi9jb250cm9sbGVycy91c2VyQ29udHJvbGxlcicpOwpjb25zdCB7IHZhbGlkYXRlVXNlciB9ID0gcmVxdWlyZSgnLi4vbWlkZGxld2FyZS92YWxpZGF0aW9uJyk7Cgpyb3V0ZXIucG9zdCgnLycsIHZhbGlkYXRlVXNlciwgdXNlckNvbnRyb2xsZXIuY3JlYXRlVXNlcik7CnJvdXRlci5nZXQoJy8nLCB1c2VyQ29udHJvbGxlci5nZXRBbGxVc2Vycyk7CnJvdXRlci5nZXQoJy86aWQnLCB1c2VyQ29udHJvbGxlci5nZXRVc2VyQnlJZCk7CnJvdXRlci5wdXQoJy86aWQnLCB2YWxpZGF0ZVVzZXIsIHVzZXJDb250cm9sbGVyLnVwZGF0ZVVzZXIpOwpyb3V0ZXIuZGVsZXRlKCcvOmlkJywgdXNlckNvbnRyb2xsZXIuZGVsZXRlVXNlcik7Cgptb2R1bGUuZXhwb3J0cyA9IHJvdXRlcjs=","code":""},{"filename":"** `routes/auth.js`","language":"text","code_b64":"Y29uc3QgZXhwcmVzcyA9IHJlcXVpcmUoJ2V4cHJlc3MnKTsKY29uc3Qgcm91dGVyID0gZXhwcmVzcy5Sb3V0ZXIoKTsKY29uc3QgeyByZWdpc3RlciwgbG9naW4gfSA9IHJlcXVpcmUoJy4uL2NvbnRyb2xsZXJzL2F1dGhDb250cm9sbGVyJyk7CmNvbnN0IHsgdmFsaWRhdGVBdXRoIH0gPSByZXF1aXJlKCcuLi9taWRkbGV3YXJlL3ZhbGlkYXRpb24nKTsKCnJvdXRlci5wb3N0KCcvcmVnaXN0ZXInLCB2YWxpZGF0ZUF1dGgsIHJlZ2lzdGVyKTsKcm91dGVyLnBvc3QoJy9sb2dpbicsIHZhbGlkYXRlQXV0aCwgbG9naW4pOwoKbW9kdWxlLmV4cG9ydHMgPSByb3V0ZXI7","code":""},{"filename":"** `controllers/authController.js`","language":"text","code_b64":"Y29uc3QgVXNlciA9IHJlcXVpcmUoJy4uL21vZGVscy9Vc2VyJyk7CmNvbnN0IGp3dCA9IHJlcXVpcmUoJ2pzb253ZWJ0b2tlbicpOwpjb25zdCB7IHZhbGlkYXRpb25SZXN1bHQgfSA9IHJlcXVpcmUoJ2V4cHJlc3MtdmFsaWRhdG9yJyk7CgpleHBvcnRzLnJlZ2lzdGVyID0gYXN5bmMgKHJlcSwgcmVzKSA9PiB7CiAgdHJ5IHsKICAgIGNvbnN0IGVycm9ycyA9IHZhbGlkYXRpb25SZXN1bHQocmVxKTsKICAgIGlmICghZXJyb3JzLmlzRW1wdHkoKSkgewogICAgICByZXR1cm4gcmVzLnN0YXR1cyg0MDApLmpzb24oeyBlcnJvcnM6IGVycm9ycy5hcnJheSgpIH0pOwogICAgfQoKICAgIGNvbnN0IHsgdXNlcm5hbWUsIGVtYWlsLCBwYXNzd29yZCwgcm9sZSB9ID0gcmVxLmJvZHk7CiAgICBjb25zdCB1c2VyID0gbmV3IFVzZXIoeyB1c2VybmFtZSwgZW1haWwsIHBhc3N3b3JkLCByb2xlIH0pOwogICAgYXdhaXQgdXNlci5zYXZlKCk7CiAgICBjb25zdCB0b2tlbiA9IGp3dC5zaWduKHsgdXNlcklkOiB1c2VyLl9pZCwgcm9sZTogdXNlci5yb2xlIH0sIHByb2Nlc3MuZW52LkpXVF9TRUNSRVQsIHsgZXhwaXJlc0luOiAnMWgnIH0pOwogICAgcmVzLnN0YXR1cygyMDEpLmpzb24oeyB0b2tlbiB9KTsKICB9IGNhdGNoIChlcnJvcikgewogICAgcmVzLnN0YXR1cyg1MDApLmpzb24oeyBlcnJvcjogZXJyb3IubWVzc2FnZSB9KTsKICB9Cn07CgpleHBvcnRzLmxvZ2luID0gYXN5bmMgKHJlcSwgcmVzKSA9PiB7CiAgdHJ5IHsKICAgIGNvbnN0IGVycm9ycyA9IHZhbGlkYXRpb25SZXN1bHQocmVxKTsKICAgIGlmICghZXJyb3JzLmlzRW1wdHkoKSkgewogICAgICByZXR1cm4gcmVzLnN0YXR1cyg0MDApLmpzb24oeyBlcnJvcnM6IGVycm9ycy5hcnJheSgpIH0pOwogICAgfQoKICAgIGNvbnN0IHsgZW1haWwsIHBhc3N3b3JkIH0gPSByZXEuYm9keTsKICAgIGNvbnN0IHVzZXIgPSBhd2FpdCBVc2VyLmZpbmRPbmUoeyBlbWFpbCB9KTsKICAgIGlmICghdXNlciB8fCAhKGF3YWl0IHVzZXIuY29tcGFyZVBhc3N3b3JkKHBhc3N3b3JkKSkpIHsKICAgICAgcmV0dXJuIHJlcy5zdGF0dXMoNDAxKS5qc29uKHsgbWVzc2FnZTogJ0ludmFsaWQgY3JlZGVudGlhbHMnIH0pOwogICAgfQoKICAgIGNvbnN0IHRva2VuID0gand0LnNpZ24oeyB1c2VySWQ6IHVzZXIuX2lkLCByb2xlOiB1c2VyLnJvbGUgfSwgcHJvY2Vzcy5lbnYuSldUX1NFQ1JFVCwgeyBleHBpcmVzSW46ICcxaCcgfSk7CiAgICByZXMuanNvbih7IHRva2VuIH0pOwogIH0gY2F0Y2ggKGVycm9yKSB7CiAgICByZXMuc3RhdHVzKDUwMCkuanNvbih7IGVycm9yOiBlcnJvci5tZXNzYWdlIH0pOwogIH0KfTs=","code":""},{"filename":"** `middleware/auth.js`","language":"text","code_b64":"Y29uc3Qgand0ID0gcmVxdWlyZSgnanNvbndlYnRva2VuJyk7CgpleHBvcnRzLmF1dGhlbnRpY2F0ZVRva2VuID0gKHJlcSwgcmVzLCBuZXh0KSA9PiB7CiAgY29uc3QgYXV0aEhlYWRlciA9IHJlcS5oZWFkZXJzWydhdXRob3JpemF0aW9uJ107CiAgY29uc3QgdG9rZW4gPSBhdXRoSGVhZGVyICYmIGF1dGhIZWFkZXIuc3BsaXQoJyAnKVsxXTsKICBpZiAoIXRva2VuKSByZXR1cm4gcmVzLnN0YXR1cyg0MDEpLmpzb24oeyBtZXNzYWdlOiAnQWNjZXNzIGRlbmllZCcgfSk7CgogIGp3dC52ZXJpZnkodG9rZW4sIHByb2Nlc3MuZW52LkpXVF9TRUNSRVQsIChlcnIsIHVzZXIpID0+IHsKICAgIGlmIChlcnIpIHJldHVybiByZXMuc3RhdHVzKDQwMykuanNvbih7IG1lc3NhZ2U6ICdJbnZhbGlkIHRva2VuJyB9KTsKICAgIHJlcS51c2VyID0gdXNlcjsKICAgIG5leHQoKTsKICB9KTsKfTsKCmV4cG9ydHMuYXV0aG9yaXplUm9sZSA9IChyb2xlKSA9PiAocmVxLCByZXMsIG5leHQpID0+IHsKICBpZiAocmVxLnVzZXIucm9sZSAhPT0gcm9sZSkgewogICAgcmV0dXJuIHJlcy5zdGF0dXMoNDAzKS5qc29uKHsgbWVzc2FnZTogJ0ZvcmJpZGRlbicgfSk7CiAgfQogIG5leHQoKTsKfTs=","code":""},{"filename":"** `middleware/validation.js`","language":"text","code_b64":"Y29uc3QgeyBib2R5LCB2YWxpZGF0aW9uUmVzdWx0IH0gPSByZXF1aXJlKCdleHByZXNzLXZhbGlkYXRvcicpOwoKZXhwb3J0cy52YWxpZGF0ZVVzZXIgPSBbCiAgYm9keSgndXNlcm5hbWUnKS5ub3RFbXB0eSgpLndpdGhNZXNzYWdlKCdVc2VybmFtZSBpcyByZXF1aXJlZCcpLAogIGJvZHkoJ2VtYWlsJykuaXNFbWFpbCgpLndpdGhNZXNzYWdlKCdWYWxpZCBlbWFpbCBpcyByZXF1aXJlZCcpLAogIGJvZHkoJ3Bhc3N3b3JkJykuaXNMZW5ndGgoeyBtaW46IDYgfSkud2l0aE1lc3NhZ2UoJ1Bhc3N3b3JkIG11c3QgYmUgYXQgbGVhc3QgNiBjaGFyYWN0ZXJzJyksCiAgKHJlcSwgcmVzLCBuZXh0KSA9PiB7CiAgICBjb25zdCBlcnJvcnMgPSB2YWxpZGF0aW9uUmVzdWx0KHJlcSk7CiAgICBpZiAoIWVycm9ycy5pc0VtcHR5KCkpIHsKICAgICAgcmV0dXJuIHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgZXJyb3JzOiBlcnJvcnMuYXJyYXkoKSB9KTsKICAgIH0KICAgIG5leHQoKTsKICB9Cl07CgpleHBvcnRzLnZhbGlkYXRlQXV0aCA9IFsKICBib2R5KCdlbWFpbCcpLmlzRW1haWwoKS53aXRoTWVzc2FnZSgnVmFsaWQgZW1haWwgaXMgcmVxdWlyZWQnKSwKICBib2R5KCdwYXNzd29yZCcpLmlzTGVuZ3RoKHsgbWluOiA2IH0pLndpdGhNZXNzYWdlKCdQYXNzd29yZCBtdXN0IGJlIGF0IGxlYXN0IDYgY2hhcmFjdGVycycpLAogIChyZXEsIHJlcywgbmV4dCkgPT4gewogICAgY29uc3QgZXJyb3JzID0gdmFsaWRhdGlvblJlc3VsdChyZXEpOwogICAgaWYgKCFlcnJvcnMuaXNFbXB0eSgpKSB7CiAgICAgIHJldHVybiByZXMuc3RhdHVzKDQwMCkuanNvbih7IGVycm9yczogZXJyb3JzLmFycmF5KCkgfSk7CiAgICB9CiAgICBuZXh0KCk7CiAgfQpdOw==","code":""},{"filename":"** `middleware/error.js`","language":"text","code_b64":"ZXhwb3J0cy5lcnJvck1pZGRsZXdhcmUgPSAoZXJyLCByZXEsIHJlcywgbmV4dCkgPT4gewogIGNvbnNvbGUuZXJyb3IoZXJyLnN0YWNrKTsKICByZXMuc3RhdHVzKDUwMCkuanNvbih7IGVycm9yOiAnSW50ZXJuYWwgU2VydmVyIEVycm9yJyB9KTsKfTs=","code":""},{"filename":"** `package.json`","language":"text","code_b64":"ewogICJuYW1lIjogInJlc3RmdWwtYXBpIiwKICAidmVyc2lvbiI6ICIxLjAuMCIsCiAgImRlc2NyaXB0aW9uIjogIlJFU1RmdWwgQVBJIHdpdGggTm9kZS5qcywgRXhwcmVzcywgYW5kIE1vbmdvREIiLAogICJtYWluIjogInNlcnZlci5qcyIsCiAgInNjcmlwdHMiOiB7CiAgICAic3RhcnQiOiAibm9kZSBzZXJ2ZXIuanMiLAogICAgImRldiI6ICJub2RlbW9uIHNlcnZlci5qcyIsCiAgICAidGVzdCI6ICJqZXN0IiwKICAgICJkYjptaWdyYXRlIjogIm1vbmdvREItbWlncmF0ZSIKICB9LAogICJkZXBlbmRlbmNpZXMiOiB7CiAgICAiYmNyeXB0IjogIl41LjEuMCIsCiAgICAiY29ycyI6ICJeMi44LjUiLAogICAgImRvdGVudiI6ICJeMTYuMC4zIiwKICAgICJleHByZXNzIjogIl40LjE4LjIiLAogICAgImV4cHJlc3MtdmFsaWRhdG9yIjogIl42LjE4LjEiLAogICAgImpzb253ZWJ0b2tlbiI6ICJeOS4wLjAiLAogICAgIm1vbmdvb3NlIjogIl42LjEwLjIiLAogICAgIm5vZGVtb24iOiAiXjMuMC4yIgogIH0sCiAgImRldkRlcGVuZGVuY2llcyI6IHsKICAgICJqZXN0IjogIl4yOS43LjAiLAogICAgInN1cGVydGVzdCI6ICJeNi4zLjMiCiAgfQp9","code":""},{"filename":"** `.env.example`","language":"text","code_b64":"UE9SVD0zMDAwCk1PTkdPX1VSST1tb25nb2RiOi8vbG9jYWxob3N0OjI3MDE3L3Jlc3RmdWwtYXBpCkpXVF9TRUNSRVQ9eW91ci1zZWNyZXQta2V5Ck5PREVfRU5WPWRldmVsb3BtZW50","code":""},{"filename":"** `Dockerfile`","language":"text","code_b64":"IyBVc2UgYW4gb2ZmaWNpYWwgTm9kZS5qcyBydW50aW1lIGFzIGEgcGFyZW50IGltYWdlCkZST00gbm9kZToxOAoKIyBTZXQgdGhlIHdvcmtpbmcgZGlyZWN0b3J5CldPUktESVIgL2FwcAoKIyBDb3B5IHBhY2thZ2UuanNvbiBhbmQgaW5zdGFsbCBkZXBlbmRlbmNpZXMKQ09QWSBwYWNrYWdlKi5qc29uIC4vClJVTiBucG0gaW5zdGFsbAoKIyBDb3B5IHRoZSByZXN0IG9mIHRoZSBhcHBsaWNhdGlvbiBjb2RlCkNPUFkgLiAuCgojIEV4cG9zZSB0aGUgcG9ydCB0aGUgYXBwIHJ1bnMgb24KRVhQT1NFIDMwMDAKCiMgQ29tbWFuZCB0byBydW4gdGhlIGFwcGxpY2F0aW9uCkNNRCBbIm5vZGUiLCAic2VydmVyLmpzIl0=","code":""},{"filename":"** `docker-compose.yml`","language":"text","code_b64":"dmVyc2lvbjogJzMuOCcKCnNlcnZpY2VzOgogIGFwcDoKICAgIGJ1aWxkOiAuCiAgICBwb3J0czoKICAgICAgLSAiMzAwMDozMDAwIgogICAgZW52aXJvbm1lbnQ6CiAgICAgIFBPUlQ6IDMwMDAKICAgICAgTU9OR09fVVJJOiBtb25nb2RiOi8vbW9uZ286MjcwMTcvcmVzdGZ1bC1hcGkKICAgICAgSldUX1NFQ1JFVDogcHJvZHVjdGlvbi1zZWNyZXQta2V5CiAgICAgIE5PREVfRU5WOiBwcm9kdWN0aW9uCiAgICBkZXBlbmRzX29uOgogICAgICAtIG1vbmdvCgogIG1vbmdvOgogICAgaW1hZ2U6IG1vbmdvOjUuMAogICAgcG9ydHM6CiAgICAgIC0gIjI3MDE3OjI3MDE3IgogICAgdm9sdW1lczoKICAgICAgLSBtb25nby1kYXRhOi9kYXRhL2RiCgp2b2x1bWVzOgogIG1vbmdvLWRhdGE6","code":""},{"filename":"** `README.md`","language":"text","code_b64":"IyBSRVNUZnVsIEFQSSB3aXRoIE5vZGUuanMsIEV4cHJlc3MsIGFuZCBNb25nb0RCCgojIyBTZXR1cCBJbnN0cnVjdGlvbnMKCjEuICoqQ2xvbmUgdGhlIHJlcG9zaXRvcnkqKg==","code":""},{"filename":"** `API_DOCS.md`","language":"text","code_b64":"IyBBUEkgRG9jdW1lbnRhdGlvbgoKIyMgVXNlcnMKCiMjIyBDcmVhdGUgVXNlcgoqKlBPU1QqKiBgL2FwaS91c2Vyc2AKLSAqKkJvZHkqKjogYHsgdXNlcm5hbWUsIGVtYWlsLCBwYXNzd29yZCwgcm9sZSB9YAotICoqUmVzcG9uc2UqKjogYDIwMSBDcmVhdGVkYCB3aXRoIHVzZXIgZGF0YQoKIyMjIEdldCBBbGwgVXNlcnMKKipHRVQqKiBgL2FwaS91c2Vyc2AKLSAqKlJlc3BvbnNlKio6IGAyMDAgT0tgIHdpdGggdXNlciBsaXN0CgojIyMgR2V0IFVzZXIgYnkgSUQKKipHRVQqKiBgL2FwaS91c2Vycy86aWRgCi0gKipSZXNwb25zZSoqOiBgMjAwIE9LYCB3aXRoIHVzZXIgZGF0YQoKIyMjIFVwZGF0ZSBVc2VyCioqUFVUKiogYC9hcGkvdXNlcnMvOmlkYAotICoqQm9keSoqOiBgeyB1c2VybmFtZSwgZW1haWwsIHJvbGUgfWAKLSAqKlJlc3BvbnNlKio6IGAyMDAgT0tgIHdpdGggdXBkYXRlZCB1c2VyIGRhdGEKCiMjIyBEZWxldGUgVXNlcgoqKkRFTEVURSoqIGAvYXBpL3VzZXJzLzppZGAKLSAqKlJlc3BvbnNlKio6IGAyMDAgT0tgIHdpdGggc3VjY2VzcyBtZXNzYWdlCgojIyBBdXRoZW50aWNhdGlvbgoKIyMjIFJlZ2lzdGVyCioqUE9TVCoqIGAvYXBpL2F1dGgvcmVnaXN0ZXJgCi0gKipCb2R5Kio6IGB7IHVzZXJuYW1lLCBlbWFpbCwgcGFzc3dvcmQsIHJvbGUgfWAKLSAqKlJlc3BvbnNlKio6IGAyMDEgQ3JlYXRlZGAgd2l0aCBKV1QgdG9rZW4KCiMjIyBMb2dpbgoqKlBPU1QqKiBgL2FwaS9hdXRoL2xvZ2luYAotICoqQm9keSoqOiBgeyBlbWFpbCwgcGFzc3dvcmQgfWAKLSAqKlJlc3BvbnNlKio6IGAyMDAgT0tgIHdpdGggSldUIHRva2Vu","code":""}];
+        const projectName = 'Restful Api';
+        const sessionId = 'test-20250711-214947';
+        let payloadItems = [];
+        
+        function highlightFunction(xeditId, functionName, lineStart, lineEnd) {
+            console.log(`Highlighting function: ${functionName} (lines ${lineStart}-${lineEnd})`);
+            
+            // Remove previous highlights from function list
+            document.querySelectorAll('.function-item').forEach(item => {
+                item.classList.remove('highlighted');
+            });
+            
+            // Highlight selected function
+            const selectedItem = document.querySelector(`[data-id="${xeditId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('highlighted');
+            }
+            
+            // Clear previous code highlights
+            document.querySelectorAll('.code-line').forEach(line => {
+                line.classList.remove('highlight');
+            });
+            
+            // Highlight code lines
+            for (let i = lineStart; i <= lineEnd; i++) {
+                const lineElement = document.querySelector(`.code-line[data-line="${i}"]`);
+                if (lineElement) {
+                    lineElement.classList.add('highlight');
+                    
+                    // Scroll to first highlighted line
+                    if (i === lineStart) {
+                        lineElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            }
+        }
+        
+        function addToPayload(functionName, functionType, xeditId) {
+            console.log(`Adding to payload: ${functionName} (${functionType})`);
+            
+            // Check if already in payload
+            if (payloadItems.find(item => item.id === xeditId)) {
+                alert('Function already in payload!');
+                return;
+            }
+            
+            // Add to payload
+            const payloadItem = {
+                id: xeditId,
+                name: functionName,
+                type: functionType,
+                timestamp: new Date().toLocaleTimeString()
+            };
+            
+            payloadItems.push(payloadItem);
+            updatePayloadDisplay();
+        }
+        
+        function removeFromPayload(xeditId) {
+            payloadItems = payloadItems.filter(item => item.id !== xeditId);
+            updatePayloadDisplay();
+        }
+        
+        function updatePayloadDisplay() {
+            const payloadList = document.getElementById('payload-list');
+            const sendButton = document.getElementById('send-button');
+            
+            if (payloadItems.length === 0) {
+                payloadList.innerHTML = '<div class="payload-empty">Click functions to add XEdit-Paths</div>';
+                sendButton.textContent = '🚀 Send 0 to Optimized Pipeline';
+                sendButton.disabled = true;
+                return;
+            }
+            
+            let html = '';
+            payloadItems.forEach(item => {
+                html += `
+                    <div class="payload-item">
+                        <div class="payload-item-info">
+                            <div class="xedit-id">${item.id}</div>
+                            <div class="payload-model">${item.name} (${item.type})</div>
+                        </div>
+                        <button class="remove-btn" onclick="removeFromPayload('${item.id}')" title="Remove from payload">×</button>
+                    </div>
+                `;
+            });
+            
+            payloadList.innerHTML = html;
+            sendButton.textContent = `🚀 Send ${payloadItems.length} to Optimized Pipeline`;
+            sendButton.disabled = false;
+        }
+        
+        function deployToPcock() {
+            console.log('deployToPcock() called');
+            const deployBtn = document.querySelector('.peacock-deploy-btn');
+            const deployStatus = document.getElementById('deploy-status');
+            const customNameInput = document.getElementById('custom-package-name');
+            
+            // Get custom name or use default
+            const customName = customNameInput.value.trim();
+            const finalProjectName = customName || projectName;
+            
+            // Show loading state
+            deployBtn.disabled = true;
+            deployBtn.textContent = '🔄 Building...'
+            deployStatus.innerHTML = '<div style="color: #ffff00;">🔧 Preparing build...</div>';
+            
+            // Prepare deployment data
+            const deploymentData = {
+                project_name: finalProjectName,
+                session_id: sessionId,
+                project_files: projectFiles,
+                payload_items: payloadItems,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Call deployment API
+            fetch('http://127.0.0.1:8000/deploy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(deploymentData)
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Deploy response:', data);
+                if (data.success) {
+                    deployBtn.textContent = '✅ Built!';
+                    deployBtn.style.background = 'linear-gradient(45deg, #00ff00, #00cc00)';
+                    deployStatus.innerHTML = `
+                        <div style="color: #00ff00;">
+                            ✅ Build successful!<br>
+                            📦 Project created<br>
+                            🚀 Ready to run
+                        </div>
+                    `;
+                } else {
+                    throw new Error(data.error || 'Deployment failed');
+                }
+            })
+            .catch(error => {
+                console.error('Deploy error:', error);
+                deployBtn.textContent = '❌ Build Failed';
+                deployBtn.style.background = 'linear-gradient(45deg, #ff0000, #cc0000)';
+                deployStatus.innerHTML = `
+                    <div style="color: #ff0000;">
+                        ❌ Build failed:<br>
+                        ${error.message}
+                    </div>
+                `;
+            })
+            .finally(() => {
+                deployBtn.disabled = false;
+                setTimeout(() => {
+                    deployBtn.textContent = '🦚 Generate Python Project';
+                    deployBtn.style.background = 'linear-gradient(45deg, #00ff00, #00cc00)';
+                }, 4000);
+            });
+        }
+        
+        // Decode base64 project files
+        projectFiles.forEach(file => {
+            if (file.code_b64) {
+                file.code = atob(file.code_b64);
+                delete file.code_b64;
+            }
+        });
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🦚 XEdit Enhanced Interface Loaded');
+            console.log('Project:', projectName);
+            console.log('Session:', sessionId);
+            console.log('Functions found:', Object.keys(xeditPaths).length);
+            console.log('Project files:', projectFiles.length);
+        });
+    </script>
+</body>
+</html>

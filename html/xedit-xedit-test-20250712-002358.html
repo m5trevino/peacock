@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦚 Peacock XEdit Interface (Optimized)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'SF Mono', monospace; background: #0d1117; color: #e6edf3; height: 100vh; overflow: hidden; }
+        .header { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .peacock-logo { font-size: 18px; font-weight: bold; color: #ff6b35; }
+        .nav-links { display: flex; gap: 16px; align-items: center; }
+        .nav-link { background: #21262d; border: 1px solid #30363d; color: #e6edf3; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .nav-link.active { background: #ff6b35; color: #0d1117; }
+        .project-info { color: #8b949e; font-size: 14px; }
+        .session-info { background: rgba(0, 255, 136, 0.1); border: 1px solid #00ff88; border-radius: 6px; padding: 4px 8px; font-size: 12px; color: #00ff88; }
+        .optimization-badge { background: rgba(255, 107, 53, 0.1); border: 1px solid #ff6b35; border-radius: 6px; padding: 4px 8px; font-size: 12px; color: #ff6b35; margin-left: 8px; }
+        .main-container { display: flex; height: calc(100vh - 60px); }
+        .left-panel { width: 320px; background: #161b22; border-right: 1px solid #30363d; display: flex; flex-direction: column; }
+        .panel-header { background: #21262d; padding: 12px 16px; border-bottom: 1px solid #30363d; font-weight: 600; font-size: 13px; color: #7c3aed; display: flex; justify-content: space-between; align-items: center; }
+        .optimization-info { font-size: 11px; color: #ff6b35; }
+        .functions-list { flex: 1; overflow-y: auto; padding: 8px; }
+        .function-item { background: #21262d; border: 1px solid #30363d; border-radius: 6px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; position: relative; }
+        .function-item:hover { border-color: #ff6b35; background: #2d333b; transform: translateX(3px); }
+        .function-item.selected { border-color: #ff6b35; background: #2d333b; box-shadow: 0 0 0 1px #ff6b35; }
+        .function-info { display: flex; align-items: center; gap: 8px; }
+        .function-name { font-weight: 600; color: #79c0ff; }
+        .function-type { background: #30363d; color: #8b949e; padding: 2px 6px; border-radius: 3px; font-size: 10px; text-transform: uppercase; }
+        .model-indicator { background: #ff6b35; color: #0d1117; padding: 2px 4px; border-radius: 3px; font-size: 10px; margin-left: auto; }
+        .add-btn { position: absolute; top: 8px; right: 8px; background: #238636; border: none; color: white; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 14px; opacity: 0; transition: opacity 0.2s; }
+        .function-item:hover .add-btn { opacity: 1; }
+        .middle-panel { width: 340px; background: #161b22; border-right: 1px solid #30363d; display: flex; flex-direction: column; }
+        .payload-header { background: #238636; color: white; padding: 12px 16px; font-weight: 600; font-size: 14px; text-align: center; }
+        .payload-container { flex: 1; padding: 16px; display: flex; flex-direction: column; }
+        .payload-list { flex: 1; background: #21262d; border: 1px solid #30363d; border-radius: 8px; padding: 16px; margin-bottom: 16px; overflow-y: auto; min-height: 200px; }
+        .payload-empty { color: #6e7681; text-align: center; font-style: italic; margin-top: 50px; }
+        .payload-item { background: #2d333b; border: 1px solid #30363d; border-radius: 6px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .payload-item-info { display: flex; flex-direction: column; gap: 4px; }
+        .xedit-id { font-family: 'SF Mono', monospace; background: #30363d; color: #ff6b35; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .payload-model { font-size: 10px; color: #8b949e; }
+        .remove-btn { background: #da3633; border: none; color: white; width: 20px; height: 20px; border-radius: 3px; cursor: pointer; font-size: 12px; }
+        .strategy-overview { background: rgba(255, 107, 53, 0.1); border: 1px solid #ff6b35; border-radius: 8px; padding: 12px; margin-bottom: 16px; }
+        .strategy-title { color: #ff6b35; font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+        .strategy-models { font-size: 10px; color: #8b949e; line-height: 1.4; }
+        .send-button { width: 100%; background: #238636; border: none; color: white; padding: 15px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-bottom: 15px; }
+        .send-button:disabled { background: #30363d; color: #8b949e; cursor: not-allowed; }
+        .deploy-section { padding: 15px; background: rgba(46, 204, 113, 0.1); border: 1px solid #2ecc71; border-radius: 8px; }
+        .deploy-title { color: #2ecc71; margin-bottom: 10px; font-weight: 600; }
+        .deploy-info { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 12px; color: #8b949e; }
+        .deploy-button { width: 100%; padding: 12px; background: linear-gradient(45deg, #2ecc71, #27ae60); border: none; border-radius: 6px; color: white; font-weight: 600; cursor: pointer; }
+        .right-panel { flex: 1; background: #0d1117; display: flex; flex-direction: column; }
+        .code-header { background: #21262d; padding: 12px 16px; border-bottom: 1px solid #30363d; font-weight: 600; font-size: 13px; color: #f0883e; display: flex; justify-content: space-between; align-items: center; }
+        .model-status { font-size: 11px; color: #ff6b35; }
+        .code-container { flex: 1; overflow: auto; padding: 16px; }
+        .code-content { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 16px; font-family: 'SF Mono', monospace; font-size: 13px; line-height: 1.6; }
+        .code-line { display: flex; min-height: 20px; }
+        .code-line.highlighted { background: #2d333b; border-left: 3px solid #ff6b35; padding-left: 13px; }
+        .line-number { color: #6e7681; user-select: none; margin-right: 16px; min-width: 30px; text-align: right; }
+        .line-content { color: #e6edf3; flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="peacock-logo">🦚 Peacock XEdit Interface</div>
+        <div class="nav-links">
+            <div class="nav-link active">📝 XEdit</div>
+            <div class="nav-link">🤖 Models</div>
+            <div class="nav-link">💬 Senior Dev</div>
+        </div>
+        <div class="project-info">
+            Project: XEdit Test • Session: <span class="session-info">xedit-test-20250712-002358</span>
+            <span class="optimization-badge">Multi-Model</span>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <div class="panel-header">
+                📋 Functions & Classes
+                <span class="optimization-info">Optimized</span>
+            </div>
+            <div class="functions-list">
+                
+            <div class="function-item" onclick="highlightFunction('7x001', 'pre', 12, 22)" data-id="7x001">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">pre</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('pre', 'function', '7x001')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x002', 'function', 19, 23)" data-id="7x002">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">function</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('function', 'function', '7x002')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x003', 'if', 7, 17)" data-id="7x003">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x003')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x004', 'catch', 15, 25)" data-id="7x004">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">catch</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('catch', 'function', '7x004')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x005', 'catch', 24, 34)" data-id="7x005">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">catch</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('catch', 'function', '7x005')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x006', 'catch', 34, 44)" data-id="7x006">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">catch</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('catch', 'function', '7x006')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x007', 'catch', 49, 59)" data-id="7x007">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">catch</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('catch', 'function', '7x007')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x008', 'catch', 59, 62)" data-id="7x008">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">catch</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('catch', 'function', '7x008')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x009', 'if', 8, 18)" data-id="7x009">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x009')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x010', 'catch', 17, 27)" data-id="7x010">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">catch</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('catch', 'function', '7x010')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x011', 'if', 25, 35)" data-id="7x011">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x011')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x012', 'if', 31, 40)" data-id="7x012">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x012')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x013', 'catch', 37, 40)" data-id="7x013">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">catch</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('catch', 'function', '7x013')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x014', 'if', 16, 20)" data-id="7x014">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x014')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x015', 'if', 9, 19)" data-id="7x015">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x015')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x016', 'if', 21, 26)" data-id="7x016">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x016')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x017', 'if', 11, 21)" data-id="7x017">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x017')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x018', 'switch', 10, 20)" data-id="7x018">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">switch</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('switch', 'function', '7x018')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x019', 'if', 32, 42)" data-id="7x019">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x019')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x020', 'if', 20, 30)" data-id="7x020">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x020')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x021', 'catch', 12, 22)" data-id="7x021">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">catch</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('catch', 'function', '7x021')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x022', 'if', 21, 29)" data-id="7x022">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x022')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x023', 'catch', 26, 29)" data-id="7x023">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">catch</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('catch', 'function', '7x023')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x024', 'authMiddleware', 3, 13)" data-id="7x024">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">authMiddleware</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('authMiddleware', 'function', '7x024')" title="Add to payload">+</button>
+            </div>
+            
+            </div>
+        </div>
+
+        <div class="middle-panel">
+            <div class="payload-header">Optimized Payload</div>
+            <div class="payload-container">
+                <div class="strategy-overview">
+                    <div class="strategy-title">🧠 Model Strategy</div>
+                    <div class="strategy-models">
+                        <strong>Code Analysis:</strong> llama3-8b-8192<br>
+                        <strong>Structure:</strong> gemma2-9b-it<br>
+                        <strong>Speed:</strong> llama3-8b-8192
+                    </div>
+                </div>
+                
+                <div class="payload-list" id="payload-list">
+                    <div class="payload-empty">Click functions to add XEdit-Paths</div>
+                </div>
+                <button class="send-button" id="send-button" disabled>
+                    🚀 Send 0 to Optimized Pipeline
+                </button>
+                
+                <div class="deploy-section">
+                    <div class="deploy-title">🚀 Deploy & Download</div>
+                    <div class="deploy-info">
+                        <strong>Project:</strong> XEdit Test<br>
+                        <strong>Session:</strong> xedit-test-20250712-002358<br>
+                        <strong>Strategy:</strong> Multi-Model Optimized
+                    </div>
+                    <button class="deploy-button" onclick="deployToPcock()">📦 Download Optimized Setup</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="code-header">
+                📁 XEdit Test: Generated Code
+                <span class="model-status">Multi-Model Ready</span>
+            </div>
+            <div class="code-container">
+                <div class="code-content">
+<div class="code-line" data-line="1"><span class="line-number">  1</span><span class="line-content">const express = require('express');</span></div>
+<div class="code-line" data-line="2"><span class="line-number">  2</span><span class="line-content">const mongoose = require('mongoose');</span></div>
+<div class="code-line" data-line="3"><span class="line-number">  3</span><span class="line-content">const cors = require('cors');</span></div>
+<div class="code-line" data-line="4"><span class="line-number">  4</span><span class="line-content">const dotenv = require('dotenv');</span></div>
+<div class="code-line" data-line="5"><span class="line-number">  5</span><span class="line-content">const authRoutes = require('./routes/auth');</span></div>
+<div class="code-line" data-line="6"><span class="line-number">  6</span><span class="line-content">const userRoutes = require('./routes/users');</span></div>
+<div class="code-line" data-line="7"><span class="line-number">  7</span><span class="line-content">const errorMiddleware = require('./middleware/error');</span></div>
+<div class="code-line" data-line="8"><span class="line-number">  8</span><span class="line-content">const { validateUser } = require('./middleware/validation');</span></div>
+<div class="code-line" data-line="9"><span class="line-number">  9</span><span class="line-content">const { authenticateToken } = require('./middleware/auth');</span></div>
+<div class="code-line" data-line="10"><span class="line-number"> 10</span><span class="line-content"></span></div>
+<div class="code-line" data-line="11"><span class="line-number"> 11</span><span class="line-content">dotenv.config();</span></div>
+<div class="code-line" data-line="12"><span class="line-number"> 12</span><span class="line-content"></span></div>
+<div class="code-line" data-line="13"><span class="line-number"> 13</span><span class="line-content">const app = express();</span></div>
+<div class="code-line" data-line="14"><span class="line-number"> 14</span><span class="line-content">const PORT = process.env.PORT || 3000;</span></div>
+<div class="code-line" data-line="15"><span class="line-number"> 15</span><span class="line-content"></span></div>
+<div class="code-line" data-line="16"><span class="line-number"> 16</span><span class="line-content">// Connect to MongoDB</span></div>
+<div class="code-line" data-line="17"><span class="line-number"> 17</span><span class="line-content">mongoose.connect(process.env.MONGO_URI, {</span></div>
+<div class="code-line" data-line="18"><span class="line-number"> 18</span><span class="line-content">  useNewUrlParser: true,</span></div>
+<div class="code-line" data-line="19"><span class="line-number"> 19</span><span class="line-content">  useUnifiedTopology: true,</span></div>
+<div class="code-line" data-line="20"><span class="line-number"> 20</span><span class="line-content">})</span></div>
+<div class="code-line" data-line="21"><span class="line-number"> 21</span><span class="line-content">  .then(() =&gt; console.log('MongoDB connected'))</span></div>
+<div class="code-line" data-line="22"><span class="line-number"> 22</span><span class="line-content">  .catch(err =&gt; console.error('MongoDB connection error:', err));</span></div>
+<div class="code-line" data-line="23"><span class="line-number"> 23</span><span class="line-content"></span></div>
+<div class="code-line" data-line="24"><span class="line-number"> 24</span><span class="line-content">// Middleware</span></div>
+<div class="code-line" data-line="25"><span class="line-number"> 25</span><span class="line-content">app.use(cors());</span></div>
+<div class="code-line" data-line="26"><span class="line-number"> 26</span><span class="line-content">app.use(express.json());</span></div>
+<div class="code-line" data-line="27"><span class="line-number"> 27</span><span class="line-content"></span></div>
+<div class="code-line" data-line="28"><span class="line-number"> 28</span><span class="line-content">// Routes</span></div>
+<div class="code-line" data-line="29"><span class="line-number"> 29</span><span class="line-content">app.use('/api/auth', authRoutes);</span></div>
+<div class="code-line" data-line="30"><span class="line-number"> 30</span><span class="line-content">app.use('/api/users', authenticateToken, userRoutes);</span></div>
+<div class="code-line" data-line="31"><span class="line-number"> 31</span><span class="line-content"></span></div>
+<div class="code-line" data-line="32"><span class="line-number"> 32</span><span class="line-content">// Error handling middleware</span></div>
+<div class="code-line" data-line="33"><span class="line-number"> 33</span><span class="line-content">app.use(errorMiddleware);</span></div>
+<div class="code-line" data-line="34"><span class="line-number"> 34</span><span class="line-content"></span></div>
+<div class="code-line" data-line="35"><span class="line-number"> 35</span><span class="line-content">// Start server</span></div>
+<div class="code-line" data-line="36"><span class="line-number"> 36</span><span class="line-content">app.listen(PORT, () =&gt; {</span></div>
+<div class="code-line" data-line="37"><span class="line-number"> 37</span><span class="line-content">  console.log(`Server running on port ${PORT}`);</span></div>
+<div class="code-line" data-line="38"><span class="line-number"> 38</span><span class="line-content">});</span></div>
+<div class="code-line" data-line="39"><span class="line-number"> 39</span><span class="line-content">const mongoose = require('mongoose');</span></div>
+<div class="code-line" data-line="40"><span class="line-number"> 40</span><span class="line-content">const bcrypt = require('bcrypt');</span></div>
+<div class="code-line" data-line="41"><span class="line-number"> 41</span><span class="line-content"></span></div>
+<div class="code-line" data-line="42"><span class="line-number"> 42</span><span class="line-content">const userSchema = new mongoose.Schema({</span></div>
+<div class="code-line" data-line="43"><span class="line-number"> 43</span><span class="line-content">  username: { type: String, required: true, unique: true },</span></div>
+<div class="code-line" data-line="44"><span class="line-number"> 44</span><span class="line-content">  email: { type: String, required: true, unique: true },</span></div>
+<div class="code-line" data-line="45"><span class="line-number"> 45</span><span class="line-content">  password: { type: String, required: true },</span></div>
+<div class="code-line" data-line="46"><span class="line-number"> 46</span><span class="line-content">  role: { type: String, enum: ['user', 'admin'], default: 'user' },</span></div>
+<div class="code-line" data-line="47"><span class="line-number"> 47</span><span class="line-content">}, { timestamps: true });</span></div>
+<div class="code-line" data-line="48"><span class="line-number"> 48</span><span class="line-content"></span></div>
+<div class="code-line" data-line="49"><span class="line-number"> 49</span><span class="line-content">// Hash password before saving</span></div>
+<div class="code-line" data-line="50"><span class="line-number"> 50</span><span class="line-content">userSchema.pre('save', async function (next) {</span></div>
+<div class="code-line" data-line="51"><span class="line-number"> 51</span><span class="line-content">  if (!this.isModified('password')) return next();</span></div>
+<div class="code-line" data-line="52"><span class="line-number"> 52</span><span class="line-content">  this.password = await bcrypt.hash(this.password, 10);</span></div>
+<div class="code-line" data-line="53"><span class="line-number"> 53</span><span class="line-content">  next();</span></div>
+<div class="code-line" data-line="54"><span class="line-number"> 54</span><span class="line-content">});</span></div>
+<div class="code-line" data-line="55"><span class="line-number"> 55</span><span class="line-content"></span></div>
+<div class="code-line" data-line="56"><span class="line-number"> 56</span><span class="line-content">// Compare password</span></div>
+<div class="code-line" data-line="57"><span class="line-number"> 57</span><span class="line-content">userSchema.methods.comparePassword = async function (candidatePassword) {</span></div>
+<div class="code-line" data-line="58"><span class="line-number"> 58</span><span class="line-content">  return await bcrypt.compare(candidatePassword, this.password);</span></div>
+<div class="code-line" data-line="59"><span class="line-number"> 59</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="60"><span class="line-number"> 60</span><span class="line-content"></span></div>
+<div class="code-line" data-line="61"><span class="line-number"> 61</span><span class="line-content">module.exports = mongoose.model('User', userSchema);</span></div>
+<div class="code-line" data-line="62"><span class="line-number"> 62</span><span class="line-content">const User = require('../models/User');</span></div>
+<div class="code-line" data-line="63"><span class="line-number"> 63</span><span class="line-content">const { validationResult } = require('express-validator');</span></div>
+<div class="code-line" data-line="64"><span class="line-number"> 64</span><span class="line-content"></span></div>
+<div class="code-line" data-line="65"><span class="line-number"> 65</span><span class="line-content">exports.createUser = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="66"><span class="line-number"> 66</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="67"><span class="line-number"> 67</span><span class="line-content">    const errors = validationResult(req);</span></div>
+<div class="code-line" data-line="68"><span class="line-number"> 68</span><span class="line-content">    if (!errors.isEmpty()) {</span></div>
+<div class="code-line" data-line="69"><span class="line-number"> 69</span><span class="line-content">      return res.status(400).json({ errors: errors.array() });</span></div>
+<div class="code-line" data-line="70"><span class="line-number"> 70</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="71"><span class="line-number"> 71</span><span class="line-content"></span></div>
+<div class="code-line" data-line="72"><span class="line-number"> 72</span><span class="line-content">    const { username, email, password, role } = req.body;</span></div>
+<div class="code-line" data-line="73"><span class="line-number"> 73</span><span class="line-content">    const user = new User({ username, email, password, role });</span></div>
+<div class="code-line" data-line="74"><span class="line-number"> 74</span><span class="line-content">    await user.save();</span></div>
+<div class="code-line" data-line="75"><span class="line-number"> 75</span><span class="line-content">    res.status(201).json({ message: 'User created successfully', user });</span></div>
+<div class="code-line" data-line="76"><span class="line-number"> 76</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="77"><span class="line-number"> 77</span><span class="line-content">    res.status(500).json({ error: error.message });</span></div>
+<div class="code-line" data-line="78"><span class="line-number"> 78</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="79"><span class="line-number"> 79</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="80"><span class="line-number"> 80</span><span class="line-content"></span></div>
+<div class="code-line" data-line="81"><span class="line-number"> 81</span><span class="line-content">exports.getAllUsers = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="82"><span class="line-number"> 82</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="83"><span class="line-number"> 83</span><span class="line-content">    const users = await User.find();</span></div>
+<div class="code-line" data-line="84"><span class="line-number"> 84</span><span class="line-content">    res.json(users);</span></div>
+<div class="code-line" data-line="85"><span class="line-number"> 85</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="86"><span class="line-number"> 86</span><span class="line-content">    res.status(500).json({ error: error.message });</span></div>
+<div class="code-line" data-line="87"><span class="line-number"> 87</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="88"><span class="line-number"> 88</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="89"><span class="line-number"> 89</span><span class="line-content"></span></div>
+<div class="code-line" data-line="90"><span class="line-number"> 90</span><span class="line-content">exports.getUserById = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="91"><span class="line-number"> 91</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="92"><span class="line-number"> 92</span><span class="line-content">    const user = await User.findById(req.params.id);</span></div>
+<div class="code-line" data-line="93"><span class="line-number"> 93</span><span class="line-content">    if (!user) return res.status(404).json({ message: 'User not found' });</span></div>
+<div class="code-line" data-line="94"><span class="line-number"> 94</span><span class="line-content">    res.json(user);</span></div>
+<div class="code-line" data-line="95"><span class="line-number"> 95</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="96"><span class="line-number"> 96</span><span class="line-content">    res.status(500).json({ error: error.message });</span></div>
+<div class="code-line" data-line="97"><span class="line-number"> 97</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="98"><span class="line-number"> 98</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="99"><span class="line-number"> 99</span><span class="line-content"></span></div>
+<div class="code-line" data-line="100"><span class="line-number">100</span><span class="line-content">exports.updateUser = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="101"><span class="line-number">101</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="102"><span class="line-number">102</span><span class="line-content">    const { username, email, role } = req.body;</span></div>
+<div class="code-line" data-line="103"><span class="line-number">103</span><span class="line-content">    const user = await User.findByIdAndUpdate(</span></div>
+<div class="code-line" data-line="104"><span class="line-number">104</span><span class="line-content">      req.params.id,</span></div>
+<div class="code-line" data-line="105"><span class="line-number">105</span><span class="line-content">      { username, email, role },</span></div>
+<div class="code-line" data-line="106"><span class="line-number">106</span><span class="line-content">      { new: true }</span></div>
+<div class="code-line" data-line="107"><span class="line-number">107</span><span class="line-content">    );</span></div>
+<div class="code-line" data-line="108"><span class="line-number">108</span><span class="line-content">    if (!user) return res.status(404).json({ message: 'User not found' });</span></div>
+<div class="code-line" data-line="109"><span class="line-number">109</span><span class="line-content">    res.json(user);</span></div>
+<div class="code-line" data-line="110"><span class="line-number">110</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="111"><span class="line-number">111</span><span class="line-content">    res.status(500).json({ error: error.message });</span></div>
+<div class="code-line" data-line="112"><span class="line-number">112</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="113"><span class="line-number">113</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="114"><span class="line-number">114</span><span class="line-content"></span></div>
+<div class="code-line" data-line="115"><span class="line-number">115</span><span class="line-content">exports.deleteUser = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="116"><span class="line-number">116</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="117"><span class="line-number">117</span><span class="line-content">    const user = await User.findByIdAndDelete(req.params.id);</span></div>
+<div class="code-line" data-line="118"><span class="line-number">118</span><span class="line-content">    if (!user) return res.status(404).json({ message: 'User not found' });</span></div>
+<div class="code-line" data-line="119"><span class="line-number">119</span><span class="line-content">    res.json({ message: 'User deleted successfully' });</span></div>
+<div class="code-line" data-line="120"><span class="line-number">120</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="121"><span class="line-number">121</span><span class="line-content">    res.status(500).json({ error: error.message });</span></div>
+<div class="code-line" data-line="122"><span class="line-number">122</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="123"><span class="line-number">123</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="124"><span class="line-number">124</span><span class="line-content">const express = require('express');</span></div>
+<div class="code-line" data-line="125"><span class="line-number">125</span><span class="line-content">const router = express.Router();</span></div>
+<div class="code-line" data-line="126"><span class="line-number">126</span><span class="line-content">const userController = require('../controllers/userController');</span></div>
+<div class="code-line" data-line="127"><span class="line-number">127</span><span class="line-content">const { validateUser } = require('../middleware/validation');</span></div>
+<div class="code-line" data-line="128"><span class="line-number">128</span><span class="line-content"></span></div>
+<div class="code-line" data-line="129"><span class="line-number">129</span><span class="line-content">router.post('/', validateUser, userController.createUser);</span></div>
+<div class="code-line" data-line="130"><span class="line-number">130</span><span class="line-content">router.get('/', userController.getAllUsers);</span></div>
+<div class="code-line" data-line="131"><span class="line-number">131</span><span class="line-content">router.get('/:id', userController.getUserById);</span></div>
+<div class="code-line" data-line="132"><span class="line-number">132</span><span class="line-content">router.put('/:id', validateUser, userController.updateUser);</span></div>
+<div class="code-line" data-line="133"><span class="line-number">133</span><span class="line-content">router.delete('/:id', userController.deleteUser);</span></div>
+<div class="code-line" data-line="134"><span class="line-number">134</span><span class="line-content"></span></div>
+<div class="code-line" data-line="135"><span class="line-number">135</span><span class="line-content">module.exports = router;</span></div>
+<div class="code-line" data-line="136"><span class="line-number">136</span><span class="line-content">const express = require('express');</span></div>
+<div class="code-line" data-line="137"><span class="line-number">137</span><span class="line-content">const router = express.Router();</span></div>
+<div class="code-line" data-line="138"><span class="line-number">138</span><span class="line-content">const { register, login } = require('../controllers/authController');</span></div>
+<div class="code-line" data-line="139"><span class="line-number">139</span><span class="line-content">const { validateAuth } = require('../middleware/validation');</span></div>
+<div class="code-line" data-line="140"><span class="line-number">140</span><span class="line-content"></span></div>
+<div class="code-line" data-line="141"><span class="line-number">141</span><span class="line-content">router.post('/register', validateAuth, register);</span></div>
+<div class="code-line" data-line="142"><span class="line-number">142</span><span class="line-content">router.post('/login', validateAuth, login);</span></div>
+<div class="code-line" data-line="143"><span class="line-number">143</span><span class="line-content"></span></div>
+<div class="code-line" data-line="144"><span class="line-number">144</span><span class="line-content">module.exports = router;</span></div>
+<div class="code-line" data-line="145"><span class="line-number">145</span><span class="line-content">const User = require('../models/User');</span></div>
+<div class="code-line" data-line="146"><span class="line-number">146</span><span class="line-content">const jwt = require('jsonwebtoken');</span></div>
+<div class="code-line" data-line="147"><span class="line-number">147</span><span class="line-content">const { validationResult } = require('express-validator');</span></div>
+<div class="code-line" data-line="148"><span class="line-number">148</span><span class="line-content"></span></div>
+<div class="code-line" data-line="149"><span class="line-number">149</span><span class="line-content">exports.register = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="150"><span class="line-number">150</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="151"><span class="line-number">151</span><span class="line-content">    const errors = validationResult(req);</span></div>
+<div class="code-line" data-line="152"><span class="line-number">152</span><span class="line-content">    if (!errors.isEmpty()) {</span></div>
+<div class="code-line" data-line="153"><span class="line-number">153</span><span class="line-content">      return res.status(400).json({ errors: errors.array() });</span></div>
+<div class="code-line" data-line="154"><span class="line-number">154</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="155"><span class="line-number">155</span><span class="line-content"></span></div>
+<div class="code-line" data-line="156"><span class="line-number">156</span><span class="line-content">    const { username, email, password, role } = req.body;</span></div>
+<div class="code-line" data-line="157"><span class="line-number">157</span><span class="line-content">    const user = new User({ username, email, password, role });</span></div>
+<div class="code-line" data-line="158"><span class="line-number">158</span><span class="line-content">    await user.save();</span></div>
+<div class="code-line" data-line="159"><span class="line-number">159</span><span class="line-content">    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });</span></div>
+<div class="code-line" data-line="160"><span class="line-number">160</span><span class="line-content">    res.status(201).json({ token });</span></div>
+<div class="code-line" data-line="161"><span class="line-number">161</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="162"><span class="line-number">162</span><span class="line-content">    res.status(500).json({ error: error.message });</span></div>
+<div class="code-line" data-line="163"><span class="line-number">163</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="164"><span class="line-number">164</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="165"><span class="line-number">165</span><span class="line-content"></span></div>
+<div class="code-line" data-line="166"><span class="line-number">166</span><span class="line-content">exports.login = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="167"><span class="line-number">167</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="168"><span class="line-number">168</span><span class="line-content">    const errors = validationResult(req);</span></div>
+<div class="code-line" data-line="169"><span class="line-number">169</span><span class="line-content">    if (!errors.isEmpty()) {</span></div>
+<div class="code-line" data-line="170"><span class="line-number">170</span><span class="line-content">      return res.status(400).json({ errors: errors.array() });</span></div>
+<div class="code-line" data-line="171"><span class="line-number">171</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="172"><span class="line-number">172</span><span class="line-content"></span></div>
+<div class="code-line" data-line="173"><span class="line-number">173</span><span class="line-content">    const { email, password } = req.body;</span></div>
+<div class="code-line" data-line="174"><span class="line-number">174</span><span class="line-content">    const user = await User.findOne({ email });</span></div>
+<div class="code-line" data-line="175"><span class="line-number">175</span><span class="line-content">    if (!user || !(await user.comparePassword(password))) {</span></div>
+<div class="code-line" data-line="176"><span class="line-number">176</span><span class="line-content">      return res.status(401).json({ message: 'Invalid credentials' });</span></div>
+<div class="code-line" data-line="177"><span class="line-number">177</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="178"><span class="line-number">178</span><span class="line-content"></span></div>
+<div class="code-line" data-line="179"><span class="line-number">179</span><span class="line-content">    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });</span></div>
+<div class="code-line" data-line="180"><span class="line-number">180</span><span class="line-content">    res.json({ token });</span></div>
+<div class="code-line" data-line="181"><span class="line-number">181</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="182"><span class="line-number">182</span><span class="line-content">    res.status(500).json({ error: error.message });</span></div>
+<div class="code-line" data-line="183"><span class="line-number">183</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="184"><span class="line-number">184</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="185"><span class="line-number">185</span><span class="line-content">const jwt = require('jsonwebtoken');</span></div>
+<div class="code-line" data-line="186"><span class="line-number">186</span><span class="line-content"></span></div>
+<div class="code-line" data-line="187"><span class="line-number">187</span><span class="line-content">exports.authenticateToken = (req, res, next) =&gt; {</span></div>
+<div class="code-line" data-line="188"><span class="line-number">188</span><span class="line-content">  const authHeader = req.headers['authorization'];</span></div>
+<div class="code-line" data-line="189"><span class="line-number">189</span><span class="line-content">  const token = authHeader &amp;&amp; authHeader.split(' ')[1];</span></div>
+<div class="code-line" data-line="190"><span class="line-number">190</span><span class="line-content">  if (!token) return res.status(401).json({ message: 'Access denied' });</span></div>
+<div class="code-line" data-line="191"><span class="line-number">191</span><span class="line-content"></span></div>
+<div class="code-line" data-line="192"><span class="line-number">192</span><span class="line-content">  jwt.verify(token, process.env.JWT_SECRET, (err, user) =&gt; {</span></div>
+<div class="code-line" data-line="193"><span class="line-number">193</span><span class="line-content">    if (err) return res.status(403).json({ message: 'Invalid token' });</span></div>
+<div class="code-line" data-line="194"><span class="line-number">194</span><span class="line-content">    req.user = user;</span></div>
+<div class="code-line" data-line="195"><span class="line-number">195</span><span class="line-content">    next();</span></div>
+<div class="code-line" data-line="196"><span class="line-number">196</span><span class="line-content">  });</span></div>
+<div class="code-line" data-line="197"><span class="line-number">197</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="198"><span class="line-number">198</span><span class="line-content"></span></div>
+<div class="code-line" data-line="199"><span class="line-number">199</span><span class="line-content">exports.authorizeRole = (role) =&gt; (req, res, next) =&gt; {</span></div>
+<div class="code-line" data-line="200"><span class="line-number">200</span><span class="line-content">  if (req.user.role !== role) {</span></div>
+<div class="code-line" data-line="201"><span class="line-number">201</span><span class="line-content">    return res.status(403).json({ message: 'Forbidden' });</span></div>
+<div class="code-line" data-line="202"><span class="line-number">202</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="203"><span class="line-number">203</span><span class="line-content">  next();</span></div>
+<div class="code-line" data-line="204"><span class="line-number">204</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="205"><span class="line-number">205</span><span class="line-content">const { body, validationResult } = require('express-validator');</span></div>
+<div class="code-line" data-line="206"><span class="line-number">206</span><span class="line-content"></span></div>
+<div class="code-line" data-line="207"><span class="line-number">207</span><span class="line-content">exports.validateUser = [</span></div>
+<div class="code-line" data-line="208"><span class="line-number">208</span><span class="line-content">  body('username').notEmpty().withMessage('Username is required'),</span></div>
+<div class="code-line" data-line="209"><span class="line-number">209</span><span class="line-content">  body('email').isEmail().withMessage('Valid email is required'),</span></div>
+<div class="code-line" data-line="210"><span class="line-number">210</span><span class="line-content">  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),</span></div>
+<div class="code-line" data-line="211"><span class="line-number">211</span><span class="line-content">  (req, res, next) =&gt; {</span></div>
+<div class="code-line" data-line="212"><span class="line-number">212</span><span class="line-content">    const errors = validationResult(req);</span></div>
+<div class="code-line" data-line="213"><span class="line-number">213</span><span class="line-content">    if (!errors.isEmpty()) {</span></div>
+<div class="code-line" data-line="214"><span class="line-number">214</span><span class="line-content">      return res.status(400).json({ errors: errors.array() });</span></div>
+<div class="code-line" data-line="215"><span class="line-number">215</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="216"><span class="line-number">216</span><span class="line-content">    next();</span></div>
+<div class="code-line" data-line="217"><span class="line-number">217</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="218"><span class="line-number">218</span><span class="line-content">];</span></div>
+<div class="code-line" data-line="219"><span class="line-number">219</span><span class="line-content"></span></div>
+<div class="code-line" data-line="220"><span class="line-number">220</span><span class="line-content">exports.validateAuth = [</span></div>
+<div class="code-line" data-line="221"><span class="line-number">221</span><span class="line-content">  body('email').isEmail().withMessage('Valid email is required'),</span></div>
+<div class="code-line" data-line="222"><span class="line-number">222</span><span class="line-content">  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),</span></div>
+<div class="code-line" data-line="223"><span class="line-number">223</span><span class="line-content">  (req, res, next) =&gt; {</span></div>
+<div class="code-line" data-line="224"><span class="line-number">224</span><span class="line-content">    const errors = validationResult(req);</span></div>
+<div class="code-line" data-line="225"><span class="line-number">225</span><span class="line-content">    if (!errors.isEmpty()) {</span></div>
+<div class="code-line" data-line="226"><span class="line-number">226</span><span class="line-content">      return res.status(400).json({ errors: errors.array() });</span></div>
+<div class="code-line" data-line="227"><span class="line-number">227</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="228"><span class="line-number">228</span><span class="line-content">    next();</span></div>
+<div class="code-line" data-line="229"><span class="line-number">229</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="230"><span class="line-number">230</span><span class="line-content">];</span></div>
+<div class="code-line" data-line="231"><span class="line-number">231</span><span class="line-content">exports.errorMiddleware = (err, req, res, next) =&gt; {</span></div>
+<div class="code-line" data-line="232"><span class="line-number">232</span><span class="line-content">  console.error(err.stack);</span></div>
+<div class="code-line" data-line="233"><span class="line-number">233</span><span class="line-content">  res.status(500).json({ error: 'Internal Server Error' });</span></div>
+<div class="code-line" data-line="234"><span class="line-number">234</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="235"><span class="line-number">235</span><span class="line-content">{</span></div>
+<div class="code-line" data-line="236"><span class="line-number">236</span><span class="line-content">  "name": "restful-api",</span></div>
+<div class="code-line" data-line="237"><span class="line-number">237</span><span class="line-content">  "version": "1.0.0",</span></div>
+<div class="code-line" data-line="238"><span class="line-number">238</span><span class="line-content">  "description": "RESTful API with Node.js, Express, and MongoDB",</span></div>
+<div class="code-line" data-line="239"><span class="line-number">239</span><span class="line-content">  "main": "server.js",</span></div>
+<div class="code-line" data-line="240"><span class="line-number">240</span><span class="line-content">  "scripts": {</span></div>
+<div class="code-line" data-line="241"><span class="line-number">241</span><span class="line-content">    "start": "node server.js",</span></div>
+<div class="code-line" data-line="242"><span class="line-number">242</span><span class="line-content">    "dev": "nodemon server.js",</span></div>
+<div class="code-line" data-line="243"><span class="line-number">243</span><span class="line-content">    "test": "jest",</span></div>
+<div class="code-line" data-line="244"><span class="line-number">244</span><span class="line-content">    "db:migrate": "mongoDB-migrate"</span></div>
+<div class="code-line" data-line="245"><span class="line-number">245</span><span class="line-content">  },</span></div>
+<div class="code-line" data-line="246"><span class="line-number">246</span><span class="line-content">  "dependencies": {</span></div>
+<div class="code-line" data-line="247"><span class="line-number">247</span><span class="line-content">    "bcrypt": "^5.1.0",</span></div>
+<div class="code-line" data-line="248"><span class="line-number">248</span><span class="line-content">    "cors": "^2.8.5",</span></div>
+<div class="code-line" data-line="249"><span class="line-number">249</span><span class="line-content">    "dotenv": "^16.0.3",</span></div>
+<div class="code-line" data-line="250"><span class="line-number">250</span><span class="line-content">    "express": "^4.18.2",</span></div>
+<div class="code-line" data-line="251"><span class="line-number">251</span><span class="line-content">    "express-validator": "^6.18.1",</span></div>
+<div class="code-line" data-line="252"><span class="line-number">252</span><span class="line-content">    "jsonwebtoken": "^9.0.0",</span></div>
+<div class="code-line" data-line="253"><span class="line-number">253</span><span class="line-content">    "mongoose": "^6.10.2",</span></div>
+<div class="code-line" data-line="254"><span class="line-number">254</span><span class="line-content">    "nodemon": "^3.0.2"</span></div>
+<div class="code-line" data-line="255"><span class="line-number">255</span><span class="line-content">  },</span></div>
+<div class="code-line" data-line="256"><span class="line-number">256</span><span class="line-content">  "devDependencies": {</span></div>
+<div class="code-line" data-line="257"><span class="line-number">257</span><span class="line-content">    "jest": "^29.7.0",</span></div>
+<div class="code-line" data-line="258"><span class="line-number">258</span><span class="line-content">    "supertest": "^6.3.3"</span></div>
+<div class="code-line" data-line="259"><span class="line-number">259</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="260"><span class="line-number">260</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="261"><span class="line-number">261</span><span class="line-content">PORT=3000</span></div>
+<div class="code-line" data-line="262"><span class="line-number">262</span><span class="line-content">MONGO_URI=mongodb://localhost:27017/restful-api</span></div>
+<div class="code-line" data-line="263"><span class="line-number">263</span><span class="line-content">JWT_SECRET=your-secret-key</span></div>
+<div class="code-line" data-line="264"><span class="line-number">264</span><span class="line-content">NODE_ENV=development</span></div>
+<div class="code-line" data-line="265"><span class="line-number">265</span><span class="line-content"># Use an official Node.js runtime as a parent image</span></div>
+<div class="code-line" data-line="266"><span class="line-number">266</span><span class="line-content">FROM node:18</span></div>
+<div class="code-line" data-line="267"><span class="line-number">267</span><span class="line-content"></span></div>
+<div class="code-line" data-line="268"><span class="line-number">268</span><span class="line-content"># Set the working directory</span></div>
+<div class="code-line" data-line="269"><span class="line-number">269</span><span class="line-content">WORKDIR /app</span></div>
+<div class="code-line" data-line="270"><span class="line-number">270</span><span class="line-content"></span></div>
+<div class="code-line" data-line="271"><span class="line-number">271</span><span class="line-content"># Copy package.json and install dependencies</span></div>
+<div class="code-line" data-line="272"><span class="line-number">272</span><span class="line-content">COPY package*.json ./</span></div>
+<div class="code-line" data-line="273"><span class="line-number">273</span><span class="line-content">RUN npm install</span></div>
+<div class="code-line" data-line="274"><span class="line-number">274</span><span class="line-content"></span></div>
+<div class="code-line" data-line="275"><span class="line-number">275</span><span class="line-content"># Copy the rest of the application code</span></div>
+<div class="code-line" data-line="276"><span class="line-number">276</span><span class="line-content">COPY . .</span></div>
+<div class="code-line" data-line="277"><span class="line-number">277</span><span class="line-content"></span></div>
+<div class="code-line" data-line="278"><span class="line-number">278</span><span class="line-content"># Expose the port the app runs on</span></div>
+<div class="code-line" data-line="279"><span class="line-number">279</span><span class="line-content">EXPOSE 3000</span></div>
+<div class="code-line" data-line="280"><span class="line-number">280</span><span class="line-content"></span></div>
+<div class="code-line" data-line="281"><span class="line-number">281</span><span class="line-content"># Command to run the application</span></div>
+<div class="code-line" data-line="282"><span class="line-number">282</span><span class="line-content">CMD ["node", "server.js"]</span></div>
+<div class="code-line" data-line="283"><span class="line-number">283</span><span class="line-content">version: '3.8'</span></div>
+<div class="code-line" data-line="284"><span class="line-number">284</span><span class="line-content"></span></div>
+<div class="code-line" data-line="285"><span class="line-number">285</span><span class="line-content">services:</span></div>
+<div class="code-line" data-line="286"><span class="line-number">286</span><span class="line-content">  app:</span></div>
+<div class="code-line" data-line="287"><span class="line-number">287</span><span class="line-content">    build: .</span></div>
+<div class="code-line" data-line="288"><span class="line-number">288</span><span class="line-content">    ports:</span></div>
+<div class="code-line" data-line="289"><span class="line-number">289</span><span class="line-content">      - "3000:3000"</span></div>
+<div class="code-line" data-line="290"><span class="line-number">290</span><span class="line-content">    environment:</span></div>
+<div class="code-line" data-line="291"><span class="line-number">291</span><span class="line-content">      PORT: 3000</span></div>
+<div class="code-line" data-line="292"><span class="line-number">292</span><span class="line-content">      MONGO_URI: mongodb://mongo:27017/restful-api</span></div>
+<div class="code-line" data-line="293"><span class="line-number">293</span><span class="line-content">      JWT_SECRET: production-secret-key</span></div>
+<div class="code-line" data-line="294"><span class="line-number">294</span><span class="line-content">      NODE_ENV: production</span></div>
+<div class="code-line" data-line="295"><span class="line-number">295</span><span class="line-content">    depends_on:</span></div>
+<div class="code-line" data-line="296"><span class="line-number">296</span><span class="line-content">      - mongo</span></div>
+<div class="code-line" data-line="297"><span class="line-number">297</span><span class="line-content"></span></div>
+<div class="code-line" data-line="298"><span class="line-number">298</span><span class="line-content">  mongo:</span></div>
+<div class="code-line" data-line="299"><span class="line-number">299</span><span class="line-content">    image: mongo:5.0</span></div>
+<div class="code-line" data-line="300"><span class="line-number">300</span><span class="line-content">    ports:</span></div>
+<div class="code-line" data-line="301"><span class="line-number">301</span><span class="line-content">      - "27017:27017"</span></div>
+<div class="code-line" data-line="302"><span class="line-number">302</span><span class="line-content">    volumes:</span></div>
+<div class="code-line" data-line="303"><span class="line-number">303</span><span class="line-content">      - mongo-data:/data/db</span></div>
+<div class="code-line" data-line="304"><span class="line-number">304</span><span class="line-content"></span></div>
+<div class="code-line" data-line="305"><span class="line-number">305</span><span class="line-content">volumes:</span></div>
+<div class="code-line" data-line="306"><span class="line-number">306</span><span class="line-content">  mongo-data:</span></div>
+<div class="code-line" data-line="307"><span class="line-number">307</span><span class="line-content"># RESTful API with Node.js, Express, and MongoDB</span></div>
+<div class="code-line" data-line="308"><span class="line-number">308</span><span class="line-content"></span></div>
+<div class="code-line" data-line="309"><span class="line-number">309</span><span class="line-content">## Setup Instructions</span></div>
+<div class="code-line" data-line="310"><span class="line-number">310</span><span class="line-content"></span></div>
+<div class="code-line" data-line="311"><span class="line-number">311</span><span class="line-content">1. **Clone the repository**</span></div>
+<div class="code-line" data-line="312"><span class="line-number">312</span><span class="line-content"># API Documentation</span></div>
+<div class="code-line" data-line="313"><span class="line-number">313</span><span class="line-content"></span></div>
+<div class="code-line" data-line="314"><span class="line-number">314</span><span class="line-content">## Users</span></div>
+<div class="code-line" data-line="315"><span class="line-number">315</span><span class="line-content"></span></div>
+<div class="code-line" data-line="316"><span class="line-number">316</span><span class="line-content">### Create User</span></div>
+<div class="code-line" data-line="317"><span class="line-number">317</span><span class="line-content">**POST** `/api/users`</span></div>
+<div class="code-line" data-line="318"><span class="line-number">318</span><span class="line-content">- **Body**: `{ username, email, password, role }`</span></div>
+<div class="code-line" data-line="319"><span class="line-number">319</span><span class="line-content">- **Response**: `201 Created` with user data</span></div>
+<div class="code-line" data-line="320"><span class="line-number">320</span><span class="line-content"></span></div>
+<div class="code-line" data-line="321"><span class="line-number">321</span><span class="line-content">### Get All Users</span></div>
+<div class="code-line" data-line="322"><span class="line-number">322</span><span class="line-content">**GET** `/api/users`</span></div>
+<div class="code-line" data-line="323"><span class="line-number">323</span><span class="line-content">- **Response**: `200 OK` with user list</span></div>
+<div class="code-line" data-line="324"><span class="line-number">324</span><span class="line-content"></span></div>
+<div class="code-line" data-line="325"><span class="line-number">325</span><span class="line-content">### Get User by ID</span></div>
+<div class="code-line" data-line="326"><span class="line-number">326</span><span class="line-content">**GET** `/api/users/:id`</span></div>
+<div class="code-line" data-line="327"><span class="line-number">327</span><span class="line-content">- **Response**: `200 OK` with user data</span></div>
+<div class="code-line" data-line="328"><span class="line-number">328</span><span class="line-content"></span></div>
+<div class="code-line" data-line="329"><span class="line-number">329</span><span class="line-content">### Update User</span></div>
+<div class="code-line" data-line="330"><span class="line-number">330</span><span class="line-content">**PUT** `/api/users/:id`</span></div>
+<div class="code-line" data-line="331"><span class="line-number">331</span><span class="line-content">- **Body**: `{ username, email, role }`</span></div>
+<div class="code-line" data-line="332"><span class="line-number">332</span><span class="line-content">- **Response**: `200 OK` with updated user data</span></div>
+<div class="code-line" data-line="333"><span class="line-number">333</span><span class="line-content"></span></div>
+<div class="code-line" data-line="334"><span class="line-number">334</span><span class="line-content">### Delete User</span></div>
+<div class="code-line" data-line="335"><span class="line-number">335</span><span class="line-content">**DELETE** `/api/users/:id`</span></div>
+<div class="code-line" data-line="336"><span class="line-number">336</span><span class="line-content">- **Response**: `200 OK` with success message</span></div>
+<div class="code-line" data-line="337"><span class="line-number">337</span><span class="line-content"></span></div>
+<div class="code-line" data-line="338"><span class="line-number">338</span><span class="line-content">## Authentication</span></div>
+<div class="code-line" data-line="339"><span class="line-number">339</span><span class="line-content"></span></div>
+<div class="code-line" data-line="340"><span class="line-number">340</span><span class="line-content">### Register</span></div>
+<div class="code-line" data-line="341"><span class="line-number">341</span><span class="line-content">**POST** `/api/auth/register`</span></div>
+<div class="code-line" data-line="342"><span class="line-number">342</span><span class="line-content">- **Body**: `{ username, email, password, role }`</span></div>
+<div class="code-line" data-line="343"><span class="line-number">343</span><span class="line-content">- **Response**: `201 Created` with JWT token</span></div>
+<div class="code-line" data-line="344"><span class="line-number">344</span><span class="line-content"></span></div>
+<div class="code-line" data-line="345"><span class="line-number">345</span><span class="line-content">### Login</span></div>
+<div class="code-line" data-line="346"><span class="line-number">346</span><span class="line-content">**POST** `/api/auth/login`</span></div>
+<div class="code-line" data-line="347"><span class="line-number">347</span><span class="line-content">- **Body**: `{ email, password }`</span></div>
+<div class="code-line" data-line="348"><span class="line-number">348</span><span class="line-content">- **Response**: `200 OK` with JWT token</span></div>
+<div class="code-line" data-line="349"><span class="line-number">349</span><span class="line-content">import React, { useState, useEffect } from 'react';</span></div>
+<div class="code-line" data-line="350"><span class="line-number">350</span><span class="line-content">import { Box, Typography, Button } from '@mui/material';</span></div>
+<div class="code-line" data-line="351"><span class="line-number">351</span><span class="line-content">import GameBoard from './components/GameBoard';</span></div>
+<div class="code-line" data-line="352"><span class="line-number">352</span><span class="line-content">import { useAuth } from './context/AuthContext';</span></div>
+<div class="code-line" data-line="353"><span class="line-number">353</span><span class="line-content"></span></div>
+<div class="code-line" data-line="354"><span class="line-number">354</span><span class="line-content">const App: React.FC = () =&gt; {</span></div>
+<div class="code-line" data-line="355"><span class="line-number">355</span><span class="line-content">  const { user, login } = useAuth();</span></div>
+<div class="code-line" data-line="356"><span class="line-number">356</span><span class="line-content">  const [gameStarted, setGameStarted] = useState(false);</span></div>
+<div class="code-line" data-line="357"><span class="line-number">357</span><span class="line-content"></span></div>
+<div class="code-line" data-line="358"><span class="line-number">358</span><span class="line-content">  useEffect(() =&gt; {</span></div>
+<div class="code-line" data-line="359"><span class="line-number">359</span><span class="line-content">    if (!user) {</span></div>
+<div class="code-line" data-line="360"><span class="line-number">360</span><span class="line-content">      login(); // Auto-login for demo purposes</span></div>
+<div class="code-line" data-line="361"><span class="line-number">361</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="362"><span class="line-number">362</span><span class="line-content">  }, [user, login]);</span></div>
+<div class="code-line" data-line="363"><span class="line-number">363</span><span class="line-content"></span></div>
+<div class="code-line" data-line="364"><span class="line-number">364</span><span class="line-content">  return (</span></div>
+<div class="code-line" data-line="365"><span class="line-number">365</span><span class="line-content">    &lt;Box sx={{ textAlign: 'center', p: 2 }}&gt;</span></div>
+<div class="code-line" data-line="366"><span class="line-number">366</span><span class="line-content">      &lt;Typography variant="h3" gutterBottom&gt;Snake Game&lt;/Typography&gt;</span></div>
+<div class="code-line" data-line="367"><span class="line-number">367</span><span class="line-content">      {user ? (</span></div>
+<div class="code-line" data-line="368"><span class="line-number">368</span><span class="line-content">        &lt;&gt;</span></div>
+<div class="code-line" data-line="369"><span class="line-number">369</span><span class="line-content">          &lt;Typography&gt;Welcome, {user.username}&lt;/Typography&gt;</span></div>
+<div class="code-line" data-line="370"><span class="line-number">370</span><span class="line-content">          &lt;Button </span></div>
+<div class="code-line" data-line="371"><span class="line-number">371</span><span class="line-content">            variant="contained" </span></div>
+<div class="code-line" data-line="372"><span class="line-number">372</span><span class="line-content">            onClick={() =&gt; setGameStarted(true)}</span></div>
+<div class="code-line" data-line="373"><span class="line-number">373</span><span class="line-content">            sx={{ mt: 2 }}</span></div>
+<div class="code-line" data-line="374"><span class="line-number">374</span><span class="line-content">          &gt;</span></div>
+<div class="code-line" data-line="375"><span class="line-number">375</span><span class="line-content">            Start Game</span></div>
+<div class="code-line" data-line="376"><span class="line-number">376</span><span class="line-content">          &lt;/Button&gt;</span></div>
+<div class="code-line" data-line="377"><span class="line-number">377</span><span class="line-content">          {gameStarted &amp;&amp; &lt;GameBoard /&gt;}</span></div>
+<div class="code-line" data-line="378"><span class="line-number">378</span><span class="line-content">        &lt;/&gt;</span></div>
+<div class="code-line" data-line="379"><span class="line-number">379</span><span class="line-content">      ) : (</span></div>
+<div class="code-line" data-line="380"><span class="line-number">380</span><span class="line-content">        &lt;Typography&gt;Loading...&lt;/Typography&gt;</span></div>
+<div class="code-line" data-line="381"><span class="line-number">381</span><span class="line-content">      )}</span></div>
+<div class="code-line" data-line="382"><span class="line-number">382</span><span class="line-content">    &lt;/Box&gt;</span></div>
+<div class="code-line" data-line="383"><span class="line-number">383</span><span class="line-content">  );</span></div>
+<div class="code-line" data-line="384"><span class="line-number">384</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="385"><span class="line-number">385</span><span class="line-content"></span></div>
+<div class="code-line" data-line="386"><span class="line-number">386</span><span class="line-content">export default App;</span></div>
+<div class="code-line" data-line="387"><span class="line-number">387</span><span class="line-content">import React, { useState, useEffect, useCallback } from 'react';</span></div>
+<div class="code-line" data-line="388"><span class="line-number">388</span><span class="line-content">import { Box } from '@mui/material';</span></div>
+<div class="code-line" data-line="389"><span class="line-number">389</span><span class="line-content">import { useGame } from '../context/GameContext';</span></div>
+<div class="code-line" data-line="390"><span class="line-number">390</span><span class="line-content"></span></div>
+<div class="code-line" data-line="391"><span class="line-number">391</span><span class="line-content">const GameBoard: React.FC = () =&gt; {</span></div>
+<div class="code-line" data-line="392"><span class="line-number">392</span><span class="line-content">  const { game, moveSnake, resetGame } = useGame();</span></div>
+<div class="code-line" data-line="393"><span class="line-number">393</span><span class="line-content">  const [score, setScore] = useState(0);</span></div>
+<div class="code-line" data-line="394"><span class="line-number">394</span><span class="line-content"></span></div>
+<div class="code-line" data-line="395"><span class="line-number">395</span><span class="line-content">  const handleKeyPress = useCallback((e: KeyboardEvent) =&gt; {</span></div>
+<div class="code-line" data-line="396"><span class="line-number">396</span><span class="line-content">    switch (e.key) {</span></div>
+<div class="code-line" data-line="397"><span class="line-number">397</span><span class="line-content">      case 'ArrowUp':</span></div>
+<div class="code-line" data-line="398"><span class="line-number">398</span><span class="line-content">        moveSnake('UP');</span></div>
+<div class="code-line" data-line="399"><span class="line-number">399</span><span class="line-content">        break;</span></div>
+<div class="code-line" data-line="400"><span class="line-number">400</span><span class="line-content">      case 'ArrowDown':</span></div>
+<div class="code-line" data-line="401"><span class="line-number">401</span><span class="line-content">        moveSnake('DOWN');</span></div>
+<div class="code-line" data-line="402"><span class="line-number">402</span><span class="line-content">        break;</span></div>
+<div class="code-line" data-line="403"><span class="line-number">403</span><span class="line-content">      case 'ArrowLeft':</span></div>
+<div class="code-line" data-line="404"><span class="line-number">404</span><span class="line-content">        moveSnake('LEFT');</span></div>
+<div class="code-line" data-line="405"><span class="line-number">405</span><span class="line-content">        break;</span></div>
+<div class="code-line" data-line="406"><span class="line-number">406</span><span class="line-content">      case 'ArrowRight':</span></div>
+<div class="code-line" data-line="407"><span class="line-number">407</span><span class="line-content">        moveSnake('RIGHT');</span></div>
+<div class="code-line" data-line="408"><span class="line-number">408</span><span class="line-content">        break;</span></div>
+<div class="code-line" data-line="409"><span class="line-number">409</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="410"><span class="line-number">410</span><span class="line-content">  }, [moveSnake]);</span></div>
+<div class="code-line" data-line="411"><span class="line-number">411</span><span class="line-content"></span></div>
+<div class="code-line" data-line="412"><span class="line-number">412</span><span class="line-content">  useEffect(() =&gt; {</span></div>
+<div class="code-line" data-line="413"><span class="line-number">413</span><span class="line-content">    window.addEventListener('keydown', handleKeyPress);</span></div>
+<div class="code-line" data-line="414"><span class="line-number">414</span><span class="line-content">    return () =&gt; window.removeEventListener('keydown', handleKeyPress);</span></div>
+<div class="code-line" data-line="415"><span class="line-number">415</span><span class="line-content">  }, [handleKeyPress]);</span></div>
+<div class="code-line" data-line="416"><span class="line-number">416</span><span class="line-content"></span></div>
+<div class="code-line" data-line="417"><span class="line-number">417</span><span class="line-content">  useEffect(() =&gt; {</span></div>
+<div class="code-line" data-line="418"><span class="line-number">418</span><span class="line-content">    if (game.isGameOver) {</span></div>
+<div class="code-line" data-line="419"><span class="line-number">419</span><span class="line-content">      setScore(0);</span></div>
+<div class="code-line" data-line="420"><span class="line-number">420</span><span class="line-content">      resetGame();</span></div>
+<div class="code-line" data-line="421"><span class="line-number">421</span><span class="line-content">    } else {</span></div>
+<div class="code-line" data-line="422"><span class="line-number">422</span><span class="line-content">      setScore(game.score);</span></div>
+<div class="code-line" data-line="423"><span class="line-number">423</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="424"><span class="line-number">424</span><span class="line-content">  }, [game.isGameOver, game.score, resetGame]);</span></div>
+<div class="code-line" data-line="425"><span class="line-number">425</span><span class="line-content"></span></div>
+<div class="code-line" data-line="426"><span class="line-number">426</span><span class="line-content">  return (</span></div>
+<div class="code-line" data-line="427"><span class="line-number">427</span><span class="line-content">    &lt;Box sx={{ </span></div>
+<div class="code-line" data-line="428"><span class="line-number">428</span><span class="line-content">      width: 400, </span></div>
+<div class="code-line" data-line="429"><span class="line-number">429</span><span class="line-content">      height: 400, </span></div>
+<div class="code-line" data-line="430"><span class="line-number">430</span><span class="line-content">      border: '1px solid #000', </span></div>
+<div class="code-line" data-line="431"><span class="line-number">431</span><span class="line-content">      display: 'grid', </span></div>
+<div class="code-line" data-line="432"><span class="line-number">432</span><span class="line-content">      gridTemplateColumns: `repeat(${game.boardSize}, 1fr)`,</span></div>
+<div class="code-line" data-line="433"><span class="line-number">433</span><span class="line-content">      gridTemplateRows: `repeat(${game.boardSize}, 1fr)`,</span></div>
+<div class="code-line" data-line="434"><span class="line-number">434</span><span class="line-content">      gap: '1px',</span></div>
+<div class="code-line" data-line="435"><span class="line-number">435</span><span class="line-content">      margin: '0 auto',</span></div>
+<div class="code-line" data-line="436"><span class="line-number">436</span><span class="line-content">      mt: 2</span></div>
+<div class="code-line" data-line="437"><span class="line-number">437</span><span class="line-content">    }}&gt;</span></div>
+<div class="code-line" data-line="438"><span class="line-number">438</span><span class="line-content">      {game.board.map((row, y) =&gt; </span></div>
+<div class="code-line" data-line="439"><span class="line-number">439</span><span class="line-content">        row.map((cell, x) =&gt; (</span></div>
+<div class="code-line" data-line="440"><span class="line-number">440</span><span class="line-content">          &lt;Box </span></div>
+<div class="code-line" data-line="441"><span class="line-number">441</span><span class="line-content">            key={`${x}-${y}`} </span></div>
+<div class="code-line" data-line="442"><span class="line-number">442</span><span class="line-content">            sx={{ </span></div>
+<div class="code-line" data-line="443"><span class="line-number">443</span><span class="line-content">              width: '100%', </span></div>
+<div class="code-line" data-line="444"><span class="line-number">444</span><span class="line-content">              height: '100%', </span></div>
+<div class="code-line" data-line="445"><span class="line-number">445</span><span class="line-content">              backgroundColor: </span></div>
+<div class="code-line" data-line="446"><span class="line-number">446</span><span class="line-content">                cell === 'snake' ? 'green' : </span></div>
+<div class="code-line" data-line="447"><span class="line-number">447</span><span class="line-content">                cell === 'food' ? 'red' : </span></div>
+<div class="code-line" data-line="448"><span class="line-number">448</span><span class="line-content">                cell === 'wall' ? 'gray' : </span></div>
+<div class="code-line" data-line="449"><span class="line-number">449</span><span class="line-content">                'white'</span></div>
+<div class="code-line" data-line="450"><span class="line-number">450</span><span class="line-content">            }}</span></div>
+<div class="code-line" data-line="451"><span class="line-number">451</span><span class="line-content">          /&gt;</span></div>
+<div class="code-line" data-line="452"><span class="line-number">452</span><span class="line-content">        ))</span></div>
+<div class="code-line" data-line="453"><span class="line-number">453</span><span class="line-content">      )}</span></div>
+<div class="code-line" data-line="454"><span class="line-number">454</span><span class="line-content">      &lt;Typography variant="h6" sx={{ mt: 1 }}&gt;Score: {score}&lt;/Typography&gt;</span></div>
+<div class="code-line" data-line="455"><span class="line-number">455</span><span class="line-content">    &lt;/Box&gt;</span></div>
+<div class="code-line" data-line="456"><span class="line-number">456</span><span class="line-content">  );</span></div>
+<div class="code-line" data-line="457"><span class="line-number">457</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="458"><span class="line-number">458</span><span class="line-content"></span></div>
+<div class="code-line" data-line="459"><span class="line-number">459</span><span class="line-content">export default GameBoard;</span></div>
+<div class="code-line" data-line="460"><span class="line-number">460</span><span class="line-content">import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';</span></div>
+<div class="code-line" data-line="461"><span class="line-number">461</span><span class="line-content"></span></div>
+<div class="code-line" data-line="462"><span class="line-number">462</span><span class="line-content">interface GameContextType {</span></div>
+<div class="code-line" data-line="463"><span class="line-number">463</span><span class="line-content">  game: Game;</span></div>
+<div class="code-line" data-line="464"><span class="line-number">464</span><span class="line-content">  moveSnake: (direction: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT') =&gt; void;</span></div>
+<div class="code-line" data-line="465"><span class="line-number">465</span><span class="line-content">  resetGame: () =&gt; void;</span></div>
+<div class="code-line" data-line="466"><span class="line-number">466</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="467"><span class="line-number">467</span><span class="line-content"></span></div>
+<div class="code-line" data-line="468"><span class="line-number">468</span><span class="line-content">const GameContext = createContext&lt;GameContextType | undefined&gt;(undefined);</span></div>
+<div class="code-line" data-line="469"><span class="line-number">469</span><span class="line-content"></span></div>
+<div class="code-line" data-line="470"><span class="line-number">470</span><span class="line-content">interface Game {</span></div>
+<div class="code-line" data-line="471"><span class="line-number">471</span><span class="line-content">  board: string[][];</span></div>
+<div class="code-line" data-line="472"><span class="line-number">472</span><span class="line-content">  boardSize: number;</span></div>
+<div class="code-line" data-line="473"><span class="line-number">473</span><span class="line-content">  isGameOver: boolean;</span></div>
+<div class="code-line" data-line="474"><span class="line-number">474</span><span class="line-content">  score: number;</span></div>
+<div class="code-line" data-line="475"><span class="line-number">475</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="476"><span class="line-number">476</span><span class="line-content"></span></div>
+<div class="code-line" data-line="477"><span class="line-number">477</span><span class="line-content">const useGame = (): GameContextType =&gt; {</span></div>
+<div class="code-line" data-line="478"><span class="line-number">478</span><span class="line-content">  const context = useContext(GameContext);</span></div>
+<div class="code-line" data-line="479"><span class="line-number">479</span><span class="line-content">  if (!context) {</span></div>
+<div class="code-line" data-line="480"><span class="line-number">480</span><span class="line-content">    throw new Error('useGame must be used within a GameProvider');</span></div>
+<div class="code-line" data-line="481"><span class="line-number">481</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="482"><span class="line-number">482</span><span class="line-content">  return context;</span></div>
+<div class="code-line" data-line="483"><span class="line-number">483</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="484"><span class="line-number">484</span><span class="line-content"></span></div>
+<div class="code-line" data-line="485"><span class="line-number">485</span><span class="line-content">const GameProvider: React.FC&lt;{ children: React.ReactNode }&gt; = ({ children }) =&gt; {</span></div>
+<div class="code-line" data-line="486"><span class="line-number">486</span><span class="line-content">  const [game, setGame] = useState&lt;Game&gt;({</span></div>
+<div class="code-line" data-line="487"><span class="line-number">487</span><span class="line-content">    board: [],</span></div>
+<div class="code-line" data-line="488"><span class="line-number">488</span><span class="line-content">    boardSize: 20,</span></div>
+<div class="code-line" data-line="489"><span class="line-number">489</span><span class="line-content">    isGameOver: false,</span></div>
+<div class="code-line" data-line="490"><span class="line-number">490</span><span class="line-content">    score: 0,</span></div>
+<div class="code-line" data-line="491"><span class="line-number">491</span><span class="line-content">  });</span></div>
+<div class="code-line" data-line="492"><span class="line-number">492</span><span class="line-content"></span></div>
+<div class="code-line" data-line="493"><span class="line-number">493</span><span class="line-content">  const initializeGame = useCallback(() =&gt; {</span></div>
+<div class="code-line" data-line="494"><span class="line-number">494</span><span class="line-content">    const board = Array.from({ length: game.boardSize }, () =&gt; </span></div>
+<div class="code-line" data-line="495"><span class="line-number">495</span><span class="line-content">      Array(game.boardSize).fill('empty')</span></div>
+<div class="code-line" data-line="496"><span class="line-number">496</span><span class="line-content">    );</span></div>
+<div class="code-line" data-line="497"><span class="line-number">497</span><span class="line-content">    board[10][10] = 'food';</span></div>
+<div class="code-line" data-line="498"><span class="line-number">498</span><span class="line-content">    setGame({</span></div>
+<div class="code-line" data-line="499"><span class="line-number">499</span><span class="line-content">      board,</span></div>
+<div class="code-line" data-line="500"><span class="line-number">500</span><span class="line-content">      boardSize: game.boardSize,</span></div>
+<div class="code-line" data-line="501"><span class="line-number">501</span><span class="line-content">      isGameOver: false,</span></div>
+<div class="code-line" data-line="502"><span class="line-number">502</span><span class="line-content">      score: 0,</span></div>
+<div class="code-line" data-line="503"><span class="line-number">503</span><span class="line-content">    });</span></div>
+<div class="code-line" data-line="504"><span class="line-number">504</span><span class="line-content">  }, [game.boardSize]);</span></div>
+<div class="code-line" data-line="505"><span class="line-number">505</span><span class="line-content"></span></div>
+<div class="code-line" data-line="506"><span class="line-number">506</span><span class="line-content">  useEffect(() =&gt; {</span></div>
+<div class="code-line" data-line="507"><span class="line-number">507</span><span class="line-content">    initializeGame();</span></div>
+<div class="code-line" data-line="508"><span class="line-number">508</span><span class="line-content">  }, [initializeGame]);</span></div>
+<div class="code-line" data-line="509"><span class="line-number">509</span><span class="line-content"></span></div>
+<div class="code-line" data-line="510"><span class="line-number">510</span><span class="line-content">  const moveSnake = useCallback((direction: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT') =&gt; {</span></div>
+<div class="code-line" data-line="511"><span class="line-number">511</span><span class="line-content">    // Game logic implementation</span></div>
+<div class="code-line" data-line="512"><span class="line-number">512</span><span class="line-content">    // This would include snake movement, collision detection, and food generation</span></div>
+<div class="code-line" data-line="513"><span class="line-number">513</span><span class="line-content">    // For brevity, actual implementation is omitted</span></div>
+<div class="code-line" data-line="514"><span class="line-number">514</span><span class="line-content">  }, []);</span></div>
+<div class="code-line" data-line="515"><span class="line-number">515</span><span class="line-content"></span></div>
+<div class="code-line" data-line="516"><span class="line-number">516</span><span class="line-content">  const resetGame = useCallback(() =&gt; {</span></div>
+<div class="code-line" data-line="517"><span class="line-number">517</span><span class="line-content">    initializeGame();</span></div>
+<div class="code-line" data-line="518"><span class="line-number">518</span><span class="line-content">  }, [initializeGame]);</span></div>
+<div class="code-line" data-line="519"><span class="line-number">519</span><span class="line-content"></span></div>
+<div class="code-line" data-line="520"><span class="line-number">520</span><span class="line-content">  return (</span></div>
+<div class="code-line" data-line="521"><span class="line-number">521</span><span class="line-content">    &lt;GameContext.Provider value={{ game, moveSnake, resetGame }}&gt;</span></div>
+<div class="code-line" data-line="522"><span class="line-number">522</span><span class="line-content">      {children}</span></div>
+<div class="code-line" data-line="523"><span class="line-number">523</span><span class="line-content">    &lt;/GameContext.Provider&gt;</span></div>
+<div class="code-line" data-line="524"><span class="line-number">524</span><span class="line-content">  );</span></div>
+<div class="code-line" data-line="525"><span class="line-number">525</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="526"><span class="line-number">526</span><span class="line-content"></span></div>
+<div class="code-line" data-line="527"><span class="line-number">527</span><span class="line-content">export { GameProvider, useGame };</span></div>
+<div class="code-line" data-line="528"><span class="line-number">528</span><span class="line-content">import express from 'express';</span></div>
+<div class="code-line" data-line="529"><span class="line-number">529</span><span class="line-content">import mongoose from 'mongoose';</span></div>
+<div class="code-line" data-line="530"><span class="line-number">530</span><span class="line-content">import cors from 'cors';</span></div>
+<div class="code-line" data-line="531"><span class="line-number">531</span><span class="line-content">import authRoutes from './routes/auth';</span></div>
+<div class="code-line" data-line="532"><span class="line-number">532</span><span class="line-content">import gameRoutes from './routes/game';</span></div>
+<div class="code-line" data-line="533"><span class="line-number">533</span><span class="line-content">import { errorHandler } from './middleware/errorHandler';</span></div>
+<div class="code-line" data-line="534"><span class="line-number">534</span><span class="line-content"></span></div>
+<div class="code-line" data-line="535"><span class="line-number">535</span><span class="line-content">const app = express();</span></div>
+<div class="code-line" data-line="536"><span class="line-number">536</span><span class="line-content">const PORT = process.env.PORT || 3000;</span></div>
+<div class="code-line" data-line="537"><span class="line-number">537</span><span class="line-content"></span></div>
+<div class="code-line" data-line="538"><span class="line-number">538</span><span class="line-content">// Middleware</span></div>
+<div class="code-line" data-line="539"><span class="line-number">539</span><span class="line-content">app.use(cors());</span></div>
+<div class="code-line" data-line="540"><span class="line-number">540</span><span class="line-content">app.use(express.json());</span></div>
+<div class="code-line" data-line="541"><span class="line-number">541</span><span class="line-content"></span></div>
+<div class="code-line" data-line="542"><span class="line-number">542</span><span class="line-content">// Routes</span></div>
+<div class="code-line" data-line="543"><span class="line-number">543</span><span class="line-content">app.use('/api/auth', authRoutes);</span></div>
+<div class="code-line" data-line="544"><span class="line-number">544</span><span class="line-content">app.use('/api/game', gameRoutes);</span></div>
+<div class="code-line" data-line="545"><span class="line-number">545</span><span class="line-content"></span></div>
+<div class="code-line" data-line="546"><span class="line-number">546</span><span class="line-content">// Error handling</span></div>
+<div class="code-line" data-line="547"><span class="line-number">547</span><span class="line-content">app.use(errorHandler);</span></div>
+<div class="code-line" data-line="548"><span class="line-number">548</span><span class="line-content"></span></div>
+<div class="code-line" data-line="549"><span class="line-number">549</span><span class="line-content">// Database connection</span></div>
+<div class="code-line" data-line="550"><span class="line-number">550</span><span class="line-content">mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/snake_game')</span></div>
+<div class="code-line" data-line="551"><span class="line-number">551</span><span class="line-content">  .then(() =&gt; console.log('Connected to MongoDB'))</span></div>
+<div class="code-line" data-line="552"><span class="line-number">552</span><span class="line-content">  .catch(err =&gt; console.error('MongoDB connection error:', err));</span></div>
+<div class="code-line" data-line="553"><span class="line-number">553</span><span class="line-content"></span></div>
+<div class="code-line" data-line="554"><span class="line-number">554</span><span class="line-content">// Start server</span></div>
+<div class="code-line" data-line="555"><span class="line-number">555</span><span class="line-content">app.listen(PORT, () =&gt; {</span></div>
+<div class="code-line" data-line="556"><span class="line-number">556</span><span class="line-content">  console.log(`Server running on port ${PORT}`);</span></div>
+<div class="code-line" data-line="557"><span class="line-number">557</span><span class="line-content">});</span></div>
+<div class="code-line" data-line="558"><span class="line-number">558</span><span class="line-content">import mongoose, { Document, Schema } from 'mongoose';</span></div>
+<div class="code-line" data-line="559"><span class="line-number">559</span><span class="line-content"></span></div>
+<div class="code-line" data-line="560"><span class="line-number">560</span><span class="line-content">export interface IUser extends Document {</span></div>
+<div class="code-line" data-line="561"><span class="line-number">561</span><span class="line-content">  username: string;</span></div>
+<div class="code-line" data-line="562"><span class="line-number">562</span><span class="line-content">  email: string;</span></div>
+<div class="code-line" data-line="563"><span class="line-number">563</span><span class="line-content">  password: string;</span></div>
+<div class="code-line" data-line="564"><span class="line-number">564</span><span class="line-content">  highScore: number;</span></div>
+<div class="code-line" data-line="565"><span class="line-number">565</span><span class="line-content">  createdAt: Date;</span></div>
+<div class="code-line" data-line="566"><span class="line-number">566</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="567"><span class="line-number">567</span><span class="line-content"></span></div>
+<div class="code-line" data-line="568"><span class="line-number">568</span><span class="line-content">const UserSchema: Schema = new Schema({</span></div>
+<div class="code-line" data-line="569"><span class="line-number">569</span><span class="line-content">  username: { type: String, required: true, unique: true },</span></div>
+<div class="code-line" data-line="570"><span class="line-number">570</span><span class="line-content">  email: { type: String, required: true, unique: true },</span></div>
+<div class="code-line" data-line="571"><span class="line-number">571</span><span class="line-content">  password: { type: String, required: true },</span></div>
+<div class="code-line" data-line="572"><span class="line-number">572</span><span class="line-content">  highScore: { type: Number, default: 0 },</span></div>
+<div class="code-line" data-line="573"><span class="line-number">573</span><span class="line-content">  createdAt: { type: Date, default: Date.now }</span></div>
+<div class="code-line" data-line="574"><span class="line-number">574</span><span class="line-content">});</span></div>
+<div class="code-line" data-line="575"><span class="line-number">575</span><span class="line-content"></span></div>
+<div class="code-line" data-line="576"><span class="line-number">576</span><span class="line-content">export default mongoose.model&lt;IUser&gt;('User', UserSchema);</span></div>
+<div class="code-line" data-line="577"><span class="line-number">577</span><span class="line-content">import express from 'express';</span></div>
+<div class="code-line" data-line="578"><span class="line-number">578</span><span class="line-content">import { registerUser, loginUser } from '../controllers/auth';</span></div>
+<div class="code-line" data-line="579"><span class="line-number">579</span><span class="line-content"></span></div>
+<div class="code-line" data-line="580"><span class="line-number">580</span><span class="line-content">const router = express.Router();</span></div>
+<div class="code-line" data-line="581"><span class="line-number">581</span><span class="line-content"></span></div>
+<div class="code-line" data-line="582"><span class="line-number">582</span><span class="line-content">router.post('/register', registerUser);</span></div>
+<div class="code-line" data-line="583"><span class="line-number">583</span><span class="line-content">router.post('/login', loginUser);</span></div>
+<div class="code-line" data-line="584"><span class="line-number">584</span><span class="line-content"></span></div>
+<div class="code-line" data-line="585"><span class="line-number">585</span><span class="line-content">export default router;</span></div>
+<div class="code-line" data-line="586"><span class="line-number">586</span><span class="line-content">import { Request, Response } from 'express';</span></div>
+<div class="code-line" data-line="587"><span class="line-number">587</span><span class="line-content">import bcrypt from 'bcryptjs';</span></div>
+<div class="code-line" data-line="588"><span class="line-number">588</span><span class="line-content">import jwt from 'jsonwebtoken';</span></div>
+<div class="code-line" data-line="589"><span class="line-number">589</span><span class="line-content">import User from '../models/User';</span></div>
+<div class="code-line" data-line="590"><span class="line-number">590</span><span class="line-content"></span></div>
+<div class="code-line" data-line="591"><span class="line-number">591</span><span class="line-content">export const registerUser = async (req: Request, res: Response) =&gt; {</span></div>
+<div class="code-line" data-line="592"><span class="line-number">592</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="593"><span class="line-number">593</span><span class="line-content">    const { username, email, password } = req.body;</span></div>
+<div class="code-line" data-line="594"><span class="line-number">594</span><span class="line-content">    const user = new User({ username, email, password });</span></div>
+<div class="code-line" data-line="595"><span class="line-number">595</span><span class="line-content">    await user.save();</span></div>
+<div class="code-line" data-line="596"><span class="line-number">596</span><span class="line-content">    res.status(201).json({ message: 'User registered successfully' });</span></div>
+<div class="code-line" data-line="597"><span class="line-number">597</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="598"><span class="line-number">598</span><span class="line-content">    res.status(500).json({ error: 'Registration failed' });</span></div>
+<div class="code-line" data-line="599"><span class="line-number">599</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="600"><span class="line-number">600</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="601"><span class="line-number">601</span><span class="line-content"></span></div>
+<div class="code-line" data-line="602"><span class="line-number">602</span><span class="line-content">export const loginUser = async (req: Request, res: Response) =&gt; {</span></div>
+<div class="code-line" data-line="603"><span class="line-number">603</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="604"><span class="line-number">604</span><span class="line-content">    const { email, password } = req.body;</span></div>
+<div class="code-line" data-line="605"><span class="line-number">605</span><span class="line-content">    const user = await User.findOne({ email });</span></div>
+<div class="code-line" data-line="606"><span class="line-number">606</span><span class="line-content">    if (!user || !(await bcrypt.compare(password, user.password))) {</span></div>
+<div class="code-line" data-line="607"><span class="line-number">607</span><span class="line-content">      return res.status(401).json({ error: 'Invalid credentials' });</span></div>
+<div class="code-line" data-line="608"><span class="line-number">608</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="609"><span class="line-number">609</span><span class="line-content">    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, { expiresIn: '1h' });</span></div>
+<div class="code-line" data-line="610"><span class="line-number">610</span><span class="line-content">    res.json({ token, user: { id: user._id, username: user.username } });</span></div>
+<div class="code-line" data-line="611"><span class="line-number">611</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="612"><span class="line-number">612</span><span class="line-content">    res.status(500).json({ error: 'Login failed' });</span></div>
+<div class="code-line" data-line="613"><span class="line-number">613</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="614"><span class="line-number">614</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="615"><span class="line-number">615</span><span class="line-content"># Frontend Dockerfile</span></div>
+<div class="code-line" data-line="616"><span class="line-number">616</span><span class="line-content">FROM node:18 as frontend</span></div>
+<div class="code-line" data-line="617"><span class="line-number">617</span><span class="line-content">WORKDIR /app</span></div>
+<div class="code-line" data-line="618"><span class="line-number">618</span><span class="line-content">COPY frontend/package*.json ./</span></div>
+<div class="code-line" data-line="619"><span class="line-number">619</span><span class="line-content">RUN npm install</span></div>
+<div class="code-line" data-line="620"><span class="line-number">620</span><span class="line-content">COPY frontend/ .</span></div>
+<div class="code-line" data-line="621"><span class="line-number">621</span><span class="line-content">RUN npm run build</span></div>
+<div class="code-line" data-line="622"><span class="line-number">622</span><span class="line-content"></span></div>
+<div class="code-line" data-line="623"><span class="line-number">623</span><span class="line-content"># Backend Dockerfile</span></div>
+<div class="code-line" data-line="624"><span class="line-number">624</span><span class="line-content">FROM node:18 as backend</span></div>
+<div class="code-line" data-line="625"><span class="line-number">625</span><span class="line-content">WORKDIR /app</span></div>
+<div class="code-line" data-line="626"><span class="line-number">626</span><span class="line-content">COPY backend/package*.json ./</span></div>
+<div class="code-line" data-line="627"><span class="line-number">627</span><span class="line-content">RUN npm install</span></div>
+<div class="code-line" data-line="628"><span class="line-number">628</span><span class="line-content">COPY backend/ .</span></div>
+<div class="code-line" data-line="629"><span class="line-number">629</span><span class="line-content"></span></div>
+<div class="code-line" data-line="630"><span class="line-number">630</span><span class="line-content"># Final stage</span></div>
+<div class="code-line" data-line="631"><span class="line-number">631</span><span class="line-content">FROM nginx:alpine</span></div>
+<div class="code-line" data-line="632"><span class="line-number">632</span><span class="line-content">COPY --from=frontend /app/build /usr/share/nginx/html</span></div>
+<div class="code-line" data-line="633"><span class="line-number">633</span><span class="line-content">COPY --from=backend /app /app</span></div>
+<div class="code-line" data-line="634"><span class="line-number">634</span><span class="line-content">EXPOSE 80</span></div>
+<div class="code-line" data-line="635"><span class="line-number">635</span><span class="line-content">CMD ["nginx", "-g", "daemon off;"]</span></div>
+<div class="code-line" data-line="636"><span class="line-number">636</span><span class="line-content">version: '3.8'</span></div>
+<div class="code-line" data-line="637"><span class="line-number">637</span><span class="line-content"></span></div>
+<div class="code-line" data-line="638"><span class="line-number">638</span><span class="line-content">services:</span></div>
+<div class="code-line" data-line="639"><span class="line-number">639</span><span class="line-content">  frontend:</span></div>
+<div class="code-line" data-line="640"><span class="line-number">640</span><span class="line-content">    build: .</span></div>
+<div class="code-line" data-line="641"><span class="line-number">641</span><span class="line-content">    ports:</span></div>
+<div class="code-line" data-line="642"><span class="line-number">642</span><span class="line-content">      - "80:80"</span></div>
+<div class="code-line" data-line="643"><span class="line-number">643</span><span class="line-content">    depends_on:</span></div>
+<div class="code-line" data-line="644"><span class="line-number">644</span><span class="line-content">      - backend</span></div>
+<div class="code-line" data-line="645"><span class="line-number">645</span><span class="line-content"></span></div>
+<div class="code-line" data-line="646"><span class="line-number">646</span><span class="line-content">  backend:</span></div>
+<div class="code-line" data-line="647"><span class="line-number">647</span><span class="line-content">    build: .</span></div>
+<div class="code-line" data-line="648"><span class="line-number">648</span><span class="line-content">    ports:</span></div>
+<div class="code-line" data-line="649"><span class="line-number">649</span><span class="line-content">      - "3000:3000"</span></div>
+<div class="code-line" data-line="650"><span class="line-number">650</span><span class="line-content">    environment:</span></div>
+<div class="code-line" data-line="651"><span class="line-number">651</span><span class="line-content">      - MONGO_URI=mongodb://db:27017/snake_game</span></div>
+<div class="code-line" data-line="652"><span class="line-number">652</span><span class="line-content">      - JWT_SECRET=your-secret-key</span></div>
+<div class="code-line" data-line="653"><span class="line-number">653</span><span class="line-content">    volumes:</span></div>
+<div class="code-line" data-line="654"><span class="line-number">654</span><span class="line-content">      - ./backend:/app</span></div>
+<div class="code-line" data-line="655"><span class="line-number">655</span><span class="line-content"></span></div>
+<div class="code-line" data-line="656"><span class="line-number">656</span><span class="line-content">  db:</span></div>
+<div class="code-line" data-line="657"><span class="line-number">657</span><span class="line-content">    image: mongo:5.0</span></div>
+<div class="code-line" data-line="658"><span class="line-number">658</span><span class="line-content">    ports:</span></div>
+<div class="code-line" data-line="659"><span class="line-number">659</span><span class="line-content">      - "27017:27017"</span></div>
+<div class="code-line" data-line="660"><span class="line-number">660</span><span class="line-content">    volumes:</span></div>
+<div class="code-line" data-line="661"><span class="line-number">661</span><span class="line-content">      - db-data:/data/db</span></div>
+<div class="code-line" data-line="662"><span class="line-number">662</span><span class="line-content"></span></div>
+<div class="code-line" data-line="663"><span class="line-number">663</span><span class="line-content">volumes:</span></div>
+<div class="code-line" data-line="664"><span class="line-number">664</span><span class="line-content">  db-data:</span></div>
+<div class="code-line" data-line="665"><span class="line-number">665</span><span class="line-content">const express = require('express');</span></div>
+<div class="code-line" data-line="666"><span class="line-number">666</span><span class="line-content">const mongoose = require('mongoose');</span></div>
+<div class="code-line" data-line="667"><span class="line-number">667</span><span class="line-content">const cors = require('cors');</span></div>
+<div class="code-line" data-line="668"><span class="line-number">668</span><span class="line-content">const dotenv = require('dotenv');</span></div>
+<div class="code-line" data-line="669"><span class="line-number">669</span><span class="line-content"></span></div>
+<div class="code-line" data-line="670"><span class="line-number">670</span><span class="line-content">dotenv.config();</span></div>
+<div class="code-line" data-line="671"><span class="line-number">671</span><span class="line-content"></span></div>
+<div class="code-line" data-line="672"><span class="line-number">672</span><span class="line-content">const app = express();</span></div>
+<div class="code-line" data-line="673"><span class="line-number">673</span><span class="line-content"></span></div>
+<div class="code-line" data-line="674"><span class="line-number">674</span><span class="line-content">// Connect to MongoDB</span></div>
+<div class="code-line" data-line="675"><span class="line-number">675</span><span class="line-content">mongoose.connect(process.env.DB_URI, {</span></div>
+<div class="code-line" data-line="676"><span class="line-number">676</span><span class="line-content">  useNewUrlParser: true,</span></div>
+<div class="code-line" data-line="677"><span class="line-number">677</span><span class="line-content">  useUnifiedTopology: true</span></div>
+<div class="code-line" data-line="678"><span class="line-number">678</span><span class="line-content">});</span></div>
+<div class="code-line" data-line="679"><span class="line-number">679</span><span class="line-content"></span></div>
+<div class="code-line" data-line="680"><span class="line-number">680</span><span class="line-content">// Middleware</span></div>
+<div class="code-line" data-line="681"><span class="line-number">681</span><span class="line-content">app.use(cors());</span></div>
+<div class="code-line" data-line="682"><span class="line-number">682</span><span class="line-content">app.use(express.json());</span></div>
+<div class="code-line" data-line="683"><span class="line-number">683</span><span class="line-content"></span></div>
+<div class="code-line" data-line="684"><span class="line-number">684</span><span class="line-content">// Routes</span></div>
+<div class="code-line" data-line="685"><span class="line-number">685</span><span class="line-content">app.use('/api/users', require('./routes/userRoutes'));</span></div>
+<div class="code-line" data-line="686"><span class="line-number">686</span><span class="line-content"></span></div>
+<div class="code-line" data-line="687"><span class="line-number">687</span><span class="line-content">// Error handling middleware</span></div>
+<div class="code-line" data-line="688"><span class="line-number">688</span><span class="line-content">app.use((err, req, res, next) =&gt; {</span></div>
+<div class="code-line" data-line="689"><span class="line-number">689</span><span class="line-content">  console.error(err.stack);</span></div>
+<div class="code-line" data-line="690"><span class="line-number">690</span><span class="line-content">  res.status(500).json({ error: 'Internal Server Error' });</span></div>
+<div class="code-line" data-line="691"><span class="line-number">691</span><span class="line-content">});</span></div>
+<div class="code-line" data-line="692"><span class="line-number">692</span><span class="line-content"></span></div>
+<div class="code-line" data-line="693"><span class="line-number">693</span><span class="line-content">const PORT = process.env.PORT || 3000;</span></div>
+<div class="code-line" data-line="694"><span class="line-number">694</span><span class="line-content">app.listen(PORT, () =&gt; {</span></div>
+<div class="code-line" data-line="695"><span class="line-number">695</span><span class="line-content">  console.log(`Server running on port ${PORT}`);</span></div>
+<div class="code-line" data-line="696"><span class="line-number">696</span><span class="line-content">});</span></div>
+<div class="code-line" data-line="697"><span class="line-number">697</span><span class="line-content">const mongoose = require('mongoose');</span></div>
+<div class="code-line" data-line="698"><span class="line-number">698</span><span class="line-content">const bcrypt = require('bcryptjs');</span></div>
+<div class="code-line" data-line="699"><span class="line-number">699</span><span class="line-content"></span></div>
+<div class="code-line" data-line="700"><span class="line-number">700</span><span class="line-content">const userSchema = new mongoose.Schema({</span></div>
+<div class="code-line" data-line="701"><span class="line-number">701</span><span class="line-content">  email: {</span></div>
+<div class="code-line" data-line="702"><span class="line-number">702</span><span class="line-content">    type: String,</span></div>
+<div class="code-line" data-line="703"><span class="line-number">703</span><span class="line-content">    required: true,</span></div>
+<div class="code-line" data-line="704"><span class="line-number">704</span><span class="line-content">    unique: true,</span></div>
+<div class="code-line" data-line="705"><span class="line-number">705</span><span class="line-content">    trim: true,</span></div>
+<div class="code-line" data-line="706"><span class="line-number">706</span><span class="line-content">    lowercase: true</span></div>
+<div class="code-line" data-line="707"><span class="line-number">707</span><span class="line-content">  },</span></div>
+<div class="code-line" data-line="708"><span class="line-number">708</span><span class="line-content">  password: {</span></div>
+<div class="code-line" data-line="709"><span class="line-number">709</span><span class="line-content">    type: String,</span></div>
+<div class="code-line" data-line="710"><span class="line-number">710</span><span class="line-content">    required: true,</span></div>
+<div class="code-line" data-line="711"><span class="line-number">711</span><span class="line-content">    minlength: 8</span></div>
+<div class="code-line" data-line="712"><span class="line-number">712</span><span class="line-content">  },</span></div>
+<div class="code-line" data-line="713"><span class="line-number">713</span><span class="line-content">  tokens: [{</span></div>
+<div class="code-line" data-line="714"><span class="line-number">714</span><span class="line-content">    token: {</span></div>
+<div class="code-line" data-line="715"><span class="line-number">715</span><span class="line-content">      type: String,</span></div>
+<div class="code-line" data-line="716"><span class="line-number">716</span><span class="line-content">      required: true</span></div>
+<div class="code-line" data-line="717"><span class="line-number">717</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="718"><span class="line-number">718</span><span class="line-content">  }]</span></div>
+<div class="code-line" data-line="719"><span class="line-number">719</span><span class="line-content">});</span></div>
+<div class="code-line" data-line="720"><span class="line-number">720</span><span class="line-content"></span></div>
+<div class="code-line" data-line="721"><span class="line-number">721</span><span class="line-content">// Hash password before saving</span></div>
+<div class="code-line" data-line="722"><span class="line-number">722</span><span class="line-content">userSchema.pre('save', async function (next) {</span></div>
+<div class="code-line" data-line="723"><span class="line-number">723</span><span class="line-content">  if (this.isModified('password')) {</span></div>
+<div class="code-line" data-line="724"><span class="line-number">724</span><span class="line-content">    this.password = await bcrypt.hash(this.password, 8);</span></div>
+<div class="code-line" data-line="725"><span class="line-number">725</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="726"><span class="line-number">726</span><span class="line-content">  next();</span></div>
+<div class="code-line" data-line="727"><span class="line-number">727</span><span class="line-content">});</span></div>
+<div class="code-line" data-line="728"><span class="line-number">728</span><span class="line-content"></span></div>
+<div class="code-line" data-line="729"><span class="line-number">729</span><span class="line-content">const User = mongoose.model('User', userSchema);</span></div>
+<div class="code-line" data-line="730"><span class="line-number">730</span><span class="line-content">module.exports = User;</span></div>
+<div class="code-line" data-line="731"><span class="line-number">731</span><span class="line-content">const User = require('../models/User');</span></div>
+<div class="code-line" data-line="732"><span class="line-number">732</span><span class="line-content">const jwt = require('jsonwebtoken');</span></div>
+<div class="code-line" data-line="733"><span class="line-number">733</span><span class="line-content">const bcrypt = require('bcryptjs');</span></div>
+<div class="code-line" data-line="734"><span class="line-number">734</span><span class="line-content"></span></div>
+<div class="code-line" data-line="735"><span class="line-number">735</span><span class="line-content">// Register user</span></div>
+<div class="code-line" data-line="736"><span class="line-number">736</span><span class="line-content">const registerUser = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="737"><span class="line-number">737</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="738"><span class="line-number">738</span><span class="line-content">    const { email, password } = req.body;</span></div>
+<div class="code-line" data-line="739"><span class="line-number">739</span><span class="line-content">    const user = new User({ email, password });</span></div>
+<div class="code-line" data-line="740"><span class="line-number">740</span><span class="line-content">    await user.save();</span></div>
+<div class="code-line" data-line="741"><span class="line-number">741</span><span class="line-content">    res.status(201).json({ message: 'User created successfully' });</span></div>
+<div class="code-line" data-line="742"><span class="line-number">742</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="743"><span class="line-number">743</span><span class="line-content">    res.status(400).json({ error: error.message });</span></div>
+<div class="code-line" data-line="744"><span class="line-number">744</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="745"><span class="line-number">745</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="746"><span class="line-number">746</span><span class="line-content"></span></div>
+<div class="code-line" data-line="747"><span class="line-number">747</span><span class="line-content">// Login user</span></div>
+<div class="code-line" data-line="748"><span class="line-number">748</span><span class="line-content">const loginUser = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="749"><span class="line-number">749</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="750"><span class="line-number">750</span><span class="line-content">    const { email, password } = req.body;</span></div>
+<div class="code-line" data-line="751"><span class="line-number">751</span><span class="line-content">    const user = await User.findOne({ email });</span></div>
+<div class="code-line" data-line="752"><span class="line-number">752</span><span class="line-content">    if (!user || !(await bcrypt.compare(password, user.password))) {</span></div>
+<div class="code-line" data-line="753"><span class="line-number">753</span><span class="line-content">      return res.status(401).json({ error: 'Invalid credentials' });</span></div>
+<div class="code-line" data-line="754"><span class="line-number">754</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="755"><span class="line-number">755</span><span class="line-content">    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });</span></div>
+<div class="code-line" data-line="756"><span class="line-number">756</span><span class="line-content">    user.tokens.push(token);</span></div>
+<div class="code-line" data-line="757"><span class="line-number">757</span><span class="line-content">    await user.save();</span></div>
+<div class="code-line" data-line="758"><span class="line-number">758</span><span class="line-content">    res.json({ token });</span></div>
+<div class="code-line" data-line="759"><span class="line-number">759</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="760"><span class="line-number">760</span><span class="line-content">    res.status(500).json({ error: error.message });</span></div>
+<div class="code-line" data-line="761"><span class="line-number">761</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="762"><span class="line-number">762</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="763"><span class="line-number">763</span><span class="line-content"></span></div>
+<div class="code-line" data-line="764"><span class="line-number">764</span><span class="line-content">// Refresh token</span></div>
+<div class="code-line" data-line="765"><span class="line-number">765</span><span class="line-content">const refreshToken = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="766"><span class="line-number">766</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="767"><span class="line-number">767</span><span class="line-content">    const { token } = req.body;</span></div>
+<div class="code-line" data-line="768"><span class="line-number">768</span><span class="line-content">    const decoded = jwt.verify(token, process.env.JWT_SECRET);</span></div>
+<div class="code-line" data-line="769"><span class="line-number">769</span><span class="line-content">    const user = await User.findById(decoded.id);</span></div>
+<div class="code-line" data-line="770"><span class="line-number">770</span><span class="line-content">    if (!user) {</span></div>
+<div class="code-line" data-line="771"><span class="line-number">771</span><span class="line-content">      return res.status(401).json({ error: 'Invalid token' });</span></div>
+<div class="code-line" data-line="772"><span class="line-number">772</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="773"><span class="line-number">773</span><span class="line-content">    const newToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });</span></div>
+<div class="code-line" data-line="774"><span class="line-number">774</span><span class="line-content">    res.json({ token: newToken });</span></div>
+<div class="code-line" data-line="775"><span class="line-number">775</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="776"><span class="line-number">776</span><span class="line-content">    res.status(401).json({ error: 'Invalid token' });</span></div>
+<div class="code-line" data-line="777"><span class="line-number">777</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="778"><span class="line-number">778</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="779"><span class="line-number">779</span><span class="line-content"></span></div>
+<div class="code-line" data-line="780"><span class="line-number">780</span><span class="line-content">module.exports = { registerUser, loginUser, refreshToken };</span></div>
+<div class="code-line" data-line="781"><span class="line-number">781</span><span class="line-content">const express = require('express');</span></div>
+<div class="code-line" data-line="782"><span class="line-number">782</span><span class="line-content">const router = express.Router();</span></div>
+<div class="code-line" data-line="783"><span class="line-number">783</span><span class="line-content">const { registerUser, loginUser, refreshToken } = require('../controllers/userController');</span></div>
+<div class="code-line" data-line="784"><span class="line-number">784</span><span class="line-content">const authMiddleware = require('../middleware/authMiddleware');</span></div>
+<div class="code-line" data-line="785"><span class="line-number">785</span><span class="line-content"></span></div>
+<div class="code-line" data-line="786"><span class="line-number">786</span><span class="line-content">// Public routes</span></div>
+<div class="code-line" data-line="787"><span class="line-number">787</span><span class="line-content">router.post('/register', registerUser);</span></div>
+<div class="code-line" data-line="788"><span class="line-number">788</span><span class="line-content">router.post('/login', loginUser);</span></div>
+<div class="code-line" data-line="789"><span class="line-number">789</span><span class="line-content"></span></div>
+<div class="code-line" data-line="790"><span class="line-number">790</span><span class="line-content">// Protected route</span></div>
+<div class="code-line" data-line="791"><span class="line-number">791</span><span class="line-content">router.post('/refresh-token', authMiddleware, refreshToken);</span></div>
+<div class="code-line" data-line="792"><span class="line-number">792</span><span class="line-content"></span></div>
+<div class="code-line" data-line="793"><span class="line-number">793</span><span class="line-content">module.exports = router;</span></div>
+<div class="code-line" data-line="794"><span class="line-number">794</span><span class="line-content">const jwt = require('jsonwebtoken');</span></div>
+<div class="code-line" data-line="795"><span class="line-number">795</span><span class="line-content"></span></div>
+<div class="code-line" data-line="796"><span class="line-number">796</span><span class="line-content">const authMiddleware = (req, res, next) =&gt; {</span></div>
+<div class="code-line" data-line="797"><span class="line-number">797</span><span class="line-content">  const token = req.headers['x-access-token'];</span></div>
+<div class="code-line" data-line="798"><span class="line-number">798</span><span class="line-content">  if (!token) {</span></div>
+<div class="code-line" data-line="799"><span class="line-number">799</span><span class="line-content">    return res.status(401).json({ error: 'No token provided' });</span></div>
+<div class="code-line" data-line="800"><span class="line-number">800</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="801"><span class="line-number">801</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="802"><span class="line-number">802</span><span class="line-content">    const decoded = jwt.verify(token, process.env.JWT_SECRET);</span></div>
+<div class="code-line" data-line="803"><span class="line-number">803</span><span class="line-content">    req.userId = decoded.id;</span></div>
+<div class="code-line" data-line="804"><span class="line-number">804</span><span class="line-content">    next();</span></div>
+<div class="code-line" data-line="805"><span class="line-number">805</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="806"><span class="line-number">806</span><span class="line-content">    res.status(401).json({ error: 'Invalid token' });</span></div>
+<div class="code-line" data-line="807"><span class="line-number">807</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="808"><span class="line-number">808</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="809"><span class="line-number">809</span><span class="line-content"></span></div>
+<div class="code-line" data-line="810"><span class="line-number">810</span><span class="line-content">module.exports = authMiddleware;</span></div>
+<div class="code-line" data-line="811"><span class="line-number">811</span><span class="line-content">const request = require('supertest');</span></div>
+<div class="code-line" data-line="812"><span class="line-number">812</span><span class="line-content">const app = require('../server');</span></div>
+<div class="code-line" data-line="813"><span class="line-number">813</span><span class="line-content">const User = require('../models/User');</span></div>
+<div class="code-line" data-line="814"><span class="line-number">814</span><span class="line-content">const jwt = require('jsonwebtoken');</span></div>
+<div class="code-line" data-line="815"><span class="line-number">815</span><span class="line-content"></span></div>
+<div class="code-line" data-line="816"><span class="line-number">816</span><span class="line-content">describe('User Controller Tests', () =&gt; {</span></div>
+<div class="code-line" data-line="817"><span class="line-number">817</span><span class="line-content">  beforeEach(async () =&gt; {</span></div>
+<div class="code-line" data-line="818"><span class="line-number">818</span><span class="line-content">    await User.deleteMany({});</span></div>
+<div class="code-line" data-line="819"><span class="line-number">819</span><span class="line-content">  });</span></div>
+<div class="code-line" data-line="820"><span class="line-number">820</span><span class="line-content"></span></div>
+<div class="code-line" data-line="821"><span class="line-number">821</span><span class="line-content">  test('Should register a new user', async () =&gt; {</span></div>
+<div class="code-line" data-line="822"><span class="line-number">822</span><span class="line-content">    const res = await request(app)</span></div>
+<div class="code-line" data-line="823"><span class="line-number">823</span><span class="line-content">      .post('/api/users/register')</span></div>
+<div class="code-line" data-line="824"><span class="line-number">824</span><span class="line-content">      .send({</span></div>
+<div class="code-line" data-line="825"><span class="line-number">825</span><span class="line-content">        email: 'test@example.com',</span></div>
+<div class="code-line" data-line="826"><span class="line-number">826</span><span class="line-content">        password: 'Password123!'</span></div>
+<div class="code-line" data-line="827"><span class="line-number">827</span><span class="line-content">      });</span></div>
+<div class="code-line" data-line="828"><span class="line-number">828</span><span class="line-content">    expect(res.statusCode).toBe(201);</span></div>
+<div class="code-line" data-line="829"><span class="line-number">829</span><span class="line-content">    expect(res.body.message).toBe('User created successfully');</span></div>
+<div class="code-line" data-line="830"><span class="line-number">830</span><span class="line-content">  });</span></div>
+<div class="code-line" data-line="831"><span class="line-number">831</span><span class="line-content"></span></div>
+<div class="code-line" data-line="832"><span class="line-number">832</span><span class="line-content">  test('Should login with valid credentials', async () =&gt; {</span></div>
+<div class="code-line" data-line="833"><span class="line-number">833</span><span class="line-content">    // First create a user</span></div>
+<div class="code-line" data-line="834"><span class="line-number">834</span><span class="line-content">    await request(app)</span></div>
+<div class="code-line" data-line="835"><span class="line-number">835</span><span class="line-content">      .post('/api/users/register')</span></div>
+<div class="code-line" data-line="836"><span class="line-number">836</span><span class="line-content">      .send({</span></div>
+<div class="code-line" data-line="837"><span class="line-number">837</span><span class="line-content">        email: 'login@example.com',</span></div>
+<div class="code-line" data-line="838"><span class="line-number">838</span><span class="line-content">        password: 'Password123!'</span></div>
+<div class="code-line" data-line="839"><span class="line-number">839</span><span class="line-content">      });</span></div>
+<div class="code-line" data-line="840"><span class="line-number">840</span><span class="line-content"></span></div>
+<div class="code-line" data-line="841"><span class="line-number">841</span><span class="line-content">    const res = await request(app)</span></div>
+<div class="code-line" data-line="842"><span class="line-number">842</span><span class="line-content">      .post('/api/users/login')</span></div>
+<div class="code-line" data-line="843"><span class="line-number">843</span><span class="line-content">      .send({</span></div>
+<div class="code-line" data-line="844"><span class="line-number">844</span><span class="line-content">        email: 'login@example.com',</span></div>
+<div class="code-line" data-line="845"><span class="line-number">845</span><span class="line-content">        password: 'Password123!'</span></div>
+<div class="code-line" data-line="846"><span class="line-number">846</span><span class="line-content">      });</span></div>
+<div class="code-line" data-line="847"><span class="line-number">847</span><span class="line-content">    expect(res.statusCode).toBe(200);</span></div>
+<div class="code-line" data-line="848"><span class="line-number">848</span><span class="line-content">    expect(res.body).toHaveProperty('token');</span></div>
+<div class="code-line" data-line="849"><span class="line-number">849</span><span class="line-content">  });</span></div>
+<div class="code-line" data-line="850"><span class="line-number">850</span><span class="line-content"></span></div>
+<div class="code-line" data-line="851"><span class="line-number">851</span><span class="line-content">  test('Should return error for invalid login', async () =&gt; {</span></div>
+<div class="code-line" data-line="852"><span class="line-number">852</span><span class="line-content">    const res = await request(app)</span></div>
+<div class="code-line" data-line="853"><span class="line-number">853</span><span class="line-content">      .post('/api/users/login')</span></div>
+<div class="code-line" data-line="854"><span class="line-number">854</span><span class="line-content">      .send({</span></div>
+<div class="code-line" data-line="855"><span class="line-number">855</span><span class="line-content">        email: 'invalid@example.com',</span></div>
+<div class="code-line" data-line="856"><span class="line-number">856</span><span class="line-content">        password: 'wrongpassword'</span></div>
+<div class="code-line" data-line="857"><span class="line-number">857</span><span class="line-content">      });</span></div>
+<div class="code-line" data-line="858"><span class="line-number">858</span><span class="line-content">    expect(res.statusCode).toBe(401);</span></div>
+<div class="code-line" data-line="859"><span class="line-number">859</span><span class="line-content">    expect(res.body.error).toBe('Invalid credentials');</span></div>
+<div class="code-line" data-line="860"><span class="line-number">860</span><span class="line-content">  });</span></div>
+<div class="code-line" data-line="861"><span class="line-number">861</span><span class="line-content">});</span></div>
+<div class="code-line" data-line="862"><span class="line-number">862</span><span class="line-content">FROM node:18</span></div>
+<div class="code-line" data-line="863"><span class="line-number">863</span><span class="line-content">WORKDIR /app</span></div>
+<div class="code-line" data-line="864"><span class="line-number">864</span><span class="line-content">COPY package*.json ./</span></div>
+<div class="code-line" data-line="865"><span class="line-number">865</span><span class="line-content">RUN npm install</span></div>
+<div class="code-line" data-line="866"><span class="line-number">866</span><span class="line-content">COPY . .</span></div>
+<div class="code-line" data-line="867"><span class="line-number">867</span><span class="line-content">EXPOSE 3000</span></div>
+<div class="code-line" data-line="868"><span class="line-number">868</span><span class="line-content">CMD ["node", "server.js"]</span></div>
+<div class="code-line" data-line="869"><span class="line-number">869</span><span class="line-content">version: '3'</span></div>
+<div class="code-line" data-line="870"><span class="line-number">870</span><span class="line-content">services:</span></div>
+<div class="code-line" data-line="871"><span class="line-number">871</span><span class="line-content">  app:</span></div>
+<div class="code-line" data-line="872"><span class="line-number">872</span><span class="line-content">    build: .</span></div>
+<div class="code-line" data-line="873"><span class="line-number">873</span><span class="line-content">    ports:</span></div>
+<div class="code-line" data-line="874"><span class="line-number">874</span><span class="line-content">      - "3000:3000"</span></div>
+<div class="code-line" data-line="875"><span class="line-number">875</span><span class="line-content">    environment:</span></div>
+<div class="code-line" data-line="876"><span class="line-number">876</span><span class="line-content">      DB_URI: mongodb://db:27017/restful-api</span></div>
+<div class="code-line" data-line="877"><span class="line-number">877</span><span class="line-content">      JWT_SECRET: secret-key</span></div>
+<div class="code-line" data-line="878"><span class="line-number">878</span><span class="line-content">    depends_on:</span></div>
+<div class="code-line" data-line="879"><span class="line-number">879</span><span class="line-content">      - db</span></div>
+<div class="code-line" data-line="880"><span class="line-number">880</span><span class="line-content">  db:</span></div>
+<div class="code-line" data-line="881"><span class="line-number">881</span><span class="line-content">    image: mongo</span></div>
+<div class="code-line" data-line="882"><span class="line-number">882</span><span class="line-content">    volumes:</span></div>
+<div class="code-line" data-line="883"><span class="line-number">883</span><span class="line-content">      - db-data:/data/db</span></div>
+<div class="code-line" data-line="884"><span class="line-number">884</span><span class="line-content">volumes:</span></div>
+<div class="code-line" data-line="885"><span class="line-number">885</span><span class="line-content">  db-data:</span></div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // XEdit data and state
+        const xeditPaths = {"7x001": {"display_name": "pre", "type": "function", "filename": "** `models/User.js`", "language": "text", "line_start": 12, "line_end": 22, "lines_display": "12-22", "technical_path": "** `models/User.js`::function.pre/lines[12-22]", "optimal_model": "llama-3.1-70b-versatile"}, "7x002": {"display_name": "function", "type": "function", "filename": "** `models/User.js`", "language": "text", "line_start": 19, "line_end": 23, "lines_display": "19-23", "technical_path": "** `models/User.js`::function.function/lines[19-23]", "optimal_model": "llama-3.1-70b-versatile"}, "7x003": {"display_name": "if", "type": "function", "filename": "** `controllers/userController.js`", "language": "text", "line_start": 7, "line_end": 17, "lines_display": "7-17", "technical_path": "** `controllers/userController.js`::function.if/lines[7-17]", "optimal_model": "llama-3.1-70b-versatile"}, "7x004": {"display_name": "catch", "type": "function", "filename": "** `controllers/userController.js`", "language": "text", "line_start": 15, "line_end": 25, "lines_display": "15-25", "technical_path": "** `controllers/userController.js`::function.catch/lines[15-25]", "optimal_model": "llama-3.1-70b-versatile"}, "7x005": {"display_name": "catch", "type": "function", "filename": "** `controllers/userController.js`", "language": "text", "line_start": 24, "line_end": 34, "lines_display": "24-34", "technical_path": "** `controllers/userController.js`::function.catch/lines[24-34]", "optimal_model": "llama-3.1-70b-versatile"}, "7x006": {"display_name": "catch", "type": "function", "filename": "** `controllers/userController.js`", "language": "text", "line_start": 34, "line_end": 44, "lines_display": "34-44", "technical_path": "** `controllers/userController.js`::function.catch/lines[34-44]", "optimal_model": "llama-3.1-70b-versatile"}, "7x007": {"display_name": "catch", "type": "function", "filename": "** `controllers/userController.js`", "language": "text", "line_start": 49, "line_end": 59, "lines_display": "49-59", "technical_path": "** `controllers/userController.js`::function.catch/lines[49-59]", "optimal_model": "llama-3.1-70b-versatile"}, "7x008": {"display_name": "catch", "type": "function", "filename": "** `controllers/userController.js`", "language": "text", "line_start": 59, "line_end": 62, "lines_display": "59-62", "technical_path": "** `controllers/userController.js`::function.catch/lines[59-62]", "optimal_model": "llama-3.1-70b-versatile"}, "7x009": {"display_name": "if", "type": "function", "filename": "** `controllers/authController.js`", "language": "text", "line_start": 8, "line_end": 18, "lines_display": "8-18", "technical_path": "** `controllers/authController.js`::function.if/lines[8-18]", "optimal_model": "llama-3.1-70b-versatile"}, "7x010": {"display_name": "catch", "type": "function", "filename": "** `controllers/authController.js`", "language": "text", "line_start": 17, "line_end": 27, "lines_display": "17-27", "technical_path": "** `controllers/authController.js`::function.catch/lines[17-27]", "optimal_model": "llama-3.1-70b-versatile"}, "7x011": {"display_name": "if", "type": "function", "filename": "** `controllers/authController.js`", "language": "text", "line_start": 25, "line_end": 35, "lines_display": "25-35", "technical_path": "** `controllers/authController.js`::function.if/lines[25-35]", "optimal_model": "llama-3.1-70b-versatile"}, "7x012": {"display_name": "if", "type": "function", "filename": "** `controllers/authController.js`", "language": "text", "line_start": 31, "line_end": 40, "lines_display": "31-40", "technical_path": "** `controllers/authController.js`::function.if/lines[31-40]", "optimal_model": "llama-3.1-70b-versatile"}, "7x013": {"display_name": "catch", "type": "function", "filename": "** `controllers/authController.js`", "language": "text", "line_start": 37, "line_end": 40, "lines_display": "37-40", "technical_path": "** `controllers/authController.js`::function.catch/lines[37-40]", "optimal_model": "llama-3.1-70b-versatile"}, "7x014": {"display_name": "if", "type": "function", "filename": "** `middleware/auth.js`", "language": "text", "line_start": 16, "line_end": 20, "lines_display": "16-20", "technical_path": "** `middleware/auth.js`::function.if/lines[16-20]", "optimal_model": "llama-3.1-70b-versatile"}, "7x015": {"display_name": "if", "type": "function", "filename": "** `middleware/validation.js`", "language": "text", "line_start": 9, "line_end": 19, "lines_display": "9-19", "technical_path": "** `middleware/validation.js`::function.if/lines[9-19]", "optimal_model": "llama-3.1-70b-versatile"}, "7x016": {"display_name": "if", "type": "function", "filename": "** `middleware/validation.js`", "language": "text", "line_start": 21, "line_end": 26, "lines_display": "21-26", "technical_path": "** `middleware/validation.js`::function.if/lines[21-26]", "optimal_model": "llama-3.1-70b-versatile"}, "7x017": {"display_name": "if", "type": "function", "filename": "** `frontend/src/App.tsx`", "language": "text", "line_start": 11, "line_end": 21, "lines_display": "11-21", "technical_path": "** `frontend/src/App.tsx`::function.if/lines[11-21]", "optimal_model": "llama-3.1-70b-versatile"}, "7x018": {"display_name": "switch", "type": "function", "filename": "** `frontend/src/components/GameBoard.tsx`", "language": "text", "line_start": 10, "line_end": 20, "lines_display": "10-20", "technical_path": "** `frontend/src/components/GameBoard.tsx`::function.switch/lines[10-20]", "optimal_model": "llama-3.1-70b-versatile"}, "7x019": {"display_name": "if", "type": "function", "filename": "** `frontend/src/components/GameBoard.tsx`", "language": "text", "line_start": 32, "line_end": 42, "lines_display": "32-42", "technical_path": "** `frontend/src/components/GameBoard.tsx`::function.if/lines[32-42]", "optimal_model": "llama-3.1-70b-versatile"}, "7x020": {"display_name": "if", "type": "function", "filename": "** `frontend/src/context/GameContext.ts`", "language": "text", "line_start": 20, "line_end": 30, "lines_display": "20-30", "technical_path": "** `frontend/src/context/GameContext.ts`::function.if/lines[20-30]", "optimal_model": "llama-3.1-70b-versatile"}, "7x021": {"display_name": "catch", "type": "function", "filename": "** `backend/src/controllers/auth.ts`", "language": "text", "line_start": 12, "line_end": 22, "lines_display": "12-22", "technical_path": "** `backend/src/controllers/auth.ts`::function.catch/lines[12-22]", "optimal_model": "llama-3.1-70b-versatile"}, "7x022": {"display_name": "if", "type": "function", "filename": "** `backend/src/controllers/auth.ts`", "language": "text", "line_start": 21, "line_end": 29, "lines_display": "21-29", "technical_path": "** `backend/src/controllers/auth.ts`::function.if/lines[21-29]", "optimal_model": "llama-3.1-70b-versatile"}, "7x023": {"display_name": "catch", "type": "function", "filename": "** `backend/src/controllers/auth.ts`", "language": "text", "line_start": 26, "line_end": 29, "lines_display": "26-29", "technical_path": "** `backend/src/controllers/auth.ts`::function.catch/lines[26-29]", "optimal_model": "llama-3.1-70b-versatile"}, "7x024": {"display_name": "authMiddleware", "type": "function", "filename": "middleware/authMiddleware.js", "language": "javascript", "line_start": 3, "line_end": 13, "lines_display": "3-13", "technical_path": "middleware/authMiddleware.js::function.authMiddleware/lines[3-13]", "optimal_model": "llama-3.1-70b-versatile"}};
+        const projectFiles = [{"filename":"** `server.js`","language":"text","code_b64":"Y29uc3QgZXhwcmVzcyA9IHJlcXVpcmUoJ2V4cHJlc3MnKTsKY29uc3QgbW9uZ29vc2UgPSByZXF1aXJlKCdtb25nb29zZScpOwpjb25zdCBjb3JzID0gcmVxdWlyZSgnY29ycycpOwpjb25zdCBkb3RlbnYgPSByZXF1aXJlKCdkb3RlbnYnKTsKY29uc3QgYXV0aFJvdXRlcyA9IHJlcXVpcmUoJy4vcm91dGVzL2F1dGgnKTsKY29uc3QgdXNlclJvdXRlcyA9IHJlcXVpcmUoJy4vcm91dGVzL3VzZXJzJyk7CmNvbnN0IGVycm9yTWlkZGxld2FyZSA9IHJlcXVpcmUoJy4vbWlkZGxld2FyZS9lcnJvcicpOwpjb25zdCB7IHZhbGlkYXRlVXNlciB9ID0gcmVxdWlyZSgnLi9taWRkbGV3YXJlL3ZhbGlkYXRpb24nKTsKY29uc3QgeyBhdXRoZW50aWNhdGVUb2tlbiB9ID0gcmVxdWlyZSgnLi9taWRkbGV3YXJlL2F1dGgnKTsKCmRvdGVudi5jb25maWcoKTsKCmNvbnN0IGFwcCA9IGV4cHJlc3MoKTsKY29uc3QgUE9SVCA9IHByb2Nlc3MuZW52LlBPUlQgfHwgMzAwMDsKCi8vIENvbm5lY3QgdG8gTW9uZ29EQgptb25nb29zZS5jb25uZWN0KHByb2Nlc3MuZW52Lk1PTkdPX1VSSSwgewogIHVzZU5ld1VybFBhcnNlcjogdHJ1ZSwKICB1c2VVbmlmaWVkVG9wb2xvZ3k6IHRydWUsCn0pCiAgLnRoZW4oKCkgPT4gY29uc29sZS5sb2coJ01vbmdvREIgY29ubmVjdGVkJykpCiAgLmNhdGNoKGVyciA9PiBjb25zb2xlLmVycm9yKCdNb25nb0RCIGNvbm5lY3Rpb24gZXJyb3I6JywgZXJyKSk7CgovLyBNaWRkbGV3YXJlCmFwcC51c2UoY29ycygpKTsKYXBwLnVzZShleHByZXNzLmpzb24oKSk7CgovLyBSb3V0ZXMKYXBwLnVzZSgnL2FwaS9hdXRoJywgYXV0aFJvdXRlcyk7CmFwcC51c2UoJy9hcGkvdXNlcnMnLCBhdXRoZW50aWNhdGVUb2tlbiwgdXNlclJvdXRlcyk7CgovLyBFcnJvciBoYW5kbGluZyBtaWRkbGV3YXJlCmFwcC51c2UoZXJyb3JNaWRkbGV3YXJlKTsKCi8vIFN0YXJ0IHNlcnZlcgphcHAubGlzdGVuKFBPUlQsICgpID0+IHsKICBjb25zb2xlLmxvZyhgU2VydmVyIHJ1bm5pbmcgb24gcG9ydCAke1BPUlR9YCk7Cn0pOw==","code":""},{"filename":"** `models/User.js`","language":"text","code_b64":"Y29uc3QgbW9uZ29vc2UgPSByZXF1aXJlKCdtb25nb29zZScpOwpjb25zdCBiY3J5cHQgPSByZXF1aXJlKCdiY3J5cHQnKTsKCmNvbnN0IHVzZXJTY2hlbWEgPSBuZXcgbW9uZ29vc2UuU2NoZW1hKHsKICB1c2VybmFtZTogeyB0eXBlOiBTdHJpbmcsIHJlcXVpcmVkOiB0cnVlLCB1bmlxdWU6IHRydWUgfSwKICBlbWFpbDogeyB0eXBlOiBTdHJpbmcsIHJlcXVpcmVkOiB0cnVlLCB1bmlxdWU6IHRydWUgfSwKICBwYXNzd29yZDogeyB0eXBlOiBTdHJpbmcsIHJlcXVpcmVkOiB0cnVlIH0sCiAgcm9sZTogeyB0eXBlOiBTdHJpbmcsIGVudW06IFsndXNlcicsICdhZG1pbiddLCBkZWZhdWx0OiAndXNlcicgfSwKfSwgeyB0aW1lc3RhbXBzOiB0cnVlIH0pOwoKLy8gSGFzaCBwYXNzd29yZCBiZWZvcmUgc2F2aW5nCnVzZXJTY2hlbWEucHJlKCdzYXZlJywgYXN5bmMgZnVuY3Rpb24gKG5leHQpIHsKICBpZiAoIXRoaXMuaXNNb2RpZmllZCgncGFzc3dvcmQnKSkgcmV0dXJuIG5leHQoKTsKICB0aGlzLnBhc3N3b3JkID0gYXdhaXQgYmNyeXB0Lmhhc2godGhpcy5wYXNzd29yZCwgMTApOwogIG5leHQoKTsKfSk7CgovLyBDb21wYXJlIHBhc3N3b3JkCnVzZXJTY2hlbWEubWV0aG9kcy5jb21wYXJlUGFzc3dvcmQgPSBhc3luYyBmdW5jdGlvbiAoY2FuZGlkYXRlUGFzc3dvcmQpIHsKICByZXR1cm4gYXdhaXQgYmNyeXB0LmNvbXBhcmUoY2FuZGlkYXRlUGFzc3dvcmQsIHRoaXMucGFzc3dvcmQpOwp9OwoKbW9kdWxlLmV4cG9ydHMgPSBtb25nb29zZS5tb2RlbCgnVXNlcicsIHVzZXJTY2hlbWEpOw==","code":""},{"filename":"** `controllers/userController.js`","language":"text","code_b64":"Y29uc3QgVXNlciA9IHJlcXVpcmUoJy4uL21vZGVscy9Vc2VyJyk7CmNvbnN0IHsgdmFsaWRhdGlvblJlc3VsdCB9ID0gcmVxdWlyZSgnZXhwcmVzcy12YWxpZGF0b3InKTsKCmV4cG9ydHMuY3JlYXRlVXNlciA9IGFzeW5jIChyZXEsIHJlcykgPT4gewogIHRyeSB7CiAgICBjb25zdCBlcnJvcnMgPSB2YWxpZGF0aW9uUmVzdWx0KHJlcSk7CiAgICBpZiAoIWVycm9ycy5pc0VtcHR5KCkpIHsKICAgICAgcmV0dXJuIHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgZXJyb3JzOiBlcnJvcnMuYXJyYXkoKSB9KTsKICAgIH0KCiAgICBjb25zdCB7IHVzZXJuYW1lLCBlbWFpbCwgcGFzc3dvcmQsIHJvbGUgfSA9IHJlcS5ib2R5OwogICAgY29uc3QgdXNlciA9IG5ldyBVc2VyKHsgdXNlcm5hbWUsIGVtYWlsLCBwYXNzd29yZCwgcm9sZSB9KTsKICAgIGF3YWl0IHVzZXIuc2F2ZSgpOwogICAgcmVzLnN0YXR1cygyMDEpLmpzb24oeyBtZXNzYWdlOiAnVXNlciBjcmVhdGVkIHN1Y2Nlc3NmdWxseScsIHVzZXIgfSk7CiAgfSBjYXRjaCAoZXJyb3IpIHsKICAgIHJlcy5zdGF0dXMoNTAwKS5qc29uKHsgZXJyb3I6IGVycm9yLm1lc3NhZ2UgfSk7CiAgfQp9OwoKZXhwb3J0cy5nZXRBbGxVc2VycyA9IGFzeW5jIChyZXEsIHJlcykgPT4gewogIHRyeSB7CiAgICBjb25zdCB1c2VycyA9IGF3YWl0IFVzZXIuZmluZCgpOwogICAgcmVzLmpzb24odXNlcnMpOwogIH0gY2F0Y2ggKGVycm9yKSB7CiAgICByZXMuc3RhdHVzKDUwMCkuanNvbih7IGVycm9yOiBlcnJvci5tZXNzYWdlIH0pOwogIH0KfTsKCmV4cG9ydHMuZ2V0VXNlckJ5SWQgPSBhc3luYyAocmVxLCByZXMpID0+IHsKICB0cnkgewogICAgY29uc3QgdXNlciA9IGF3YWl0IFVzZXIuZmluZEJ5SWQocmVxLnBhcmFtcy5pZCk7CiAgICBpZiAoIXVzZXIpIHJldHVybiByZXMuc3RhdHVzKDQwNCkuanNvbih7IG1lc3NhZ2U6ICdVc2VyIG5vdCBmb3VuZCcgfSk7CiAgICByZXMuanNvbih1c2VyKTsKICB9IGNhdGNoIChlcnJvcikgewogICAgcmVzLnN0YXR1cyg1MDApLmpzb24oeyBlcnJvcjogZXJyb3IubWVzc2FnZSB9KTsKICB9Cn07CgpleHBvcnRzLnVwZGF0ZVVzZXIgPSBhc3luYyAocmVxLCByZXMpID0+IHsKICB0cnkgewogICAgY29uc3QgeyB1c2VybmFtZSwgZW1haWwsIHJvbGUgfSA9IHJlcS5ib2R5OwogICAgY29uc3QgdXNlciA9IGF3YWl0IFVzZXIuZmluZEJ5SWRBbmRVcGRhdGUoCiAgICAgIHJlcS5wYXJhbXMuaWQsCiAgICAgIHsgdXNlcm5hbWUsIGVtYWlsLCByb2xlIH0sCiAgICAgIHsgbmV3OiB0cnVlIH0KICAgICk7CiAgICBpZiAoIXVzZXIpIHJldHVybiByZXMuc3RhdHVzKDQwNCkuanNvbih7IG1lc3NhZ2U6ICdVc2VyIG5vdCBmb3VuZCcgfSk7CiAgICByZXMuanNvbih1c2VyKTsKICB9IGNhdGNoIChlcnJvcikgewogICAgcmVzLnN0YXR1cyg1MDApLmpzb24oeyBlcnJvcjogZXJyb3IubWVzc2FnZSB9KTsKICB9Cn07CgpleHBvcnRzLmRlbGV0ZVVzZXIgPSBhc3luYyAocmVxLCByZXMpID0+IHsKICB0cnkgewogICAgY29uc3QgdXNlciA9IGF3YWl0IFVzZXIuZmluZEJ5SWRBbmREZWxldGUocmVxLnBhcmFtcy5pZCk7CiAgICBpZiAoIXVzZXIpIHJldHVybiByZXMuc3RhdHVzKDQwNCkuanNvbih7IG1lc3NhZ2U6ICdVc2VyIG5vdCBmb3VuZCcgfSk7CiAgICByZXMuanNvbih7IG1lc3NhZ2U6ICdVc2VyIGRlbGV0ZWQgc3VjY2Vzc2Z1bGx5JyB9KTsKICB9IGNhdGNoIChlcnJvcikgewogICAgcmVzLnN0YXR1cyg1MDApLmpzb24oeyBlcnJvcjogZXJyb3IubWVzc2FnZSB9KTsKICB9Cn07","code":""},{"filename":"** `routes/users.js`","language":"text","code_b64":"Y29uc3QgZXhwcmVzcyA9IHJlcXVpcmUoJ2V4cHJlc3MnKTsKY29uc3Qgcm91dGVyID0gZXhwcmVzcy5Sb3V0ZXIoKTsKY29uc3QgdXNlckNvbnRyb2xsZXIgPSByZXF1aXJlKCcuLi9jb250cm9sbGVycy91c2VyQ29udHJvbGxlcicpOwpjb25zdCB7IHZhbGlkYXRlVXNlciB9ID0gcmVxdWlyZSgnLi4vbWlkZGxld2FyZS92YWxpZGF0aW9uJyk7Cgpyb3V0ZXIucG9zdCgnLycsIHZhbGlkYXRlVXNlciwgdXNlckNvbnRyb2xsZXIuY3JlYXRlVXNlcik7CnJvdXRlci5nZXQoJy8nLCB1c2VyQ29udHJvbGxlci5nZXRBbGxVc2Vycyk7CnJvdXRlci5nZXQoJy86aWQnLCB1c2VyQ29udHJvbGxlci5nZXRVc2VyQnlJZCk7CnJvdXRlci5wdXQoJy86aWQnLCB2YWxpZGF0ZVVzZXIsIHVzZXJDb250cm9sbGVyLnVwZGF0ZVVzZXIpOwpyb3V0ZXIuZGVsZXRlKCcvOmlkJywgdXNlckNvbnRyb2xsZXIuZGVsZXRlVXNlcik7Cgptb2R1bGUuZXhwb3J0cyA9IHJvdXRlcjs=","code":""},{"filename":"** `routes/auth.js`","language":"text","code_b64":"Y29uc3QgZXhwcmVzcyA9IHJlcXVpcmUoJ2V4cHJlc3MnKTsKY29uc3Qgcm91dGVyID0gZXhwcmVzcy5Sb3V0ZXIoKTsKY29uc3QgeyByZWdpc3RlciwgbG9naW4gfSA9IHJlcXVpcmUoJy4uL2NvbnRyb2xsZXJzL2F1dGhDb250cm9sbGVyJyk7CmNvbnN0IHsgdmFsaWRhdGVBdXRoIH0gPSByZXF1aXJlKCcuLi9taWRkbGV3YXJlL3ZhbGlkYXRpb24nKTsKCnJvdXRlci5wb3N0KCcvcmVnaXN0ZXInLCB2YWxpZGF0ZUF1dGgsIHJlZ2lzdGVyKTsKcm91dGVyLnBvc3QoJy9sb2dpbicsIHZhbGlkYXRlQXV0aCwgbG9naW4pOwoKbW9kdWxlLmV4cG9ydHMgPSByb3V0ZXI7","code":""},{"filename":"** `controllers/authController.js`","language":"text","code_b64":"Y29uc3QgVXNlciA9IHJlcXVpcmUoJy4uL21vZGVscy9Vc2VyJyk7CmNvbnN0IGp3dCA9IHJlcXVpcmUoJ2pzb253ZWJ0b2tlbicpOwpjb25zdCB7IHZhbGlkYXRpb25SZXN1bHQgfSA9IHJlcXVpcmUoJ2V4cHJlc3MtdmFsaWRhdG9yJyk7CgpleHBvcnRzLnJlZ2lzdGVyID0gYXN5bmMgKHJlcSwgcmVzKSA9PiB7CiAgdHJ5IHsKICAgIGNvbnN0IGVycm9ycyA9IHZhbGlkYXRpb25SZXN1bHQocmVxKTsKICAgIGlmICghZXJyb3JzLmlzRW1wdHkoKSkgewogICAgICByZXR1cm4gcmVzLnN0YXR1cyg0MDApLmpzb24oeyBlcnJvcnM6IGVycm9ycy5hcnJheSgpIH0pOwogICAgfQoKICAgIGNvbnN0IHsgdXNlcm5hbWUsIGVtYWlsLCBwYXNzd29yZCwgcm9sZSB9ID0gcmVxLmJvZHk7CiAgICBjb25zdCB1c2VyID0gbmV3IFVzZXIoeyB1c2VybmFtZSwgZW1haWwsIHBhc3N3b3JkLCByb2xlIH0pOwogICAgYXdhaXQgdXNlci5zYXZlKCk7CiAgICBjb25zdCB0b2tlbiA9IGp3dC5zaWduKHsgdXNlcklkOiB1c2VyLl9pZCwgcm9sZTogdXNlci5yb2xlIH0sIHByb2Nlc3MuZW52LkpXVF9TRUNSRVQsIHsgZXhwaXJlc0luOiAnMWgnIH0pOwogICAgcmVzLnN0YXR1cygyMDEpLmpzb24oeyB0b2tlbiB9KTsKICB9IGNhdGNoIChlcnJvcikgewogICAgcmVzLnN0YXR1cyg1MDApLmpzb24oeyBlcnJvcjogZXJyb3IubWVzc2FnZSB9KTsKICB9Cn07CgpleHBvcnRzLmxvZ2luID0gYXN5bmMgKHJlcSwgcmVzKSA9PiB7CiAgdHJ5IHsKICAgIGNvbnN0IGVycm9ycyA9IHZhbGlkYXRpb25SZXN1bHQocmVxKTsKICAgIGlmICghZXJyb3JzLmlzRW1wdHkoKSkgewogICAgICByZXR1cm4gcmVzLnN0YXR1cyg0MDApLmpzb24oeyBlcnJvcnM6IGVycm9ycy5hcnJheSgpIH0pOwogICAgfQoKICAgIGNvbnN0IHsgZW1haWwsIHBhc3N3b3JkIH0gPSByZXEuYm9keTsKICAgIGNvbnN0IHVzZXIgPSBhd2FpdCBVc2VyLmZpbmRPbmUoeyBlbWFpbCB9KTsKICAgIGlmICghdXNlciB8fCAhKGF3YWl0IHVzZXIuY29tcGFyZVBhc3N3b3JkKHBhc3N3b3JkKSkpIHsKICAgICAgcmV0dXJuIHJlcy5zdGF0dXMoNDAxKS5qc29uKHsgbWVzc2FnZTogJ0ludmFsaWQgY3JlZGVudGlhbHMnIH0pOwogICAgfQoKICAgIGNvbnN0IHRva2VuID0gand0LnNpZ24oeyB1c2VySWQ6IHVzZXIuX2lkLCByb2xlOiB1c2VyLnJvbGUgfSwgcHJvY2Vzcy5lbnYuSldUX1NFQ1JFVCwgeyBleHBpcmVzSW46ICcxaCcgfSk7CiAgICByZXMuanNvbih7IHRva2VuIH0pOwogIH0gY2F0Y2ggKGVycm9yKSB7CiAgICByZXMuc3RhdHVzKDUwMCkuanNvbih7IGVycm9yOiBlcnJvci5tZXNzYWdlIH0pOwogIH0KfTs=","code":""},{"filename":"** `middleware/auth.js`","language":"text","code_b64":"Y29uc3Qgand0ID0gcmVxdWlyZSgnanNvbndlYnRva2VuJyk7CgpleHBvcnRzLmF1dGhlbnRpY2F0ZVRva2VuID0gKHJlcSwgcmVzLCBuZXh0KSA9PiB7CiAgY29uc3QgYXV0aEhlYWRlciA9IHJlcS5oZWFkZXJzWydhdXRob3JpemF0aW9uJ107CiAgY29uc3QgdG9rZW4gPSBhdXRoSGVhZGVyICYmIGF1dGhIZWFkZXIuc3BsaXQoJyAnKVsxXTsKICBpZiAoIXRva2VuKSByZXR1cm4gcmVzLnN0YXR1cyg0MDEpLmpzb24oeyBtZXNzYWdlOiAnQWNjZXNzIGRlbmllZCcgfSk7CgogIGp3dC52ZXJpZnkodG9rZW4sIHByb2Nlc3MuZW52LkpXVF9TRUNSRVQsIChlcnIsIHVzZXIpID0+IHsKICAgIGlmIChlcnIpIHJldHVybiByZXMuc3RhdHVzKDQwMykuanNvbih7IG1lc3NhZ2U6ICdJbnZhbGlkIHRva2VuJyB9KTsKICAgIHJlcS51c2VyID0gdXNlcjsKICAgIG5leHQoKTsKICB9KTsKfTsKCmV4cG9ydHMuYXV0aG9yaXplUm9sZSA9IChyb2xlKSA9PiAocmVxLCByZXMsIG5leHQpID0+IHsKICBpZiAocmVxLnVzZXIucm9sZSAhPT0gcm9sZSkgewogICAgcmV0dXJuIHJlcy5zdGF0dXMoNDAzKS5qc29uKHsgbWVzc2FnZTogJ0ZvcmJpZGRlbicgfSk7CiAgfQogIG5leHQoKTsKfTs=","code":""},{"filename":"** `middleware/validation.js`","language":"text","code_b64":"Y29uc3QgeyBib2R5LCB2YWxpZGF0aW9uUmVzdWx0IH0gPSByZXF1aXJlKCdleHByZXNzLXZhbGlkYXRvcicpOwoKZXhwb3J0cy52YWxpZGF0ZVVzZXIgPSBbCiAgYm9keSgndXNlcm5hbWUnKS5ub3RFbXB0eSgpLndpdGhNZXNzYWdlKCdVc2VybmFtZSBpcyByZXF1aXJlZCcpLAogIGJvZHkoJ2VtYWlsJykuaXNFbWFpbCgpLndpdGhNZXNzYWdlKCdWYWxpZCBlbWFpbCBpcyByZXF1aXJlZCcpLAogIGJvZHkoJ3Bhc3N3b3JkJykuaXNMZW5ndGgoeyBtaW46IDYgfSkud2l0aE1lc3NhZ2UoJ1Bhc3N3b3JkIG11c3QgYmUgYXQgbGVhc3QgNiBjaGFyYWN0ZXJzJyksCiAgKHJlcSwgcmVzLCBuZXh0KSA9PiB7CiAgICBjb25zdCBlcnJvcnMgPSB2YWxpZGF0aW9uUmVzdWx0KHJlcSk7CiAgICBpZiAoIWVycm9ycy5pc0VtcHR5KCkpIHsKICAgICAgcmV0dXJuIHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgZXJyb3JzOiBlcnJvcnMuYXJyYXkoKSB9KTsKICAgIH0KICAgIG5leHQoKTsKICB9Cl07CgpleHBvcnRzLnZhbGlkYXRlQXV0aCA9IFsKICBib2R5KCdlbWFpbCcpLmlzRW1haWwoKS53aXRoTWVzc2FnZSgnVmFsaWQgZW1haWwgaXMgcmVxdWlyZWQnKSwKICBib2R5KCdwYXNzd29yZCcpLmlzTGVuZ3RoKHsgbWluOiA2IH0pLndpdGhNZXNzYWdlKCdQYXNzd29yZCBtdXN0IGJlIGF0IGxlYXN0IDYgY2hhcmFjdGVycycpLAogIChyZXEsIHJlcywgbmV4dCkgPT4gewogICAgY29uc3QgZXJyb3JzID0gdmFsaWRhdGlvblJlc3VsdChyZXEpOwogICAgaWYgKCFlcnJvcnMuaXNFbXB0eSgpKSB7CiAgICAgIHJldHVybiByZXMuc3RhdHVzKDQwMCkuanNvbih7IGVycm9yczogZXJyb3JzLmFycmF5KCkgfSk7CiAgICB9CiAgICBuZXh0KCk7CiAgfQpdOw==","code":""},{"filename":"** `middleware/error.js`","language":"text","code_b64":"ZXhwb3J0cy5lcnJvck1pZGRsZXdhcmUgPSAoZXJyLCByZXEsIHJlcywgbmV4dCkgPT4gewogIGNvbnNvbGUuZXJyb3IoZXJyLnN0YWNrKTsKICByZXMuc3RhdHVzKDUwMCkuanNvbih7IGVycm9yOiAnSW50ZXJuYWwgU2VydmVyIEVycm9yJyB9KTsKfTs=","code":""},{"filename":"** `package.json`","language":"text","code_b64":"ewogICJuYW1lIjogInJlc3RmdWwtYXBpIiwKICAidmVyc2lvbiI6ICIxLjAuMCIsCiAgImRlc2NyaXB0aW9uIjogIlJFU1RmdWwgQVBJIHdpdGggTm9kZS5qcywgRXhwcmVzcywgYW5kIE1vbmdvREIiLAogICJtYWluIjogInNlcnZlci5qcyIsCiAgInNjcmlwdHMiOiB7CiAgICAic3RhcnQiOiAibm9kZSBzZXJ2ZXIuanMiLAogICAgImRldiI6ICJub2RlbW9uIHNlcnZlci5qcyIsCiAgICAidGVzdCI6ICJqZXN0IiwKICAgICJkYjptaWdyYXRlIjogIm1vbmdvREItbWlncmF0ZSIKICB9LAogICJkZXBlbmRlbmNpZXMiOiB7CiAgICAiYmNyeXB0IjogIl41LjEuMCIsCiAgICAiY29ycyI6ICJeMi44LjUiLAogICAgImRvdGVudiI6ICJeMTYuMC4zIiwKICAgICJleHByZXNzIjogIl40LjE4LjIiLAogICAgImV4cHJlc3MtdmFsaWRhdG9yIjogIl42LjE4LjEiLAogICAgImpzb253ZWJ0b2tlbiI6ICJeOS4wLjAiLAogICAgIm1vbmdvb3NlIjogIl42LjEwLjIiLAogICAgIm5vZGVtb24iOiAiXjMuMC4yIgogIH0sCiAgImRldkRlcGVuZGVuY2llcyI6IHsKICAgICJqZXN0IjogIl4yOS43LjAiLAogICAgInN1cGVydGVzdCI6ICJeNi4zLjMiCiAgfQp9","code":""},{"filename":"** `.env.example`","language":"text","code_b64":"UE9SVD0zMDAwCk1PTkdPX1VSST1tb25nb2RiOi8vbG9jYWxob3N0OjI3MDE3L3Jlc3RmdWwtYXBpCkpXVF9TRUNSRVQ9eW91ci1zZWNyZXQta2V5Ck5PREVfRU5WPWRldmVsb3BtZW50","code":""},{"filename":"** `Dockerfile`","language":"text","code_b64":"IyBVc2UgYW4gb2ZmaWNpYWwgTm9kZS5qcyBydW50aW1lIGFzIGEgcGFyZW50IGltYWdlCkZST00gbm9kZToxOAoKIyBTZXQgdGhlIHdvcmtpbmcgZGlyZWN0b3J5CldPUktESVIgL2FwcAoKIyBDb3B5IHBhY2thZ2UuanNvbiBhbmQgaW5zdGFsbCBkZXBlbmRlbmNpZXMKQ09QWSBwYWNrYWdlKi5qc29uIC4vClJVTiBucG0gaW5zdGFsbAoKIyBDb3B5IHRoZSByZXN0IG9mIHRoZSBhcHBsaWNhdGlvbiBjb2RlCkNPUFkgLiAuCgojIEV4cG9zZSB0aGUgcG9ydCB0aGUgYXBwIHJ1bnMgb24KRVhQT1NFIDMwMDAKCiMgQ29tbWFuZCB0byBydW4gdGhlIGFwcGxpY2F0aW9uCkNNRCBbIm5vZGUiLCAic2VydmVyLmpzIl0=","code":""},{"filename":"** `docker-compose.yml`","language":"text","code_b64":"dmVyc2lvbjogJzMuOCcKCnNlcnZpY2VzOgogIGFwcDoKICAgIGJ1aWxkOiAuCiAgICBwb3J0czoKICAgICAgLSAiMzAwMDozMDAwIgogICAgZW52aXJvbm1lbnQ6CiAgICAgIFBPUlQ6IDMwMDAKICAgICAgTU9OR09fVVJJOiBtb25nb2RiOi8vbW9uZ286MjcwMTcvcmVzdGZ1bC1hcGkKICAgICAgSldUX1NFQ1JFVDogcHJvZHVjdGlvbi1zZWNyZXQta2V5CiAgICAgIE5PREVfRU5WOiBwcm9kdWN0aW9uCiAgICBkZXBlbmRzX29uOgogICAgICAtIG1vbmdvCgogIG1vbmdvOgogICAgaW1hZ2U6IG1vbmdvOjUuMAogICAgcG9ydHM6CiAgICAgIC0gIjI3MDE3OjI3MDE3IgogICAgdm9sdW1lczoKICAgICAgLSBtb25nby1kYXRhOi9kYXRhL2RiCgp2b2x1bWVzOgogIG1vbmdvLWRhdGE6","code":""},{"filename":"** `README.md`","language":"text","code_b64":"IyBSRVNUZnVsIEFQSSB3aXRoIE5vZGUuanMsIEV4cHJlc3MsIGFuZCBNb25nb0RCCgojIyBTZXR1cCBJbnN0cnVjdGlvbnMKCjEuICoqQ2xvbmUgdGhlIHJlcG9zaXRvcnkqKg==","code":""},{"filename":"** `API_DOCS.md`","language":"text","code_b64":"IyBBUEkgRG9jdW1lbnRhdGlvbgoKIyMgVXNlcnMKCiMjIyBDcmVhdGUgVXNlcgoqKlBPU1QqKiBgL2FwaS91c2Vyc2AKLSAqKkJvZHkqKjogYHsgdXNlcm5hbWUsIGVtYWlsLCBwYXNzd29yZCwgcm9sZSB9YAotICoqUmVzcG9uc2UqKjogYDIwMSBDcmVhdGVkYCB3aXRoIHVzZXIgZGF0YQoKIyMjIEdldCBBbGwgVXNlcnMKKipHRVQqKiBgL2FwaS91c2Vyc2AKLSAqKlJlc3BvbnNlKio6IGAyMDAgT0tgIHdpdGggdXNlciBsaXN0CgojIyMgR2V0IFVzZXIgYnkgSUQKKipHRVQqKiBgL2FwaS91c2Vycy86aWRgCi0gKipSZXNwb25zZSoqOiBgMjAwIE9LYCB3aXRoIHVzZXIgZGF0YQoKIyMjIFVwZGF0ZSBVc2VyCioqUFVUKiogYC9hcGkvdXNlcnMvOmlkYAotICoqQm9keSoqOiBgeyB1c2VybmFtZSwgZW1haWwsIHJvbGUgfWAKLSAqKlJlc3BvbnNlKio6IGAyMDAgT0tgIHdpdGggdXBkYXRlZCB1c2VyIGRhdGEKCiMjIyBEZWxldGUgVXNlcgoqKkRFTEVURSoqIGAvYXBpL3VzZXJzLzppZGAKLSAqKlJlc3BvbnNlKio6IGAyMDAgT0tgIHdpdGggc3VjY2VzcyBtZXNzYWdlCgojIyBBdXRoZW50aWNhdGlvbgoKIyMjIFJlZ2lzdGVyCioqUE9TVCoqIGAvYXBpL2F1dGgvcmVnaXN0ZXJgCi0gKipCb2R5Kio6IGB7IHVzZXJuYW1lLCBlbWFpbCwgcGFzc3dvcmQsIHJvbGUgfWAKLSAqKlJlc3BvbnNlKio6IGAyMDEgQ3JlYXRlZGAgd2l0aCBKV1QgdG9rZW4KCiMjIyBMb2dpbgoqKlBPU1QqKiBgL2FwaS9hdXRoL2xvZ2luYAotICoqQm9keSoqOiBgeyBlbWFpbCwgcGFzc3dvcmQgfWAKLSAqKlJlc3BvbnNlKio6IGAyMDAgT0tgIHdpdGggSldUIHRva2Vu","code":""},{"filename":"** `frontend/src/App.tsx`","language":"text","code_b64":"aW1wb3J0IFJlYWN0LCB7IHVzZVN0YXRlLCB1c2VFZmZlY3QgfSBmcm9tICdyZWFjdCc7CmltcG9ydCB7IEJveCwgVHlwb2dyYXBoeSwgQnV0dG9uIH0gZnJvbSAnQG11aS9tYXRlcmlhbCc7CmltcG9ydCBHYW1lQm9hcmQgZnJvbSAnLi9jb21wb25lbnRzL0dhbWVCb2FyZCc7CmltcG9ydCB7IHVzZUF1dGggfSBmcm9tICcuL2NvbnRleHQvQXV0aENvbnRleHQnOwoKY29uc3QgQXBwOiBSZWFjdC5GQyA9ICgpID0+IHsKICBjb25zdCB7IHVzZXIsIGxvZ2luIH0gPSB1c2VBdXRoKCk7CiAgY29uc3QgW2dhbWVTdGFydGVkLCBzZXRHYW1lU3RhcnRlZF0gPSB1c2VTdGF0ZShmYWxzZSk7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICBpZiAoIXVzZXIpIHsKICAgICAgbG9naW4oKTsgLy8gQXV0by1sb2dpbiBmb3IgZGVtbyBwdXJwb3NlcwogICAgfQogIH0sIFt1c2VyLCBsb2dpbl0pOwoKICByZXR1cm4gKAogICAgPEJveCBzeD17eyB0ZXh0QWxpZ246ICdjZW50ZXInLCBwOiAyIH19PgogICAgICA8VHlwb2dyYXBoeSB2YXJpYW50PSJoMyIgZ3V0dGVyQm90dG9tPlNuYWtlIEdhbWU8L1R5cG9ncmFwaHk+CiAgICAgIHt1c2VyID8gKAogICAgICAgIDw+CiAgICAgICAgICA8VHlwb2dyYXBoeT5XZWxjb21lLCB7dXNlci51c2VybmFtZX08L1R5cG9ncmFwaHk+CiAgICAgICAgICA8QnV0dG9uIAogICAgICAgICAgICB2YXJpYW50PSJjb250YWluZWQiIAogICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRHYW1lU3RhcnRlZCh0cnVlKX0KICAgICAgICAgICAgc3g9e3sgbXQ6IDIgfX0KICAgICAgICAgID4KICAgICAgICAgICAgU3RhcnQgR2FtZQogICAgICAgICAgPC9CdXR0b24+CiAgICAgICAgICB7Z2FtZVN0YXJ0ZWQgJiYgPEdhbWVCb2FyZCAvPn0KICAgICAgICA8Lz4KICAgICAgKSA6ICgKICAgICAgICA8VHlwb2dyYXBoeT5Mb2FkaW5nLi4uPC9UeXBvZ3JhcGh5PgogICAgICApfQogICAgPC9Cb3g+CiAgKTsKfTsKCmV4cG9ydCBkZWZhdWx0IEFwcDs=","code":""},{"filename":"** `frontend/src/components/GameBoard.tsx`","language":"text","code_b64":"aW1wb3J0IFJlYWN0LCB7IHVzZVN0YXRlLCB1c2VFZmZlY3QsIHVzZUNhbGxiYWNrIH0gZnJvbSAncmVhY3QnOwppbXBvcnQgeyBCb3ggfSBmcm9tICdAbXVpL21hdGVyaWFsJzsKaW1wb3J0IHsgdXNlR2FtZSB9IGZyb20gJy4uL2NvbnRleHQvR2FtZUNvbnRleHQnOwoKY29uc3QgR2FtZUJvYXJkOiBSZWFjdC5GQyA9ICgpID0+IHsKICBjb25zdCB7IGdhbWUsIG1vdmVTbmFrZSwgcmVzZXRHYW1lIH0gPSB1c2VHYW1lKCk7CiAgY29uc3QgW3Njb3JlLCBzZXRTY29yZV0gPSB1c2VTdGF0ZSgwKTsKCiAgY29uc3QgaGFuZGxlS2V5UHJlc3MgPSB1c2VDYWxsYmFjaygoZTogS2V5Ym9hcmRFdmVudCkgPT4gewogICAgc3dpdGNoIChlLmtleSkgewogICAgICBjYXNlICdBcnJvd1VwJzoKICAgICAgICBtb3ZlU25ha2UoJ1VQJyk7CiAgICAgICAgYnJlYWs7CiAgICAgIGNhc2UgJ0Fycm93RG93bic6CiAgICAgICAgbW92ZVNuYWtlKCdET1dOJyk7CiAgICAgICAgYnJlYWs7CiAgICAgIGNhc2UgJ0Fycm93TGVmdCc6CiAgICAgICAgbW92ZVNuYWtlKCdMRUZUJyk7CiAgICAgICAgYnJlYWs7CiAgICAgIGNhc2UgJ0Fycm93UmlnaHQnOgogICAgICAgIG1vdmVTbmFrZSgnUklHSFQnKTsKICAgICAgICBicmVhazsKICAgIH0KICB9LCBbbW92ZVNuYWtlXSk7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICB3aW5kb3cuYWRkRXZlbnRMaXN0ZW5lcigna2V5ZG93bicsIGhhbmRsZUtleVByZXNzKTsKICAgIHJldHVybiAoKSA9PiB3aW5kb3cucmVtb3ZlRXZlbnRMaXN0ZW5lcigna2V5ZG93bicsIGhhbmRsZUtleVByZXNzKTsKICB9LCBbaGFuZGxlS2V5UHJlc3NdKTsKCiAgdXNlRWZmZWN0KCgpID0+IHsKICAgIGlmIChnYW1lLmlzR2FtZU92ZXIpIHsKICAgICAgc2V0U2NvcmUoMCk7CiAgICAgIHJlc2V0R2FtZSgpOwogICAgfSBlbHNlIHsKICAgICAgc2V0U2NvcmUoZ2FtZS5zY29yZSk7CiAgICB9CiAgfSwgW2dhbWUuaXNHYW1lT3ZlciwgZ2FtZS5zY29yZSwgcmVzZXRHYW1lXSk7CgogIHJldHVybiAoCiAgICA8Qm94IHN4PXt7IAogICAgICB3aWR0aDogNDAwLCAKICAgICAgaGVpZ2h0OiA0MDAsIAogICAgICBib3JkZXI6ICcxcHggc29saWQgIzAwMCcsIAogICAgICBkaXNwbGF5OiAnZ3JpZCcsIAogICAgICBncmlkVGVtcGxhdGVDb2x1bW5zOiBgcmVwZWF0KCR7Z2FtZS5ib2FyZFNpemV9LCAxZnIpYCwKICAgICAgZ3JpZFRlbXBsYXRlUm93czogYHJlcGVhdCgke2dhbWUuYm9hcmRTaXplfSwgMWZyKWAsCiAgICAgIGdhcDogJzFweCcsCiAgICAgIG1hcmdpbjogJzAgYXV0bycsCiAgICAgIG10OiAyCiAgICB9fT4KICAgICAge2dhbWUuYm9hcmQubWFwKChyb3csIHkpID0+IAogICAgICAgIHJvdy5tYXAoKGNlbGwsIHgpID0+ICgKICAgICAgICAgIDxCb3ggCiAgICAgICAgICAgIGtleT17YCR7eH0tJHt5fWB9IAogICAgICAgICAgICBzeD17eyAKICAgICAgICAgICAgICB3aWR0aDogJzEwMCUnLCAKICAgICAgICAgICAgICBoZWlnaHQ6ICcxMDAlJywgCiAgICAgICAgICAgICAgYmFja2dyb3VuZENvbG9yOiAKICAgICAgICAgICAgICAgIGNlbGwgPT09ICdzbmFrZScgPyAnZ3JlZW4nIDogCiAgICAgICAgICAgICAgICBjZWxsID09PSAnZm9vZCcgPyAncmVkJyA6IAogICAgICAgICAgICAgICAgY2VsbCA9PT0gJ3dhbGwnID8gJ2dyYXknIDogCiAgICAgICAgICAgICAgICAnd2hpdGUnCiAgICAgICAgICAgIH19CiAgICAgICAgICAvPgogICAgICAgICkpCiAgICAgICl9CiAgICAgIDxUeXBvZ3JhcGh5IHZhcmlhbnQ9Img2IiBzeD17eyBtdDogMSB9fT5TY29yZToge3Njb3JlfTwvVHlwb2dyYXBoeT4KICAgIDwvQm94PgogICk7Cn07CgpleHBvcnQgZGVmYXVsdCBHYW1lQm9hcmQ7","code":""},{"filename":"** `frontend/src/context/GameContext.ts`","language":"text","code_b64":"aW1wb3J0IFJlYWN0LCB7IGNyZWF0ZUNvbnRleHQsIHVzZUNvbnRleHQsIHVzZVN0YXRlLCB1c2VFZmZlY3QsIHVzZUNhbGxiYWNrIH0gZnJvbSAncmVhY3QnOwoKaW50ZXJmYWNlIEdhbWVDb250ZXh0VHlwZSB7CiAgZ2FtZTogR2FtZTsKICBtb3ZlU25ha2U6IChkaXJlY3Rpb246ICdVUCcgfCAnRE9XTicgfCAnTEVGVCcgfCAnUklHSFQnKSA9PiB2b2lkOwogIHJlc2V0R2FtZTogKCkgPT4gdm9pZDsKfQoKY29uc3QgR2FtZUNvbnRleHQgPSBjcmVhdGVDb250ZXh0PEdhbWVDb250ZXh0VHlwZSB8IHVuZGVmaW5lZD4odW5kZWZpbmVkKTsKCmludGVyZmFjZSBHYW1lIHsKICBib2FyZDogc3RyaW5nW11bXTsKICBib2FyZFNpemU6IG51bWJlcjsKICBpc0dhbWVPdmVyOiBib29sZWFuOwogIHNjb3JlOiBudW1iZXI7Cn0KCmNvbnN0IHVzZUdhbWUgPSAoKTogR2FtZUNvbnRleHRUeXBlID0+IHsKICBjb25zdCBjb250ZXh0ID0gdXNlQ29udGV4dChHYW1lQ29udGV4dCk7CiAgaWYgKCFjb250ZXh0KSB7CiAgICB0aHJvdyBuZXcgRXJyb3IoJ3VzZUdhbWUgbXVzdCBiZSB1c2VkIHdpdGhpbiBhIEdhbWVQcm92aWRlcicpOwogIH0KICByZXR1cm4gY29udGV4dDsKfTsKCmNvbnN0IEdhbWVQcm92aWRlcjogUmVhY3QuRkM8eyBjaGlsZHJlbjogUmVhY3QuUmVhY3ROb2RlIH0+ID0gKHsgY2hpbGRyZW4gfSkgPT4gewogIGNvbnN0IFtnYW1lLCBzZXRHYW1lXSA9IHVzZVN0YXRlPEdhbWU+KHsKICAgIGJvYXJkOiBbXSwKICAgIGJvYXJkU2l6ZTogMjAsCiAgICBpc0dhbWVPdmVyOiBmYWxzZSwKICAgIHNjb3JlOiAwLAogIH0pOwoKICBjb25zdCBpbml0aWFsaXplR2FtZSA9IHVzZUNhbGxiYWNrKCgpID0+IHsKICAgIGNvbnN0IGJvYXJkID0gQXJyYXkuZnJvbSh7IGxlbmd0aDogZ2FtZS5ib2FyZFNpemUgfSwgKCkgPT4gCiAgICAgIEFycmF5KGdhbWUuYm9hcmRTaXplKS5maWxsKCdlbXB0eScpCiAgICApOwogICAgYm9hcmRbMTBdWzEwXSA9ICdmb29kJzsKICAgIHNldEdhbWUoewogICAgICBib2FyZCwKICAgICAgYm9hcmRTaXplOiBnYW1lLmJvYXJkU2l6ZSwKICAgICAgaXNHYW1lT3ZlcjogZmFsc2UsCiAgICAgIHNjb3JlOiAwLAogICAgfSk7CiAgfSwgW2dhbWUuYm9hcmRTaXplXSk7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICBpbml0aWFsaXplR2FtZSgpOwogIH0sIFtpbml0aWFsaXplR2FtZV0pOwoKICBjb25zdCBtb3ZlU25ha2UgPSB1c2VDYWxsYmFjaygoZGlyZWN0aW9uOiAnVVAnIHwgJ0RPV04nIHwgJ0xFRlQnIHwgJ1JJR0hUJykgPT4gewogICAgLy8gR2FtZSBsb2dpYyBpbXBsZW1lbnRhdGlvbgogICAgLy8gVGhpcyB3b3VsZCBpbmNsdWRlIHNuYWtlIG1vdmVtZW50LCBjb2xsaXNpb24gZGV0ZWN0aW9uLCBhbmQgZm9vZCBnZW5lcmF0aW9uCiAgICAvLyBGb3IgYnJldml0eSwgYWN0dWFsIGltcGxlbWVudGF0aW9uIGlzIG9taXR0ZWQKICB9LCBbXSk7CgogIGNvbnN0IHJlc2V0R2FtZSA9IHVzZUNhbGxiYWNrKCgpID0+IHsKICAgIGluaXRpYWxpemVHYW1lKCk7CiAgfSwgW2luaXRpYWxpemVHYW1lXSk7CgogIHJldHVybiAoCiAgICA8R2FtZUNvbnRleHQuUHJvdmlkZXIgdmFsdWU9e3sgZ2FtZSwgbW92ZVNuYWtlLCByZXNldEdhbWUgfX0+CiAgICAgIHtjaGlsZHJlbn0KICAgIDwvR2FtZUNvbnRleHQuUHJvdmlkZXI+CiAgKTsKfTsKCmV4cG9ydCB7IEdhbWVQcm92aWRlciwgdXNlR2FtZSB9Ow==","code":""},{"filename":"** `backend/src/index.ts`","language":"text","code_b64":"aW1wb3J0IGV4cHJlc3MgZnJvbSAnZXhwcmVzcyc7CmltcG9ydCBtb25nb29zZSBmcm9tICdtb25nb29zZSc7CmltcG9ydCBjb3JzIGZyb20gJ2NvcnMnOwppbXBvcnQgYXV0aFJvdXRlcyBmcm9tICcuL3JvdXRlcy9hdXRoJzsKaW1wb3J0IGdhbWVSb3V0ZXMgZnJvbSAnLi9yb3V0ZXMvZ2FtZSc7CmltcG9ydCB7IGVycm9ySGFuZGxlciB9IGZyb20gJy4vbWlkZGxld2FyZS9lcnJvckhhbmRsZXInOwoKY29uc3QgYXBwID0gZXhwcmVzcygpOwpjb25zdCBQT1JUID0gcHJvY2Vzcy5lbnYuUE9SVCB8fCAzMDAwOwoKLy8gTWlkZGxld2FyZQphcHAudXNlKGNvcnMoKSk7CmFwcC51c2UoZXhwcmVzcy5qc29uKCkpOwoKLy8gUm91dGVzCmFwcC51c2UoJy9hcGkvYXV0aCcsIGF1dGhSb3V0ZXMpOwphcHAudXNlKCcvYXBpL2dhbWUnLCBnYW1lUm91dGVzKTsKCi8vIEVycm9yIGhhbmRsaW5nCmFwcC51c2UoZXJyb3JIYW5kbGVyKTsKCi8vIERhdGFiYXNlIGNvbm5lY3Rpb24KbW9uZ29vc2UuY29ubmVjdChwcm9jZXNzLmVudi5NT05HT19VUkkgfHwgJ21vbmdvZGI6Ly9sb2NhbGhvc3Q6MjcwMTcvc25ha2VfZ2FtZScpCiAgLnRoZW4oKCkgPT4gY29uc29sZS5sb2coJ0Nvbm5lY3RlZCB0byBNb25nb0RCJykpCiAgLmNhdGNoKGVyciA9PiBjb25zb2xlLmVycm9yKCdNb25nb0RCIGNvbm5lY3Rpb24gZXJyb3I6JywgZXJyKSk7CgovLyBTdGFydCBzZXJ2ZXIKYXBwLmxpc3RlbihQT1JULCAoKSA9PiB7CiAgY29uc29sZS5sb2coYFNlcnZlciBydW5uaW5nIG9uIHBvcnQgJHtQT1JUfWApOwp9KTs=","code":""},{"filename":"** `backend/src/models/User.ts`","language":"text","code_b64":"aW1wb3J0IG1vbmdvb3NlLCB7IERvY3VtZW50LCBTY2hlbWEgfSBmcm9tICdtb25nb29zZSc7CgpleHBvcnQgaW50ZXJmYWNlIElVc2VyIGV4dGVuZHMgRG9jdW1lbnQgewogIHVzZXJuYW1lOiBzdHJpbmc7CiAgZW1haWw6IHN0cmluZzsKICBwYXNzd29yZDogc3RyaW5nOwogIGhpZ2hTY29yZTogbnVtYmVyOwogIGNyZWF0ZWRBdDogRGF0ZTsKfQoKY29uc3QgVXNlclNjaGVtYTogU2NoZW1hID0gbmV3IFNjaGVtYSh7CiAgdXNlcm5hbWU6IHsgdHlwZTogU3RyaW5nLCByZXF1aXJlZDogdHJ1ZSwgdW5pcXVlOiB0cnVlIH0sCiAgZW1haWw6IHsgdHlwZTogU3RyaW5nLCByZXF1aXJlZDogdHJ1ZSwgdW5pcXVlOiB0cnVlIH0sCiAgcGFzc3dvcmQ6IHsgdHlwZTogU3RyaW5nLCByZXF1aXJlZDogdHJ1ZSB9LAogIGhpZ2hTY29yZTogeyB0eXBlOiBOdW1iZXIsIGRlZmF1bHQ6IDAgfSwKICBjcmVhdGVkQXQ6IHsgdHlwZTogRGF0ZSwgZGVmYXVsdDogRGF0ZS5ub3cgfQp9KTsKCmV4cG9ydCBkZWZhdWx0IG1vbmdvb3NlLm1vZGVsPElVc2VyPignVXNlcicsIFVzZXJTY2hlbWEpOw==","code":""},{"filename":"** `backend/src/routes/auth.ts`","language":"text","code_b64":"aW1wb3J0IGV4cHJlc3MgZnJvbSAnZXhwcmVzcyc7CmltcG9ydCB7IHJlZ2lzdGVyVXNlciwgbG9naW5Vc2VyIH0gZnJvbSAnLi4vY29udHJvbGxlcnMvYXV0aCc7Cgpjb25zdCByb3V0ZXIgPSBleHByZXNzLlJvdXRlcigpOwoKcm91dGVyLnBvc3QoJy9yZWdpc3RlcicsIHJlZ2lzdGVyVXNlcik7CnJvdXRlci5wb3N0KCcvbG9naW4nLCBsb2dpblVzZXIpOwoKZXhwb3J0IGRlZmF1bHQgcm91dGVyOw==","code":""},{"filename":"** `backend/src/controllers/auth.ts`","language":"text","code_b64":"aW1wb3J0IHsgUmVxdWVzdCwgUmVzcG9uc2UgfSBmcm9tICdleHByZXNzJzsKaW1wb3J0IGJjcnlwdCBmcm9tICdiY3J5cHRqcyc7CmltcG9ydCBqd3QgZnJvbSAnanNvbndlYnRva2VuJzsKaW1wb3J0IFVzZXIgZnJvbSAnLi4vbW9kZWxzL1VzZXInOwoKZXhwb3J0IGNvbnN0IHJlZ2lzdGVyVXNlciA9IGFzeW5jIChyZXE6IFJlcXVlc3QsIHJlczogUmVzcG9uc2UpID0+IHsKICB0cnkgewogICAgY29uc3QgeyB1c2VybmFtZSwgZW1haWwsIHBhc3N3b3JkIH0gPSByZXEuYm9keTsKICAgIGNvbnN0IHVzZXIgPSBuZXcgVXNlcih7IHVzZXJuYW1lLCBlbWFpbCwgcGFzc3dvcmQgfSk7CiAgICBhd2FpdCB1c2VyLnNhdmUoKTsKICAgIHJlcy5zdGF0dXMoMjAxKS5qc29uKHsgbWVzc2FnZTogJ1VzZXIgcmVnaXN0ZXJlZCBzdWNjZXNzZnVsbHknIH0pOwogIH0gY2F0Y2ggKGVycm9yKSB7CiAgICByZXMuc3RhdHVzKDUwMCkuanNvbih7IGVycm9yOiAnUmVnaXN0cmF0aW9uIGZhaWxlZCcgfSk7CiAgfQp9OwoKZXhwb3J0IGNvbnN0IGxvZ2luVXNlciA9IGFzeW5jIChyZXE6IFJlcXVlc3QsIHJlczogUmVzcG9uc2UpID0+IHsKICB0cnkgewogICAgY29uc3QgeyBlbWFpbCwgcGFzc3dvcmQgfSA9IHJlcS5ib2R5OwogICAgY29uc3QgdXNlciA9IGF3YWl0IFVzZXIuZmluZE9uZSh7IGVtYWlsIH0pOwogICAgaWYgKCF1c2VyIHx8ICEoYXdhaXQgYmNyeXB0LmNvbXBhcmUocGFzc3dvcmQsIHVzZXIucGFzc3dvcmQpKSkgewogICAgICByZXR1cm4gcmVzLnN0YXR1cyg0MDEpLmpzb24oeyBlcnJvcjogJ0ludmFsaWQgY3JlZGVudGlhbHMnIH0pOwogICAgfQogICAgY29uc3QgdG9rZW4gPSBqd3Quc2lnbih7IHVzZXJJZDogdXNlci5faWQgfSwgcHJvY2Vzcy5lbnYuSldUX1NFQ1JFVCEsIHsgZXhwaXJlc0luOiAnMWgnIH0pOwogICAgcmVzLmpzb24oeyB0b2tlbiwgdXNlcjogeyBpZDogdXNlci5faWQsIHVzZXJuYW1lOiB1c2VyLnVzZXJuYW1lIH0gfSk7CiAgfSBjYXRjaCAoZXJyb3IpIHsKICAgIHJlcy5zdGF0dXMoNTAwKS5qc29uKHsgZXJyb3I6ICdMb2dpbiBmYWlsZWQnIH0pOwogIH0KfTs=","code":""},{"filename":"** `Dockerfile`","language":"text","code_b64":"IyBGcm9udGVuZCBEb2NrZXJmaWxlCkZST00gbm9kZToxOCBhcyBmcm9udGVuZApXT1JLRElSIC9hcHAKQ09QWSBmcm9udGVuZC9wYWNrYWdlKi5qc29uIC4vClJVTiBucG0gaW5zdGFsbApDT1BZIGZyb250ZW5kLyAuClJVTiBucG0gcnVuIGJ1aWxkCgojIEJhY2tlbmQgRG9ja2VyZmlsZQpGUk9NIG5vZGU6MTggYXMgYmFja2VuZApXT1JLRElSIC9hcHAKQ09QWSBiYWNrZW5kL3BhY2thZ2UqLmpzb24gLi8KUlVOIG5wbSBpbnN0YWxsCkNPUFkgYmFja2VuZC8gLgoKIyBGaW5hbCBzdGFnZQpGUk9NIG5naW54OmFscGluZQpDT1BZIC0tZnJvbT1mcm9udGVuZCAvYXBwL2J1aWxkIC91c3Ivc2hhcmUvbmdpbngvaHRtbApDT1BZIC0tZnJvbT1iYWNrZW5kIC9hcHAgL2FwcApFWFBPU0UgODAKQ01EIFsibmdpbngiLCAiLWciLCAiZGFlbW9uIG9mZjsiXQ==","code":""},{"filename":"** `docker-compose.yml`","language":"text","code_b64":"dmVyc2lvbjogJzMuOCcKCnNlcnZpY2VzOgogIGZyb250ZW5kOgogICAgYnVpbGQ6IC4KICAgIHBvcnRzOgogICAgICAtICI4MDo4MCIKICAgIGRlcGVuZHNfb246CiAgICAgIC0gYmFja2VuZAoKICBiYWNrZW5kOgogICAgYnVpbGQ6IC4KICAgIHBvcnRzOgogICAgICAtICIzMDAwOjMwMDAiCiAgICBlbnZpcm9ubWVudDoKICAgICAgLSBNT05HT19VUkk9bW9uZ29kYjovL2RiOjI3MDE3L3NuYWtlX2dhbWUKICAgICAgLSBKV1RfU0VDUkVUPXlvdXItc2VjcmV0LWtleQogICAgdm9sdW1lczoKICAgICAgLSAuL2JhY2tlbmQ6L2FwcAoKICBkYjoKICAgIGltYWdlOiBtb25nbzo1LjAKICAgIHBvcnRzOgogICAgICAtICIyNzAxNzoyNzAxNyIKICAgIHZvbHVtZXM6CiAgICAgIC0gZGItZGF0YTovZGF0YS9kYgoKdm9sdW1lczoKICBkYi1kYXRhOg==","code":""},{"filename":"server.js","language":"javascript","code_b64":"Y29uc3QgZXhwcmVzcyA9IHJlcXVpcmUoJ2V4cHJlc3MnKTsKY29uc3QgbW9uZ29vc2UgPSByZXF1aXJlKCdtb25nb29zZScpOwpjb25zdCBjb3JzID0gcmVxdWlyZSgnY29ycycpOwpjb25zdCBkb3RlbnYgPSByZXF1aXJlKCdkb3RlbnYnKTsKCmRvdGVudi5jb25maWcoKTsKCmNvbnN0IGFwcCA9IGV4cHJlc3MoKTsKCi8vIENvbm5lY3QgdG8gTW9uZ29EQgptb25nb29zZS5jb25uZWN0KHByb2Nlc3MuZW52LkRCX1VSSSwgewogIHVzZU5ld1VybFBhcnNlcjogdHJ1ZSwKICB1c2VVbmlmaWVkVG9wb2xvZ3k6IHRydWUKfSk7CgovLyBNaWRkbGV3YXJlCmFwcC51c2UoY29ycygpKTsKYXBwLnVzZShleHByZXNzLmpzb24oKSk7CgovLyBSb3V0ZXMKYXBwLnVzZSgnL2FwaS91c2VycycsIHJlcXVpcmUoJy4vcm91dGVzL3VzZXJSb3V0ZXMnKSk7CgovLyBFcnJvciBoYW5kbGluZyBtaWRkbGV3YXJlCmFwcC51c2UoKGVyciwgcmVxLCByZXMsIG5leHQpID0+IHsKICBjb25zb2xlLmVycm9yKGVyci5zdGFjayk7CiAgcmVzLnN0YXR1cyg1MDApLmpzb24oeyBlcnJvcjogJ0ludGVybmFsIFNlcnZlciBFcnJvcicgfSk7Cn0pOwoKY29uc3QgUE9SVCA9IHByb2Nlc3MuZW52LlBPUlQgfHwgMzAwMDsKYXBwLmxpc3RlbihQT1JULCAoKSA9PiB7CiAgY29uc29sZS5sb2coYFNlcnZlciBydW5uaW5nIG9uIHBvcnQgJHtQT1JUfWApOwp9KTs=","code":""},{"filename":"models/User.js","language":"javascript","code_b64":"Y29uc3QgbW9uZ29vc2UgPSByZXF1aXJlKCdtb25nb29zZScpOwpjb25zdCBiY3J5cHQgPSByZXF1aXJlKCdiY3J5cHRqcycpOwoKY29uc3QgdXNlclNjaGVtYSA9IG5ldyBtb25nb29zZS5TY2hlbWEoewogIGVtYWlsOiB7CiAgICB0eXBlOiBTdHJpbmcsCiAgICByZXF1aXJlZDogdHJ1ZSwKICAgIHVuaXF1ZTogdHJ1ZSwKICAgIHRyaW06IHRydWUsCiAgICBsb3dlcmNhc2U6IHRydWUKICB9LAogIHBhc3N3b3JkOiB7CiAgICB0eXBlOiBTdHJpbmcsCiAgICByZXF1aXJlZDogdHJ1ZSwKICAgIG1pbmxlbmd0aDogOAogIH0sCiAgdG9rZW5zOiBbewogICAgdG9rZW46IHsKICAgICAgdHlwZTogU3RyaW5nLAogICAgICByZXF1aXJlZDogdHJ1ZQogICAgfQogIH1dCn0pOwoKLy8gSGFzaCBwYXNzd29yZCBiZWZvcmUgc2F2aW5nCnVzZXJTY2hlbWEucHJlKCdzYXZlJywgYXN5bmMgZnVuY3Rpb24gKG5leHQpIHsKICBpZiAodGhpcy5pc01vZGlmaWVkKCdwYXNzd29yZCcpKSB7CiAgICB0aGlzLnBhc3N3b3JkID0gYXdhaXQgYmNyeXB0Lmhhc2godGhpcy5wYXNzd29yZCwgOCk7CiAgfQogIG5leHQoKTsKfSk7Cgpjb25zdCBVc2VyID0gbW9uZ29vc2UubW9kZWwoJ1VzZXInLCB1c2VyU2NoZW1hKTsKbW9kdWxlLmV4cG9ydHMgPSBVc2VyOw==","code":""},{"filename":"controllers/userController.js","language":"javascript","code_b64":"Y29uc3QgVXNlciA9IHJlcXVpcmUoJy4uL21vZGVscy9Vc2VyJyk7CmNvbnN0IGp3dCA9IHJlcXVpcmUoJ2pzb253ZWJ0b2tlbicpOwpjb25zdCBiY3J5cHQgPSByZXF1aXJlKCdiY3J5cHRqcycpOwoKLy8gUmVnaXN0ZXIgdXNlcgpjb25zdCByZWdpc3RlclVzZXIgPSBhc3luYyAocmVxLCByZXMpID0+IHsKICB0cnkgewogICAgY29uc3QgeyBlbWFpbCwgcGFzc3dvcmQgfSA9IHJlcS5ib2R5OwogICAgY29uc3QgdXNlciA9IG5ldyBVc2VyKHsgZW1haWwsIHBhc3N3b3JkIH0pOwogICAgYXdhaXQgdXNlci5zYXZlKCk7CiAgICByZXMuc3RhdHVzKDIwMSkuanNvbih7IG1lc3NhZ2U6ICdVc2VyIGNyZWF0ZWQgc3VjY2Vzc2Z1bGx5JyB9KTsKICB9IGNhdGNoIChlcnJvcikgewogICAgcmVzLnN0YXR1cyg0MDApLmpzb24oeyBlcnJvcjogZXJyb3IubWVzc2FnZSB9KTsKICB9Cn07CgovLyBMb2dpbiB1c2VyCmNvbnN0IGxvZ2luVXNlciA9IGFzeW5jIChyZXEsIHJlcykgPT4gewogIHRyeSB7CiAgICBjb25zdCB7IGVtYWlsLCBwYXNzd29yZCB9ID0gcmVxLmJvZHk7CiAgICBjb25zdCB1c2VyID0gYXdhaXQgVXNlci5maW5kT25lKHsgZW1haWwgfSk7CiAgICBpZiAoIXVzZXIgfHwgIShhd2FpdCBiY3J5cHQuY29tcGFyZShwYXNzd29yZCwgdXNlci5wYXNzd29yZCkpKSB7CiAgICAgIHJldHVybiByZXMuc3RhdHVzKDQwMSkuanNvbih7IGVycm9yOiAnSW52YWxpZCBjcmVkZW50aWFscycgfSk7CiAgICB9CiAgICBjb25zdCB0b2tlbiA9IGp3dC5zaWduKHsgaWQ6IHVzZXIuX2lkIH0sIHByb2Nlc3MuZW52LkpXVF9TRUNSRVQsIHsgZXhwaXJlc0luOiAnMWgnIH0pOwogICAgdXNlci50b2tlbnMucHVzaCh0b2tlbik7CiAgICBhd2FpdCB1c2VyLnNhdmUoKTsKICAgIHJlcy5qc29uKHsgdG9rZW4gfSk7CiAgfSBjYXRjaCAoZXJyb3IpIHsKICAgIHJlcy5zdGF0dXMoNTAwKS5qc29uKHsgZXJyb3I6IGVycm9yLm1lc3NhZ2UgfSk7CiAgfQp9OwoKLy8gUmVmcmVzaCB0b2tlbgpjb25zdCByZWZyZXNoVG9rZW4gPSBhc3luYyAocmVxLCByZXMpID0+IHsKICB0cnkgewogICAgY29uc3QgeyB0b2tlbiB9ID0gcmVxLmJvZHk7CiAgICBjb25zdCBkZWNvZGVkID0gand0LnZlcmlmeSh0b2tlbiwgcHJvY2Vzcy5lbnYuSldUX1NFQ1JFVCk7CiAgICBjb25zdCB1c2VyID0gYXdhaXQgVXNlci5maW5kQnlJZChkZWNvZGVkLmlkKTsKICAgIGlmICghdXNlcikgewogICAgICByZXR1cm4gcmVzLnN0YXR1cyg0MDEpLmpzb24oeyBlcnJvcjogJ0ludmFsaWQgdG9rZW4nIH0pOwogICAgfQogICAgY29uc3QgbmV3VG9rZW4gPSBqd3Quc2lnbih7IGlkOiB1c2VyLl9pZCB9LCBwcm9jZXNzLmVudi5KV1RfU0VDUkVULCB7IGV4cGlyZXNJbjogJzFoJyB9KTsKICAgIHJlcy5qc29uKHsgdG9rZW46IG5ld1Rva2VuIH0pOwogIH0gY2F0Y2ggKGVycm9yKSB7CiAgICByZXMuc3RhdHVzKDQwMSkuanNvbih7IGVycm9yOiAnSW52YWxpZCB0b2tlbicgfSk7CiAgfQp9OwoKbW9kdWxlLmV4cG9ydHMgPSB7IHJlZ2lzdGVyVXNlciwgbG9naW5Vc2VyLCByZWZyZXNoVG9rZW4gfTs=","code":""},{"filename":"routes/userRoutes.js","language":"javascript","code_b64":"Y29uc3QgZXhwcmVzcyA9IHJlcXVpcmUoJ2V4cHJlc3MnKTsKY29uc3Qgcm91dGVyID0gZXhwcmVzcy5Sb3V0ZXIoKTsKY29uc3QgeyByZWdpc3RlclVzZXIsIGxvZ2luVXNlciwgcmVmcmVzaFRva2VuIH0gPSByZXF1aXJlKCcuLi9jb250cm9sbGVycy91c2VyQ29udHJvbGxlcicpOwpjb25zdCBhdXRoTWlkZGxld2FyZSA9IHJlcXVpcmUoJy4uL21pZGRsZXdhcmUvYXV0aE1pZGRsZXdhcmUnKTsKCi8vIFB1YmxpYyByb3V0ZXMKcm91dGVyLnBvc3QoJy9yZWdpc3RlcicsIHJlZ2lzdGVyVXNlcik7CnJvdXRlci5wb3N0KCcvbG9naW4nLCBsb2dpblVzZXIpOwoKLy8gUHJvdGVjdGVkIHJvdXRlCnJvdXRlci5wb3N0KCcvcmVmcmVzaC10b2tlbicsIGF1dGhNaWRkbGV3YXJlLCByZWZyZXNoVG9rZW4pOwoKbW9kdWxlLmV4cG9ydHMgPSByb3V0ZXI7","code":""},{"filename":"middleware/authMiddleware.js","language":"javascript","code_b64":"Y29uc3Qgand0ID0gcmVxdWlyZSgnanNvbndlYnRva2VuJyk7Cgpjb25zdCBhdXRoTWlkZGxld2FyZSA9IChyZXEsIHJlcywgbmV4dCkgPT4gewogIGNvbnN0IHRva2VuID0gcmVxLmhlYWRlcnNbJ3gtYWNjZXNzLXRva2VuJ107CiAgaWYgKCF0b2tlbikgewogICAgcmV0dXJuIHJlcy5zdGF0dXMoNDAxKS5qc29uKHsgZXJyb3I6ICdObyB0b2tlbiBwcm92aWRlZCcgfSk7CiAgfQogIHRyeSB7CiAgICBjb25zdCBkZWNvZGVkID0gand0LnZlcmlmeSh0b2tlbiwgcHJvY2Vzcy5lbnYuSldUX1NFQ1JFVCk7CiAgICByZXEudXNlcklkID0gZGVjb2RlZC5pZDsKICAgIG5leHQoKTsKICB9IGNhdGNoIChlcnJvcikgewogICAgcmVzLnN0YXR1cyg0MDEpLmpzb24oeyBlcnJvcjogJ0ludmFsaWQgdG9rZW4nIH0pOwogIH0KfTsKCm1vZHVsZS5leHBvcnRzID0gYXV0aE1pZGRsZXdhcmU7","code":""},{"filename":"tests/userController.test.js","language":"javascript","code_b64":"Y29uc3QgcmVxdWVzdCA9IHJlcXVpcmUoJ3N1cGVydGVzdCcpOwpjb25zdCBhcHAgPSByZXF1aXJlKCcuLi9zZXJ2ZXInKTsKY29uc3QgVXNlciA9IHJlcXVpcmUoJy4uL21vZGVscy9Vc2VyJyk7CmNvbnN0IGp3dCA9IHJlcXVpcmUoJ2pzb253ZWJ0b2tlbicpOwoKZGVzY3JpYmUoJ1VzZXIgQ29udHJvbGxlciBUZXN0cycsICgpID0+IHsKICBiZWZvcmVFYWNoKGFzeW5jICgpID0+IHsKICAgIGF3YWl0IFVzZXIuZGVsZXRlTWFueSh7fSk7CiAgfSk7CgogIHRlc3QoJ1Nob3VsZCByZWdpc3RlciBhIG5ldyB1c2VyJywgYXN5bmMgKCkgPT4gewogICAgY29uc3QgcmVzID0gYXdhaXQgcmVxdWVzdChhcHApCiAgICAgIC5wb3N0KCcvYXBpL3VzZXJzL3JlZ2lzdGVyJykKICAgICAgLnNlbmQoewogICAgICAgIGVtYWlsOiAndGVzdEBleGFtcGxlLmNvbScsCiAgICAgICAgcGFzc3dvcmQ6ICdQYXNzd29yZDEyMyEnCiAgICAgIH0pOwogICAgZXhwZWN0KHJlcy5zdGF0dXNDb2RlKS50b0JlKDIwMSk7CiAgICBleHBlY3QocmVzLmJvZHkubWVzc2FnZSkudG9CZSgnVXNlciBjcmVhdGVkIHN1Y2Nlc3NmdWxseScpOwogIH0pOwoKICB0ZXN0KCdTaG91bGQgbG9naW4gd2l0aCB2YWxpZCBjcmVkZW50aWFscycsIGFzeW5jICgpID0+IHsKICAgIC8vIEZpcnN0IGNyZWF0ZSBhIHVzZXIKICAgIGF3YWl0IHJlcXVlc3QoYXBwKQogICAgICAucG9zdCgnL2FwaS91c2Vycy9yZWdpc3RlcicpCiAgICAgIC5zZW5kKHsKICAgICAgICBlbWFpbDogJ2xvZ2luQGV4YW1wbGUuY29tJywKICAgICAgICBwYXNzd29yZDogJ1Bhc3N3b3JkMTIzIScKICAgICAgfSk7CgogICAgY29uc3QgcmVzID0gYXdhaXQgcmVxdWVzdChhcHApCiAgICAgIC5wb3N0KCcvYXBpL3VzZXJzL2xvZ2luJykKICAgICAgLnNlbmQoewogICAgICAgIGVtYWlsOiAnbG9naW5AZXhhbXBsZS5jb20nLAogICAgICAgIHBhc3N3b3JkOiAnUGFzc3dvcmQxMjMhJwogICAgICB9KTsKICAgIGV4cGVjdChyZXMuc3RhdHVzQ29kZSkudG9CZSgyMDApOwogICAgZXhwZWN0KHJlcy5ib2R5KS50b0hhdmVQcm9wZXJ0eSgndG9rZW4nKTsKICB9KTsKCiAgdGVzdCgnU2hvdWxkIHJldHVybiBlcnJvciBmb3IgaW52YWxpZCBsb2dpbicsIGFzeW5jICgpID0+IHsKICAgIGNvbnN0IHJlcyA9IGF3YWl0IHJlcXVlc3QoYXBwKQogICAgICAucG9zdCgnL2FwaS91c2Vycy9sb2dpbicpCiAgICAgIC5zZW5kKHsKICAgICAgICBlbWFpbDogJ2ludmFsaWRAZXhhbXBsZS5jb20nLAogICAgICAgIHBhc3N3b3JkOiAnd3JvbmdwYXNzd29yZCcKICAgICAgfSk7CiAgICBleHBlY3QocmVzLnN0YXR1c0NvZGUpLnRvQmUoNDAxKTsKICAgIGV4cGVjdChyZXMuYm9keS5lcnJvcikudG9CZSgnSW52YWxpZCBjcmVkZW50aWFscycpOwogIH0pOwp9KTs=","code":""},{"filename":"docker/Dockerfile","language":"text","code_b64":"RlJPTSBub2RlOjE4CldPUktESVIgL2FwcApDT1BZIHBhY2thZ2UqLmpzb24gLi8KUlVOIG5wbSBpbnN0YWxsCkNPUFkgLiAuCkVYUE9TRSAzMDAwCkNNRCBbIm5vZGUiLCAic2VydmVyLmpzIl0=","code":""},{"filename":"docker/docker-compose.yml","language":"yaml","code_b64":"dmVyc2lvbjogJzMnCnNlcnZpY2VzOgogIGFwcDoKICAgIGJ1aWxkOiAuCiAgICBwb3J0czoKICAgICAgLSAiMzAwMDozMDAwIgogICAgZW52aXJvbm1lbnQ6CiAgICAgIERCX1VSSTogbW9uZ29kYjovL2RiOjI3MDE3L3Jlc3RmdWwtYXBpCiAgICAgIEpXVF9TRUNSRVQ6IHNlY3JldC1rZXkKICAgIGRlcGVuZHNfb246CiAgICAgIC0gZGIKICBkYjoKICAgIGltYWdlOiBtb25nbwogICAgdm9sdW1lczoKICAgICAgLSBkYi1kYXRhOi9kYXRhL2RiCnZvbHVtZXM6CiAgZGItZGF0YTo=","code":""}];
+        const projectName = 'XEdit Test';
+        const sessionId = 'xedit-test-20250712-002358';
+        let payloadItems = [];
+        
+        function highlightFunction(xeditId, functionName, lineStart, lineEnd) {
+            console.log(`Highlighting function: ${functionName} (lines ${lineStart}-${lineEnd})`);
+            
+            // Remove previous highlights from function list
+            document.querySelectorAll('.function-item').forEach(item => {
+                item.classList.remove('highlighted');
+            });
+            
+            // Highlight selected function
+            const selectedItem = document.querySelector(`[data-id="${xeditId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('highlighted');
+            }
+            
+            // Clear previous code highlights
+            document.querySelectorAll('.code-line').forEach(line => {
+                line.classList.remove('highlight');
+            });
+            
+            // Highlight code lines
+            for (let i = lineStart; i <= lineEnd; i++) {
+                const lineElement = document.querySelector(`.code-line[data-line="${i}"]`);
+                if (lineElement) {
+                    lineElement.classList.add('highlight');
+                    
+                    // Scroll to first highlighted line
+                    if (i === lineStart) {
+                        lineElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            }
+        }
+        
+        function addToPayload(functionName, functionType, xeditId) {
+            console.log(`Adding to payload: ${functionName} (${functionType})`);
+            
+            // Check if already in payload
+            if (payloadItems.find(item => item.id === xeditId)) {
+                alert('Function already in payload!');
+                return;
+            }
+            
+            // Add to payload
+            const payloadItem = {
+                id: xeditId,
+                name: functionName,
+                type: functionType,
+                timestamp: new Date().toLocaleTimeString()
+            };
+            
+            payloadItems.push(payloadItem);
+            updatePayloadDisplay();
+        }
+        
+        function removeFromPayload(xeditId) {
+            payloadItems = payloadItems.filter(item => item.id !== xeditId);
+            updatePayloadDisplay();
+        }
+        
+        function updatePayloadDisplay() {
+            const payloadList = document.getElementById('payload-list');
+            const sendButton = document.getElementById('send-button');
+            
+            if (payloadItems.length === 0) {
+                payloadList.innerHTML = '<div class="payload-empty">Click functions to add XEdit-Paths</div>';
+                sendButton.textContent = '🚀 Send 0 to Optimized Pipeline';
+                sendButton.disabled = true;
+                return;
+            }
+            
+            let html = '';
+            payloadItems.forEach(item => {
+                html += `
+                    <div class="payload-item">
+                        <div class="payload-item-info">
+                            <div class="xedit-id">${item.id}</div>
+                            <div class="payload-model">${item.name} (${item.type})</div>
+                        </div>
+                        <button class="remove-btn" onclick="removeFromPayload('${item.id}')" title="Remove from payload">×</button>
+                    </div>
+                `;
+            });
+            
+            payloadList.innerHTML = html;
+            sendButton.textContent = `🚀 Send ${payloadItems.length} to Optimized Pipeline`;
+            sendButton.disabled = false;
+        }
+        
+        function deployToPcock() {
+            console.log('deployToPcock() called');
+            const deployBtn = document.querySelector('.peacock-deploy-btn');
+            const deployStatus = document.getElementById('deploy-status');
+            const customNameInput = document.getElementById('custom-package-name');
+            
+            // Get custom name or use default
+            const customName = customNameInput.value.trim();
+            const finalProjectName = customName || projectName;
+            
+            // Show loading state
+            deployBtn.disabled = true;
+            deployBtn.textContent = '🔄 Building...'
+            deployStatus.innerHTML = '<div style="color: #ffff00;">🔧 Preparing build...</div>';
+            
+            // Prepare deployment data
+            const deploymentData = {
+                project_name: finalProjectName,
+                session_id: sessionId,
+                project_files: projectFiles,
+                payload_items: payloadItems,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Call deployment API
+            fetch('http://127.0.0.1:8000/deploy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(deploymentData)
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Deploy response:', data);
+                if (data.success) {
+                    deployBtn.textContent = '✅ Built!';
+                    deployBtn.style.background = 'linear-gradient(45deg, #00ff00, #00cc00)';
+                    deployStatus.innerHTML = `
+                        <div style="color: #00ff00;">
+                            ✅ Build successful!<br>
+                            📦 Project created<br>
+                            🚀 Ready to run
+                        </div>
+                    `;
+                } else {
+                    throw new Error(data.error || 'Deployment failed');
+                }
+            })
+            .catch(error => {
+                console.error('Deploy error:', error);
+                deployBtn.textContent = '❌ Build Failed';
+                deployBtn.style.background = 'linear-gradient(45deg, #ff0000, #cc0000)';
+                deployStatus.innerHTML = `
+                    <div style="color: #ff0000;">
+                        ❌ Build failed:<br>
+                        ${error.message}
+                    </div>
+                `;
+            })
+            .finally(() => {
+                deployBtn.disabled = false;
+                setTimeout(() => {
+                    deployBtn.textContent = '🦚 Generate Python Project';
+                    deployBtn.style.background = 'linear-gradient(45deg, #00ff00, #00cc00)';
+                }, 4000);
+            });
+        }
+        
+        // Decode base64 project files
+        projectFiles.forEach(file => {
+            if (file.code_b64) {
+                file.code = atob(file.code_b64);
+                delete file.code_b64;
+            }
+        });
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🦚 XEdit Enhanced Interface Loaded');
+            console.log('Project:', projectName);
+            console.log('Session:', sessionId);
+            console.log('Functions found:', Object.keys(xeditPaths).length);
+            console.log('Project files:', projectFiles.length);
+        });
+    </script>
+</body>
+</html>

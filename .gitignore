@@ -1,0 +1,17 @@
+# Secrets and environment files
+*.env
+good_keys.txt
+good_keys_2.txt
+api-test-synth.txt
+merged_content.txt
+
+# Python cache and artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment folders
+venv/
+env/
+.venv/

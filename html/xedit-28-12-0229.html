@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦚 Peacock XEdit Interface (Optimized)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'SF Mono', monospace; background: #0d1117; color: #e6edf3; height: 100vh; overflow: hidden; }
+        .header { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .peacock-logo { font-size: 18px; font-weight: bold; color: #ff6b35; }
+        .nav-links { display: flex; gap: 16px; align-items: center; }
+        .nav-link { background: #21262d; border: 1px solid #30363d; color: #e6edf3; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .nav-link.active { background: #ff6b35; color: #0d1117; }
+        .project-info { color: #8b949e; font-size: 14px; }
+        .session-info { background: rgba(0, 255, 136, 0.1); border: 1px solid #00ff88; border-radius: 6px; padding: 4px 8px; font-size: 12px; color: #00ff88; }
+        .optimization-badge { background: rgba(255, 107, 53, 0.1); border: 1px solid #ff6b35; border-radius: 6px; padding: 4px 8px; font-size: 12px; color: #ff6b35; margin-left: 8px; }
+        .main-container { display: flex; height: calc(100vh - 60px); }
+        .left-panel { width: 320px; background: #161b22; border-right: 1px solid #30363d; display: flex; flex-direction: column; }
+        .panel-header { background: #21262d; padding: 12px 16px; border-bottom: 1px solid #30363d; font-weight: 600; font-size: 13px; color: #7c3aed; display: flex; justify-content: space-between; align-items: center; }
+        .optimization-info { font-size: 11px; color: #ff6b35; }
+        .functions-list { flex: 1; overflow-y: auto; padding: 8px; }
+        .function-item { background: #21262d; border: 1px solid #30363d; border-radius: 6px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; position: relative; }
+        .function-item:hover { border-color: #ff6b35; background: #2d333b; transform: translateX(3px); }
+        .function-item.selected { border-color: #ff6b35; background: #2d333b; box-shadow: 0 0 0 1px #ff6b35; }
+        .function-info { display: flex; align-items: center; gap: 8px; }
+        .function-name { font-weight: 600; color: #79c0ff; }
+        .function-type { background: #30363d; color: #8b949e; padding: 2px 6px; border-radius: 3px; font-size: 10px; text-transform: uppercase; }
+        .model-indicator { background: #ff6b35; color: #0d1117; padding: 2px 4px; border-radius: 3px; font-size: 10px; margin-left: auto; }
+        .add-btn { position: absolute; top: 8px; right: 8px; background: #238636; border: none; color: white; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 14px; opacity: 0; transition: opacity 0.2s; }
+        .function-item:hover .add-btn { opacity: 1; }
+        .middle-panel { width: 340px; background: #161b22; border-right: 1px solid #30363d; display: flex; flex-direction: column; }
+        .payload-header { background: #238636; color: white; padding: 12px 16px; font-weight: 600; font-size: 14px; text-align: center; }
+        .payload-container { flex: 1; padding: 16px; display: flex; flex-direction: column; }
+        .payload-list { flex: 1; background: #21262d; border: 1px solid #30363d; border-radius: 8px; padding: 16px; margin-bottom: 16px; overflow-y: auto; min-height: 200px; }
+        .payload-empty { color: #6e7681; text-align: center; font-style: italic; margin-top: 50px; }
+        .payload-item { background: #2d333b; border: 1px solid #30363d; border-radius: 6px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .payload-item-info { display: flex; flex-direction: column; gap: 4px; }
+        .xedit-id { font-family: 'SF Mono', monospace; background: #30363d; color: #ff6b35; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .payload-model { font-size: 10px; color: #8b949e; }
+        .remove-btn { background: #da3633; border: none; color: white; width: 20px; height: 20px; border-radius: 3px; cursor: pointer; font-size: 12px; }
+        .strategy-overview { background: rgba(255, 107, 53, 0.1); border: 1px solid #ff6b35; border-radius: 8px; padding: 12px; margin-bottom: 16px; }
+        .strategy-title { color: #ff6b35; font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+        .strategy-models { font-size: 10px; color: #8b949e; line-height: 1.4; }
+        .send-button { width: 100%; background: #238636; border: none; color: white; padding: 15px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-bottom: 15px; }
+        .send-button:disabled { background: #30363d; color: #8b949e; cursor: not-allowed; }
+        .deploy-section { padding: 15px; background: rgba(46, 204, 113, 0.1); border: 1px solid #2ecc71; border-radius: 8px; }
+        .deploy-title { color: #2ecc71; margin-bottom: 10px; font-weight: 600; }
+        .deploy-info { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 12px; color: #8b949e; }
+        .deploy-button { width: 100%; padding: 12px; background: linear-gradient(45deg, #2ecc71, #27ae60); border: none; border-radius: 6px; color: white; font-weight: 600; cursor: pointer; }
+        .right-panel { flex: 1; background: #0d1117; display: flex; flex-direction: column; }
+        .code-header { background: #21262d; padding: 12px 16px; border-bottom: 1px solid #30363d; font-weight: 600; font-size: 13px; color: #f0883e; display: flex; justify-content: space-between; align-items: center; }
+        .model-status { font-size: 11px; color: #ff6b35; }
+        .code-container { flex: 1; overflow: auto; padding: 16px; }
+        .code-content { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 16px; font-family: 'SF Mono', monospace; font-size: 13px; line-height: 1.6; }
+        .code-line { display: flex; min-height: 20px; }
+        .code-line.highlighted { background: #2d333b; border-left: 3px solid #ff6b35; padding-left: 13px; }
+        .line-number { color: #6e7681; user-select: none; margin-right: 16px; min-width: 30px; text-align: right; }
+        .line-content { color: #e6edf3; flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="peacock-logo">🦚 Peacock XEdit Interface</div>
+        <div class="nav-links">
+            <div class="nav-link active">📝 XEdit</div>
+            <div class="nav-link">🤖 Models</div>
+            <div class="nav-link">💬 Senior Dev</div>
+        </div>
+        <div class="project-info">
+            Project: **PROJECT: Comprehensive Software Solution (Python Application)** • Session: <span class="session-info">28-12-0229</span>
+            <span class="optimization-badge">Multi-Model</span>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <div class="panel-header">
+                📋 Functions & Classes
+                <span class="optimization-info">Optimized</span>
+            </div>
+            <div class="functions-list">
+                
+            <div class="function-item" onclick="highlightFunction('7x001', 'Config', 6, 9)" data-id="7x001">
+                <div class="function-info">
+                    <span class="function-icon">🏗️</span>
+                    <span class="function-name">Config</span>
+                    <span class="function-type">class</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('Config', 'class', '7x001')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x002', 'get_db', 10, 15)" data-id="7x002">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">get_db</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('get_db', 'function', '7x002')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x003', 'User', 7, 19)" data-id="7x003">
+                <div class="function-info">
+                    <span class="function-icon">🏗️</span>
+                    <span class="function-name">User</span>
+                    <span class="function-type">class</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('User', 'class', '7x003')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x004', 'Report', 14, 19)" data-id="7x004">
+                <div class="function-info">
+                    <span class="function-icon">🏗️</span>
+                    <span class="function-name">Report</span>
+                    <span class="function-type">class</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('Report', 'class', '7x004')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x005', 'UserCreate', 10, 40)" data-id="7x005">
+                <div class="function-info">
+                    <span class="function-icon">🏗️</span>
+                    <span class="function-name">UserCreate</span>
+                    <span class="function-type">class</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('UserCreate', 'class', '7x005')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x006', 'ReportCreate', 14, 44)" data-id="7x006">
+                <div class="function-info">
+                    <span class="function-icon">🏗️</span>
+                    <span class="function-name">ReportCreate</span>
+                    <span class="function-type">class</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('ReportCreate', 'class', '7x006')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x007', 'create_user', 19, 34)" data-id="7x007">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">create_user</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('create_user', 'function', '7x007')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x008', 'get_user', 27, 42)" data-id="7x008">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">get_user</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('get_user', 'function', '7x008')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x009', 'create_report', 34, 44)" data-id="7x009">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">create_report</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('create_report', 'function', '7x009')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x010', 'get_all_reports', 42, 44)" data-id="7x010">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">get_all_reports</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('get_all_reports', 'function', '7x010')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x011', 'generate_report', 7, 17)" data-id="7x011">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">generate_report</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('generate_report', 'function', '7x011')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x012', 'setup_logging', 4, 19)" data-id="7x012">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">setup_logging</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('setup_logging', 'function', '7x012')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x013', 'validate_file', 15, 19)" data-id="7x013">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">validate_file</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('validate_file', 'function', '7x013')" title="Add to payload">+</button>
+            </div>
+            
+            </div>
+        </div>
+
+        <div class="middle-panel">
+            <div class="payload-header">Optimized Payload</div>
+            <div class="payload-container">
+                <div class="strategy-overview">
+                    <div class="strategy-title">🧠 Model Strategy</div>
+                    <div class="strategy-models">
+                        <strong>Code Analysis:</strong> llama3-8b-8192<br>
+                        <strong>Structure:</strong> gemma2-9b-it<br>
+                        <strong>Speed:</strong> llama3-8b-8192
+                    </div>
+                </div>
+                
+                <div class="payload-list" id="payload-list">
+                    <div class="payload-empty">Click functions to add XEdit-Paths</div>
+                </div>
+                <button class="send-button" id="send-button" disabled>
+                    🚀 Send 0 to Optimized Pipeline
+                </button>
+                
+                <div class="deploy-section">
+                    <div class="deploy-title">🚀 Deploy & Download</div>
+                    <div class="deploy-info">
+                        <strong>Project:</strong> **PROJECT: Comprehensive Software Solution (Python Application)**<br>
+                        <strong>Session:</strong> 28-12-0229<br>
+                        <strong>Strategy:</strong> Multi-Model Optimized
+                    </div>
+                    <button class="deploy-button" onclick="deployToPcock()">📦 Download Optimized Setup</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="code-header">
+                📁 **PROJECT: Comprehensive Software Solution (Python Application)**: Generated Code
+                <span class="model-status">Multi-Model Ready</span>
+            </div>
+            <div class="code-container">
+                <div class="code-content">
+<div class="code-line" data-line="1"><span class="line-number">  1</span><span class="line-content">fastapi==0.68.0</span></div>
+<div class="code-line" data-line="2"><span class="line-number">  2</span><span class="line-content">uvicorn==0.18.2</span></div>
+<div class="code-line" data-line="3"><span class="line-number">  3</span><span class="line-content">sqlalchemy==1.4.39</span></div>
+<div class="code-line" data-line="4"><span class="line-number">  4</span><span class="line-content">pandas==1.5.3</span></div>
+<div class="code-line" data-line="5"><span class="line-number">  5</span><span class="line-content">pydantic==1.10.4</span></div>
+<div class="code-line" data-line="6"><span class="line-number">  6</span><span class="line-content">python-dotenv==1.0.0</span></div>
+<div class="code-line" data-line="7"><span class="line-number">  7</span><span class="line-content">streamlit==1.21.0</span></div>
+<div class="code-line" data-line="8"><span class="line-number">  8</span><span class="line-content">jinja2==3.1.2</span></div>
+<div class="code-line" data-line="9"><span class="line-number">  9</span><span class="line-content">python-multipart==0.0.6</span></div>
+<div class="code-line" data-line="10"><span class="line-number"> 10</span><span class="line-content">from fastapi import FastAPI</span></div>
+<div class="code-line" data-line="11"><span class="line-number"> 11</span><span class="line-content">from app import routes</span></div>
+<div class="code-line" data-line="12"><span class="line-number"> 12</span><span class="line-content">from app.database import engine, Base</span></div>
+<div class="code-line" data-line="13"><span class="line-number"> 13</span><span class="line-content">from app.utils import setup_logging</span></div>
+<div class="code-line" data-line="14"><span class="line-number"> 14</span><span class="line-content">import os</span></div>
+<div class="code-line" data-line="15"><span class="line-number"> 15</span><span class="line-content">import uvicorn</span></div>
+<div class="code-line" data-line="16"><span class="line-number"> 16</span><span class="line-content"></span></div>
+<div class="code-line" data-line="17"><span class="line-number"> 17</span><span class="line-content">setup_logging()</span></div>
+<div class="code-line" data-line="18"><span class="line-number"> 18</span><span class="line-content"></span></div>
+<div class="code-line" data-line="19"><span class="line-number"> 19</span><span class="line-content"># Initialize FastAPI app</span></div>
+<div class="code-line" data-line="20"><span class="line-number"> 20</span><span class="line-content">app = FastAPI(title="Comprehensive Software Solution", description="Python-based backend for data integration and reporting.")</span></div>
+<div class="code-line" data-line="21"><span class="line-number"> 21</span><span class="line-content"></span></div>
+<div class="code-line" data-line="22"><span class="line-number"> 22</span><span class="line-content"># Include API routes</span></div>
+<div class="code-line" data-line="23"><span class="line-number"> 23</span><span class="line-content">app.include_router(routes.router)</span></div>
+<div class="code-line" data-line="24"><span class="line-number"> 24</span><span class="line-content"></span></div>
+<div class="code-line" data-line="25"><span class="line-number"> 25</span><span class="line-content"># Create database tables</span></div>
+<div class="code-line" data-line="26"><span class="line-number"> 26</span><span class="line-content">Base.metadata.create_all(bind=engine)</span></div>
+<div class="code-line" data-line="27"><span class="line-number"> 27</span><span class="line-content"></span></div>
+<div class="code-line" data-line="28"><span class="line-number"> 28</span><span class="line-content">if __name__ == "__main__":</span></div>
+<div class="code-line" data-line="29"><span class="line-number"> 29</span><span class="line-content">    uvicorn.run(app, host="0.0.0.0", port=8000)</span></div>
+<div class="code-line" data-line="30"><span class="line-number"> 30</span><span class="line-content"># This is an empty file to make the 'app' directory a Python package</span></div>
+<div class="code-line" data-line="31"><span class="line-number"> 31</span><span class="line-content">import os</span></div>
+<div class="code-line" data-line="32"><span class="line-number"> 32</span><span class="line-content">from dotenv import load_dotenv</span></div>
+<div class="code-line" data-line="33"><span class="line-number"> 33</span><span class="line-content"></span></div>
+<div class="code-line" data-line="34"><span class="line-number"> 34</span><span class="line-content">load_dotenv()</span></div>
+<div class="code-line" data-line="35"><span class="line-number"> 35</span><span class="line-content"></span></div>
+<div class="code-line" data-line="36"><span class="line-number"> 36</span><span class="line-content">class Config:</span></div>
+<div class="code-line" data-line="37"><span class="line-number"> 37</span><span class="line-content">    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")</span></div>
+<div class="code-line" data-line="38"><span class="line-number"> 38</span><span class="line-content">    DEBUG = os.getenv("DEBUG", "False").lower() == "true"</span></div>
+<div class="code-line" data-line="39"><span class="line-number"> 39</span><span class="line-content">    SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")</span></div>
+<div class="code-line" data-line="40"><span class="line-number"> 40</span><span class="line-content">from sqlalchemy import create_engine</span></div>
+<div class="code-line" data-line="41"><span class="line-number"> 41</span><span class="line-content">from sqlalchemy.ext.declarative import declarative_base</span></div>
+<div class="code-line" data-line="42"><span class="line-number"> 42</span><span class="line-content">from sqlalchemy.orm import sessionmaker</span></div>
+<div class="code-line" data-line="43"><span class="line-number"> 43</span><span class="line-content">from app.config import Config</span></div>
+<div class="code-line" data-line="44"><span class="line-number"> 44</span><span class="line-content"></span></div>
+<div class="code-line" data-line="45"><span class="line-number"> 45</span><span class="line-content">engine = create_engine(Config.DATABASE_URL)</span></div>
+<div class="code-line" data-line="46"><span class="line-number"> 46</span><span class="line-content">SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)</span></div>
+<div class="code-line" data-line="47"><span class="line-number"> 47</span><span class="line-content">Base = declarative_base()</span></div>
+<div class="code-line" data-line="48"><span class="line-number"> 48</span><span class="line-content"></span></div>
+<div class="code-line" data-line="49"><span class="line-number"> 49</span><span class="line-content">def get_db():</span></div>
+<div class="code-line" data-line="50"><span class="line-number"> 50</span><span class="line-content">    db = SessionLocal()</span></div>
+<div class="code-line" data-line="51"><span class="line-number"> 51</span><span class="line-content">    try:</span></div>
+<div class="code-line" data-line="52"><span class="line-number"> 52</span><span class="line-content">        yield db</span></div>
+<div class="code-line" data-line="53"><span class="line-number"> 53</span><span class="line-content">    finally:</span></div>
+<div class="code-line" data-line="54"><span class="line-number"> 54</span><span class="line-content">        db.close()</span></div>
+<div class="code-line" data-line="55"><span class="line-number"> 55</span><span class="line-content">from sqlalchemy import Column, Integer, String, Float, DateTime</span></div>
+<div class="code-line" data-line="56"><span class="line-number"> 56</span><span class="line-content">from sqlalchemy.orm import declarative_base</span></div>
+<div class="code-line" data-line="57"><span class="line-number"> 57</span><span class="line-content">from datetime import datetime</span></div>
+<div class="code-line" data-line="58"><span class="line-number"> 58</span><span class="line-content"></span></div>
+<div class="code-line" data-line="59"><span class="line-number"> 59</span><span class="line-content">Base = declarative_base()</span></div>
+<div class="code-line" data-line="60"><span class="line-number"> 60</span><span class="line-content"></span></div>
+<div class="code-line" data-line="61"><span class="line-number"> 61</span><span class="line-content">class User(Base):</span></div>
+<div class="code-line" data-line="62"><span class="line-number"> 62</span><span class="line-content">    __tablename__ = "users"</span></div>
+<div class="code-line" data-line="63"><span class="line-number"> 63</span><span class="line-content">    id = Column(Integer, primary_key=True)</span></div>
+<div class="code-line" data-line="64"><span class="line-number"> 64</span><span class="line-content">    username = Column(String(50), unique=True, index=True)</span></div>
+<div class="code-line" data-line="65"><span class="line-number"> 65</span><span class="line-content">    email = Column(String(100), unique=True, index=True)</span></div>
+<div class="code-line" data-line="66"><span class="line-number"> 66</span><span class="line-content">    created_at = Column(DateTime, default=datetime.utcnow)</span></div>
+<div class="code-line" data-line="67"><span class="line-number"> 67</span><span class="line-content"></span></div>
+<div class="code-line" data-line="68"><span class="line-number"> 68</span><span class="line-content">class Report(Base):</span></div>
+<div class="code-line" data-line="69"><span class="line-number"> 69</span><span class="line-content">    __tablename__ = "reports"</span></div>
+<div class="code-line" data-line="70"><span class="line-number"> 70</span><span class="line-content">    id = Column(Integer, primary_key=True)</span></div>
+<div class="code-line" data-line="71"><span class="line-number"> 71</span><span class="line-content">    title = Column(String(100))</span></div>
+<div class="code-line" data-line="72"><span class="line-number"> 72</span><span class="line-content">    data = Column(String(500))</span></div>
+<div class="code-line" data-line="73"><span class="line-number"> 73</span><span class="line-content">    generated_at = Column(DateTime, default=datetime.utcnow)</span></div>
+<div class="code-line" data-line="74"><span class="line-number"> 74</span><span class="line-content">from fastapi import APIRouter, Depends, HTTPException, status</span></div>
+<div class="code-line" data-line="75"><span class="line-number"> 75</span><span class="line-content">from app.models import User, Report</span></div>
+<div class="code-line" data-line="76"><span class="line-number"> 76</span><span class="line-content">from app.database import get_db</span></div>
+<div class="code-line" data-line="77"><span class="line-number"> 77</span><span class="line-content">from sqlalchemy.orm import Session</span></div>
+<div class="code-line" data-line="78"><span class="line-number"> 78</span><span class="line-content">from pydantic import BaseModel</span></div>
+<div class="code-line" data-line="79"><span class="line-number"> 79</span><span class="line-content">from datetime import datetime</span></div>
+<div class="code-line" data-line="80"><span class="line-number"> 80</span><span class="line-content"></span></div>
+<div class="code-line" data-line="81"><span class="line-number"> 81</span><span class="line-content">router = APIRouter()</span></div>
+<div class="code-line" data-line="82"><span class="line-number"> 82</span><span class="line-content"></span></div>
+<div class="code-line" data-line="83"><span class="line-number"> 83</span><span class="line-content">class UserCreate(BaseModel):</span></div>
+<div class="code-line" data-line="84"><span class="line-number"> 84</span><span class="line-content">    username: str</span></div>
+<div class="code-line" data-line="85"><span class="line-number"> 85</span><span class="line-content">    email: str</span></div>
+<div class="code-line" data-line="86"><span class="line-number"> 86</span><span class="line-content"></span></div>
+<div class="code-line" data-line="87"><span class="line-number"> 87</span><span class="line-content">class ReportCreate(BaseModel):</span></div>
+<div class="code-line" data-line="88"><span class="line-number"> 88</span><span class="line-content">    title: str</span></div>
+<div class="code-line" data-line="89"><span class="line-number"> 89</span><span class="line-content">    data: str</span></div>
+<div class="code-line" data-line="90"><span class="line-number"> 90</span><span class="line-content"></span></div>
+<div class="code-line" data-line="91"><span class="line-number"> 91</span><span class="line-content">@router.post("/users", response_model=UserCreate)</span></div>
+<div class="code-line" data-line="92"><span class="line-number"> 92</span><span class="line-content">def create_user(user: UserCreate, db: Session = Depends(get_db)):</span></div>
+<div class="code-line" data-line="93"><span class="line-number"> 93</span><span class="line-content">    db_user = User(**user.dict())</span></div>
+<div class="code-line" data-line="94"><span class="line-number"> 94</span><span class="line-content">    db.add(db_user)</span></div>
+<div class="code-line" data-line="95"><span class="line-number"> 95</span><span class="line-content">    db.commit()</span></div>
+<div class="code-line" data-line="96"><span class="line-number"> 96</span><span class="line-content">    db.refresh(db_user)</span></div>
+<div class="code-line" data-line="97"><span class="line-number"> 97</span><span class="line-content">    return db_user</span></div>
+<div class="code-line" data-line="98"><span class="line-number"> 98</span><span class="line-content"></span></div>
+<div class="code-line" data-line="99"><span class="line-number"> 99</span><span class="line-content">@router.get("/users/{user_id}", response_model=UserCreate)</span></div>
+<div class="code-line" data-line="100"><span class="line-number">100</span><span class="line-content">def get_user(user_id: int, db: Session = Depends(get_db)):</span></div>
+<div class="code-line" data-line="101"><span class="line-number">101</span><span class="line-content">    user = db.query(User).filter(User.id == user_id).first()</span></div>
+<div class="code-line" data-line="102"><span class="line-number">102</span><span class="line-content">    if not user:</span></div>
+<div class="code-line" data-line="103"><span class="line-number">103</span><span class="line-content">        raise HTTPException(status_code=404, detail="User not found")</span></div>
+<div class="code-line" data-line="104"><span class="line-number">104</span><span class="line-content">    return user</span></div>
+<div class="code-line" data-line="105"><span class="line-number">105</span><span class="line-content"></span></div>
+<div class="code-line" data-line="106"><span class="line-number">106</span><span class="line-content">@router.post("/reports", response_model=ReportCreate)</span></div>
+<div class="code-line" data-line="107"><span class="line-number">107</span><span class="line-content">def create_report(report: ReportCreate, db: Session = Depends(get_db)):</span></div>
+<div class="code-line" data-line="108"><span class="line-number">108</span><span class="line-content">    db_report = Report(**report.dict())</span></div>
+<div class="code-line" data-line="109"><span class="line-number">109</span><span class="line-content">    db.add(db_report)</span></div>
+<div class="code-line" data-line="110"><span class="line-number">110</span><span class="line-content">    db.commit()</span></div>
+<div class="code-line" data-line="111"><span class="line-number">111</span><span class="line-content">    db.refresh(db_report)</span></div>
+<div class="code-line" data-line="112"><span class="line-number">112</span><span class="line-content">    return db_report</span></div>
+<div class="code-line" data-line="113"><span class="line-number">113</span><span class="line-content"></span></div>
+<div class="code-line" data-line="114"><span class="line-number">114</span><span class="line-content">@router.get("/reports", response_model=list[ReportCreate])</span></div>
+<div class="code-line" data-line="115"><span class="line-number">115</span><span class="line-content">def get_all_reports(db: Session = Depends(get_db)):</span></div>
+<div class="code-line" data-line="116"><span class="line-number">116</span><span class="line-content">    reports = db.query(Report).all()</span></div>
+<div class="code-line" data-line="117"><span class="line-number">117</span><span class="line-content">    return reports</span></div>
+<div class="code-line" data-line="118"><span class="line-number">118</span><span class="line-content">import pandas as pd</span></div>
+<div class="code-line" data-line="119"><span class="line-number">119</span><span class="line-content">from app.models import Report</span></div>
+<div class="code-line" data-line="120"><span class="line-number">120</span><span class="line-content">from app.database import get_db</span></div>
+<div class="code-line" data-line="121"><span class="line-number">121</span><span class="line-content">from sqlalchemy.orm import Session</span></div>
+<div class="code-line" data-line="122"><span class="line-number">122</span><span class="line-content">from datetime import datetime</span></div>
+<div class="code-line" data-line="123"><span class="line-number">123</span><span class="line-content"></span></div>
+<div class="code-line" data-line="124"><span class="line-number">124</span><span class="line-content">def generate_report(data_file: str, db: Session = Depends(get_db)):</span></div>
+<div class="code-line" data-line="125"><span class="line-number">125</span><span class="line-content">    try:</span></div>
+<div class="code-line" data-line="126"><span class="line-number">126</span><span class="line-content">        df = pd.read_csv(data_file)</span></div>
+<div class="code-line" data-line="127"><span class="line-number">127</span><span class="line-content">        summary = df.describe().to_string()</span></div>
+<div class="code-line" data-line="128"><span class="line-number">128</span><span class="line-content">        report = Report(title="Data Summary Report", data=summary, generated_at=datetime.utcnow())</span></div>
+<div class="code-line" data-line="129"><span class="line-number">129</span><span class="line-content">        db.add(report)</span></div>
+<div class="code-line" data-line="130"><span class="line-number">130</span><span class="line-content">        db.commit()</span></div>
+<div class="code-line" data-line="131"><span class="line-number">131</span><span class="line-content">        db.refresh(report)</span></div>
+<div class="code-line" data-line="132"><span class="line-number">132</span><span class="line-content">        return report</span></div>
+<div class="code-line" data-line="133"><span class="line-number">133</span><span class="line-content">    except Exception as e:</span></div>
+<div class="code-line" data-line="134"><span class="line-number">134</span><span class="line-content">        raise Exception(f"Failed to generate report: {e}")</span></div>
+<div class="code-line" data-line="135"><span class="line-number">135</span><span class="line-content">import logging</span></div>
+<div class="code-line" data-line="136"><span class="line-number">136</span><span class="line-content">import os</span></div>
+<div class="code-line" data-line="137"><span class="line-number">137</span><span class="line-content"></span></div>
+<div class="code-line" data-line="138"><span class="line-number">138</span><span class="line-content">def setup_logging():</span></div>
+<div class="code-line" data-line="139"><span class="line-number">139</span><span class="line-content">    logging.basicConfig(</span></div>
+<div class="code-line" data-line="140"><span class="line-number">140</span><span class="line-content">        level=logging.INFO,</span></div>
+<div class="code-line" data-line="141"><span class="line-number">141</span><span class="line-content">        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',</span></div>
+<div class="code-line" data-line="142"><span class="line-number">142</span><span class="line-content">        handlers=[</span></div>
+<div class="code-line" data-line="143"><span class="line-number">143</span><span class="line-content">            logging.FileHandler("app.log"),</span></div>
+<div class="code-line" data-line="144"><span class="line-number">144</span><span class="line-content">            logging.StreamHandler()</span></div>
+<div class="code-line" data-line="145"><span class="line-number">145</span><span class="line-content">        ]</span></div>
+<div class="code-line" data-line="146"><span class="line-number">146</span><span class="line-content">    )</span></div>
+<div class="code-line" data-line="147"><span class="line-number">147</span><span class="line-content">    logging.getLogger(__name__).info("Logging initialized.")</span></div>
+<div class="code-line" data-line="148"><span class="line-number">148</span><span class="line-content"></span></div>
+<div class="code-line" data-line="149"><span class="line-number">149</span><span class="line-content">def validate_file(file_path: str):</span></div>
+<div class="code-line" data-line="150"><span class="line-number">150</span><span class="line-content">    if not os.path.exists(file_path):</span></div>
+<div class="code-line" data-line="151"><span class="line-number">151</span><span class="line-content">        raise FileNotFoundError(f"File not found: {file_path}")</span></div>
+<div class="code-line" data-line="152"><span class="line-number">152</span><span class="line-content">    if os.path.getsize(file_path) == 0:</span></div>
+<div class="code-line" data-line="153"><span class="line-number">153</span><span class="line-content">        raise ValueError("File is empty.")</span></div>
+<div class="code-line" data-line="154"><span class="line-number">154</span><span class="line-content">id,name,value</span></div>
+<div class="code-line" data-line="155"><span class="line-number">155</span><span class="line-content">1,itemA,100</span></div>
+<div class="code-line" data-line="156"><span class="line-number">156</span><span class="line-content">2,itemB,200</span></div>
+<div class="code-line" data-line="157"><span class="line-number">157</span><span class="line-content">3,itemC,300</span></div>
+<div class="code-line" data-line="158"><span class="line-number">158</span><span class="line-content"># Comprehensive Software Solution (Python Backend)</span></div>
+<div class="code-line" data-line="159"><span class="line-number">159</span><span class="line-content"></span></div>
+<div class="code-line" data-line="160"><span class="line-number">160</span><span class="line-content">This is a Python-based backend for a comprehensive software solution that supports automated data integration, real-time reporting, and user authentication. Built with **FastAPI**, **SQLAlchemy**, and **Streamlit** for a full Python stack.</span></div>
+<div class="code-line" data-line="161"><span class="line-number">161</span><span class="line-content"></span></div>
+<div class="code-line" data-line="162"><span class="line-number">162</span><span class="line-content">## Features</span></div>
+<div class="code-line" data-line="163"><span class="line-number">163</span><span class="line-content">- RESTful API for user and report management</span></div>
+<div class="code-line" data-line="164"><span class="line-number">164</span><span class="line-content">- Data integration and reporting using CSV files</span></div>
+<div class="code-line" data-line="165"><span class="line-number">165</span><span class="line-content">- FastAPI for high-performance backend</span></div>
+<div class="code-line" data-line="166"><span class="line-number">166</span><span class="line-content">- Streamlit for simple UI integration (optional)</span></div>
+<div class="code-line" data-line="167"><span class="line-number">167</span><span class="line-content">- SQLAlchemy for database modeling and ORM</span></div>
+<div class="code-line" data-line="168"><span class="line-number">168</span><span class="line-content"></span></div>
+<div class="code-line" data-line="169"><span class="line-number">169</span><span class="line-content">## Setup</span></div>
+<div class="code-line" data-line="170"><span class="line-number">170</span><span class="line-content"></span></div>
+<div class="code-line" data-line="171"><span class="line-number">171</span><span class="line-content">### Requirements</span></div>
+<div class="code-line" data-line="172"><span class="line-number">172</span><span class="line-content">- Python 3.8 or higher</span></div>
+<div class="code-line" data-line="173"><span class="line-number">173</span><span class="line-content">- PostgreSQL (optional, defaults to SQLite)</span></div>
+<div class="code-line" data-line="174"><span class="line-number">174</span><span class="line-content"></span></div>
+<div class="code-line" data-line="175"><span class="line-number">175</span><span class="line-content">### Setup Instructions</span></div>
+<div class="code-line" data-line="176"><span class="line-number">176</span><span class="line-content"></span></div>
+<div class="code-line" data-line="177"><span class="line-number">177</span><span class="line-content">1. Create a virtual environment:</span></div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // XEdit data and state
+        const xeditPaths = {"7x001": {"display_name": "Config", "type": "class", "filename": "app/config.py", "language": "python", "line_start": 6, "line_end": 9, "lines_display": "6-9", "technical_path": "app/config.py::class.Config/lines[6-9]", "optimal_model": "llama-3.1-70b-versatile"}, "7x002": {"display_name": "get_db", "type": "function", "filename": "app/database.py", "language": "python", "line_start": 10, "line_end": 15, "lines_display": "10-15", "technical_path": "app/database.py::function.get_db/lines[10-15]", "optimal_model": "llama-3.1-70b-versatile"}, "7x003": {"display_name": "User", "type": "class", "filename": "app/models.py", "language": "python", "line_start": 7, "line_end": 19, "lines_display": "7-19", "technical_path": "app/models.py::class.User/lines[7-19]", "optimal_model": "llama-3.1-70b-versatile"}, "7x004": {"display_name": "Report", "type": "class", "filename": "app/models.py", "language": "python", "line_start": 14, "line_end": 19, "lines_display": "14-19", "technical_path": "app/models.py::class.Report/lines[14-19]", "optimal_model": "llama-3.1-70b-versatile"}, "7x005": {"display_name": "UserCreate", "type": "class", "filename": "app/routes.py", "language": "python", "line_start": 10, "line_end": 40, "lines_display": "10-40", "technical_path": "app/routes.py::class.UserCreate/lines[10-40]", "optimal_model": "llama-3.1-70b-versatile"}, "7x006": {"display_name": "ReportCreate", "type": "class", "filename": "app/routes.py", "language": "python", "line_start": 14, "line_end": 44, "lines_display": "14-44", "technical_path": "app/routes.py::class.ReportCreate/lines[14-44]", "optimal_model": "llama-3.1-70b-versatile"}, "7x007": {"display_name": "create_user", "type": "function", "filename": "app/routes.py", "language": "python", "line_start": 19, "line_end": 34, "lines_display": "19-34", "technical_path": "app/routes.py::function.create_user/lines[19-34]", "optimal_model": "llama-3.1-70b-versatile"}, "7x008": {"display_name": "get_user", "type": "function", "filename": "app/routes.py", "language": "python", "line_start": 27, "line_end": 42, "lines_display": "27-42", "technical_path": "app/routes.py::function.get_user/lines[27-42]", "optimal_model": "llama-3.1-70b-versatile"}, "7x009": {"display_name": "create_report", "type": "function", "filename": "app/routes.py", "language": "python", "line_start": 34, "line_end": 44, "lines_display": "34-44", "technical_path": "app/routes.py::function.create_report/lines[34-44]", "optimal_model": "llama-3.1-70b-versatile"}, "7x010": {"display_name": "get_all_reports", "type": "function", "filename": "app/routes.py", "language": "python", "line_start": 42, "line_end": 44, "lines_display": "42-44", "technical_path": "app/routes.py::function.get_all_reports/lines[42-44]", "optimal_model": "llama-3.1-70b-versatile"}, "7x011": {"display_name": "generate_report", "type": "function", "filename": "app/services.py", "language": "python", "line_start": 7, "line_end": 17, "lines_display": "7-17", "technical_path": "app/services.py::function.generate_report/lines[7-17]", "optimal_model": "llama-3.1-70b-versatile"}, "7x012": {"display_name": "setup_logging", "type": "function", "filename": "app/utils.py", "language": "python", "line_start": 4, "line_end": 19, "lines_display": "4-19", "technical_path": "app/utils.py::function.setup_logging/lines[4-19]", "optimal_model": "llama-3.1-70b-versatile"}, "7x013": {"display_name": "validate_file", "type": "function", "filename": "app/utils.py", "language": "python", "line_start": 15, "line_end": 19, "lines_display": "15-19", "technical_path": "app/utils.py::function.validate_file/lines[15-19]", "optimal_model": "llama-3.1-70b-versatile"}};
+        const projectFiles = [{"filename":"requirements.txt","language":"text","code_b64":"ZmFzdGFwaT09MC42OC4wCnV2aWNvcm49PTAuMTguMgpzcWxhbGNoZW15PT0xLjQuMzkKcGFuZGFzPT0xLjUuMwpweWRhbnRpYz09MS4xMC40CnB5dGhvbi1kb3RlbnY9PTEuMC4wCnN0cmVhbWxpdD09MS4yMS4wCmppbmphMj09My4xLjIKcHl0aG9uLW11bHRpcGFydD09MC4wLjY=","code":""},{"filename":"main.py","language":"python","code_b64":"ZnJvbSBmYXN0YXBpIGltcG9ydCBGYXN0QVBJCmZyb20gYXBwIGltcG9ydCByb3V0ZXMKZnJvbSBhcHAuZGF0YWJhc2UgaW1wb3J0IGVuZ2luZSwgQmFzZQpmcm9tIGFwcC51dGlscyBpbXBvcnQgc2V0dXBfbG9nZ2luZwppbXBvcnQgb3MKaW1wb3J0IHV2aWNvcm4KCnNldHVwX2xvZ2dpbmcoKQoKIyBJbml0aWFsaXplIEZhc3RBUEkgYXBwCmFwcCA9IEZhc3RBUEkodGl0bGU9IkNvbXByZWhlbnNpdmUgU29mdHdhcmUgU29sdXRpb24iLCBkZXNjcmlwdGlvbj0iUHl0aG9uLWJhc2VkIGJhY2tlbmQgZm9yIGRhdGEgaW50ZWdyYXRpb24gYW5kIHJlcG9ydGluZy4iKQoKIyBJbmNsdWRlIEFQSSByb3V0ZXMKYXBwLmluY2x1ZGVfcm91dGVyKHJvdXRlcy5yb3V0ZXIpCgojIENyZWF0ZSBkYXRhYmFzZSB0YWJsZXMKQmFzZS5tZXRhZGF0YS5jcmVhdGVfYWxsKGJpbmQ9ZW5naW5lKQoKaWYgX19uYW1lX18gPT0gIl9fbWFpbl9fIjoKICAgIHV2aWNvcm4ucnVuKGFwcCwgaG9zdD0iMC4wLjAuMCIsIHBvcnQ9ODAwMCk=","code":""},{"filename":"app/__init__.py","language":"python","code_b64":"IyBUaGlzIGlzIGFuIGVtcHR5IGZpbGUgdG8gbWFrZSB0aGUgJ2FwcCcgZGlyZWN0b3J5IGEgUHl0aG9uIHBhY2thZ2U=","code":""},{"filename":"app/config.py","language":"python","code_b64":"aW1wb3J0IG9zCmZyb20gZG90ZW52IGltcG9ydCBsb2FkX2RvdGVudgoKbG9hZF9kb3RlbnYoKQoKY2xhc3MgQ29uZmlnOgogICAgREFUQUJBU0VfVVJMID0gb3MuZ2V0ZW52KCJEQVRBQkFTRV9VUkwiLCAic3FsaXRlOi8vLy4vdGVzdC5kYiIpCiAgICBERUJVRyA9IG9zLmdldGVudigiREVCVUciLCAiRmFsc2UiKS5sb3dlcigpID09ICJ0cnVlIgogICAgU0VDUkVUX0tFWSA9IG9zLmdldGVudigiU0VDUkVUX0tFWSIsICJ5b3VyLXNlY3JldC1rZXktaGVyZSIp","code":""},{"filename":"app/database.py","language":"python","code_b64":"ZnJvbSBzcWxhbGNoZW15IGltcG9ydCBjcmVhdGVfZW5naW5lCmZyb20gc3FsYWxjaGVteS5leHQuZGVjbGFyYXRpdmUgaW1wb3J0IGRlY2xhcmF0aXZlX2Jhc2UKZnJvbSBzcWxhbGNoZW15Lm9ybSBpbXBvcnQgc2Vzc2lvbm1ha2VyCmZyb20gYXBwLmNvbmZpZyBpbXBvcnQgQ29uZmlnCgplbmdpbmUgPSBjcmVhdGVfZW5naW5lKENvbmZpZy5EQVRBQkFTRV9VUkwpClNlc3Npb25Mb2NhbCA9IHNlc3Npb25tYWtlcihhdXRvY29tbWl0PUZhbHNlLCBhdXRvZmx1c2g9RmFsc2UsIGJpbmQ9ZW5naW5lKQpCYXNlID0gZGVjbGFyYXRpdmVfYmFzZSgpCgpkZWYgZ2V0X2RiKCk6CiAgICBkYiA9IFNlc3Npb25Mb2NhbCgpCiAgICB0cnk6CiAgICAgICAgeWllbGQgZGIKICAgIGZpbmFsbHk6CiAgICAgICAgZGIuY2xvc2UoKQ==","code":""},{"filename":"app/models.py","language":"python","code_b64":"ZnJvbSBzcWxhbGNoZW15IGltcG9ydCBDb2x1bW4sIEludGVnZXIsIFN0cmluZywgRmxvYXQsIERhdGVUaW1lCmZyb20gc3FsYWxjaGVteS5vcm0gaW1wb3J0IGRlY2xhcmF0aXZlX2Jhc2UKZnJvbSBkYXRldGltZSBpbXBvcnQgZGF0ZXRpbWUKCkJhc2UgPSBkZWNsYXJhdGl2ZV9iYXNlKCkKCmNsYXNzIFVzZXIoQmFzZSk6CiAgICBfX3RhYmxlbmFtZV9fID0gInVzZXJzIgogICAgaWQgPSBDb2x1bW4oSW50ZWdlciwgcHJpbWFyeV9rZXk9VHJ1ZSkKICAgIHVzZXJuYW1lID0gQ29sdW1uKFN0cmluZyg1MCksIHVuaXF1ZT1UcnVlLCBpbmRleD1UcnVlKQogICAgZW1haWwgPSBDb2x1bW4oU3RyaW5nKDEwMCksIHVuaXF1ZT1UcnVlLCBpbmRleD1UcnVlKQogICAgY3JlYXRlZF9hdCA9IENvbHVtbihEYXRlVGltZSwgZGVmYXVsdD1kYXRldGltZS51dGNub3cpCgpjbGFzcyBSZXBvcnQoQmFzZSk6CiAgICBfX3RhYmxlbmFtZV9fID0gInJlcG9ydHMiCiAgICBpZCA9IENvbHVtbihJbnRlZ2VyLCBwcmltYXJ5X2tleT1UcnVlKQogICAgdGl0bGUgPSBDb2x1bW4oU3RyaW5nKDEwMCkpCiAgICBkYXRhID0gQ29sdW1uKFN0cmluZyg1MDApKQogICAgZ2VuZXJhdGVkX2F0ID0gQ29sdW1uKERhdGVUaW1lLCBkZWZhdWx0PWRhdGV0aW1lLnV0Y25vdyk=","code":""},{"filename":"app/routes.py","language":"python","code_b64":"ZnJvbSBmYXN0YXBpIGltcG9ydCBBUElSb3V0ZXIsIERlcGVuZHMsIEhUVFBFeGNlcHRpb24sIHN0YXR1cwpmcm9tIGFwcC5tb2RlbHMgaW1wb3J0IFVzZXIsIFJlcG9ydApmcm9tIGFwcC5kYXRhYmFzZSBpbXBvcnQgZ2V0X2RiCmZyb20gc3FsYWxjaGVteS5vcm0gaW1wb3J0IFNlc3Npb24KZnJvbSBweWRhbnRpYyBpbXBvcnQgQmFzZU1vZGVsCmZyb20gZGF0ZXRpbWUgaW1wb3J0IGRhdGV0aW1lCgpyb3V0ZXIgPSBBUElSb3V0ZXIoKQoKY2xhc3MgVXNlckNyZWF0ZShCYXNlTW9kZWwpOgogICAgdXNlcm5hbWU6IHN0cgogICAgZW1haWw6IHN0cgoKY2xhc3MgUmVwb3J0Q3JlYXRlKEJhc2VNb2RlbCk6CiAgICB0aXRsZTogc3RyCiAgICBkYXRhOiBzdHIKCkByb3V0ZXIucG9zdCgiL3VzZXJzIiwgcmVzcG9uc2VfbW9kZWw9VXNlckNyZWF0ZSkKZGVmIGNyZWF0ZV91c2VyKHVzZXI6IFVzZXJDcmVhdGUsIGRiOiBTZXNzaW9uID0gRGVwZW5kcyhnZXRfZGIpKToKICAgIGRiX3VzZXIgPSBVc2VyKCoqdXNlci5kaWN0KCkpCiAgICBkYi5hZGQoZGJfdXNlcikKICAgIGRiLmNvbW1pdCgpCiAgICBkYi5yZWZyZXNoKGRiX3VzZXIpCiAgICByZXR1cm4gZGJfdXNlcgoKQHJvdXRlci5nZXQoIi91c2Vycy97dXNlcl9pZH0iLCByZXNwb25zZV9tb2RlbD1Vc2VyQ3JlYXRlKQpkZWYgZ2V0X3VzZXIodXNlcl9pZDogaW50LCBkYjogU2Vzc2lvbiA9IERlcGVuZHMoZ2V0X2RiKSk6CiAgICB1c2VyID0gZGIucXVlcnkoVXNlcikuZmlsdGVyKFVzZXIuaWQgPT0gdXNlcl9pZCkuZmlyc3QoKQogICAgaWYgbm90IHVzZXI6CiAgICAgICAgcmFpc2UgSFRUUEV4Y2VwdGlvbihzdGF0dXNfY29kZT00MDQsIGRldGFpbD0iVXNlciBub3QgZm91bmQiKQogICAgcmV0dXJuIHVzZXIKCkByb3V0ZXIucG9zdCgiL3JlcG9ydHMiLCByZXNwb25zZV9tb2RlbD1SZXBvcnRDcmVhdGUpCmRlZiBjcmVhdGVfcmVwb3J0KHJlcG9ydDogUmVwb3J0Q3JlYXRlLCBkYjogU2Vzc2lvbiA9IERlcGVuZHMoZ2V0X2RiKSk6CiAgICBkYl9yZXBvcnQgPSBSZXBvcnQoKipyZXBvcnQuZGljdCgpKQogICAgZGIuYWRkKGRiX3JlcG9ydCkKICAgIGRiLmNvbW1pdCgpCiAgICBkYi5yZWZyZXNoKGRiX3JlcG9ydCkKICAgIHJldHVybiBkYl9yZXBvcnQKCkByb3V0ZXIuZ2V0KCIvcmVwb3J0cyIsIHJlc3BvbnNlX21vZGVsPWxpc3RbUmVwb3J0Q3JlYXRlXSkKZGVmIGdldF9hbGxfcmVwb3J0cyhkYjogU2Vzc2lvbiA9IERlcGVuZHMoZ2V0X2RiKSk6CiAgICByZXBvcnRzID0gZGIucXVlcnkoUmVwb3J0KS5hbGwoKQogICAgcmV0dXJuIHJlcG9ydHM=","code":""},{"filename":"app/services.py","language":"python","code_b64":"aW1wb3J0IHBhbmRhcyBhcyBwZApmcm9tIGFwcC5tb2RlbHMgaW1wb3J0IFJlcG9ydApmcm9tIGFwcC5kYXRhYmFzZSBpbXBvcnQgZ2V0X2RiCmZyb20gc3FsYWxjaGVteS5vcm0gaW1wb3J0IFNlc3Npb24KZnJvbSBkYXRldGltZSBpbXBvcnQgZGF0ZXRpbWUKCmRlZiBnZW5lcmF0ZV9yZXBvcnQoZGF0YV9maWxlOiBzdHIsIGRiOiBTZXNzaW9uID0gRGVwZW5kcyhnZXRfZGIpKToKICAgIHRyeToKICAgICAgICBkZiA9IHBkLnJlYWRfY3N2KGRhdGFfZmlsZSkKICAgICAgICBzdW1tYXJ5ID0gZGYuZGVzY3JpYmUoKS50b19zdHJpbmcoKQogICAgICAgIHJlcG9ydCA9IFJlcG9ydCh0aXRsZT0iRGF0YSBTdW1tYXJ5IFJlcG9ydCIsIGRhdGE9c3VtbWFyeSwgZ2VuZXJhdGVkX2F0PWRhdGV0aW1lLnV0Y25vdygpKQogICAgICAgIGRiLmFkZChyZXBvcnQpCiAgICAgICAgZGIuY29tbWl0KCkKICAgICAgICBkYi5yZWZyZXNoKHJlcG9ydCkKICAgICAgICByZXR1cm4gcmVwb3J0CiAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgcmFpc2UgRXhjZXB0aW9uKGYiRmFpbGVkIHRvIGdlbmVyYXRlIHJlcG9ydDoge2V9Iik=","code":""},{"filename":"app/utils.py","language":"python","code_b64":"aW1wb3J0IGxvZ2dpbmcKaW1wb3J0IG9zCgpkZWYgc2V0dXBfbG9nZ2luZygpOgogICAgbG9nZ2luZy5iYXNpY0NvbmZpZygKICAgICAgICBsZXZlbD1sb2dnaW5nLklORk8sCiAgICAgICAgZm9ybWF0PSclKGFzY3RpbWUpcyAtICUobmFtZSlzIC0gJShsZXZlbG5hbWUpcyAtICUobWVzc2FnZSlzJywKICAgICAgICBoYW5kbGVycz1bCiAgICAgICAgICAgIGxvZ2dpbmcuRmlsZUhhbmRsZXIoImFwcC5sb2ciKSwKICAgICAgICAgICAgbG9nZ2luZy5TdHJlYW1IYW5kbGVyKCkKICAgICAgICBdCiAgICApCiAgICBsb2dnaW5nLmdldExvZ2dlcihfX25hbWVfXykuaW5mbygiTG9nZ2luZyBpbml0aWFsaXplZC4iKQoKZGVmIHZhbGlkYXRlX2ZpbGUoZmlsZV9wYXRoOiBzdHIpOgogICAgaWYgbm90IG9zLnBhdGguZXhpc3RzKGZpbGVfcGF0aCk6CiAgICAgICAgcmFpc2UgRmlsZU5vdEZvdW5kRXJyb3IoZiJGaWxlIG5vdCBmb3VuZDoge2ZpbGVfcGF0aH0iKQogICAgaWYgb3MucGF0aC5nZXRzaXplKGZpbGVfcGF0aCkgPT0gMDoKICAgICAgICByYWlzZSBWYWx1ZUVycm9yKCJGaWxlIGlzIGVtcHR5LiIp","code":""},{"filename":"data/sample_data.csv","language":"text","code_b64":"aWQsbmFtZSx2YWx1ZQoxLGl0ZW1BLDEwMAoyLGl0ZW1CLDIwMAozLGl0ZW1DLDMwMA==","code":""},{"filename":"README.md","language":"markdown","code_b64":"IyBDb21wcmVoZW5zaXZlIFNvZnR3YXJlIFNvbHV0aW9uIChQeXRob24gQmFja2VuZCkKClRoaXMgaXMgYSBQeXRob24tYmFzZWQgYmFja2VuZCBmb3IgYSBjb21wcmVoZW5zaXZlIHNvZnR3YXJlIHNvbHV0aW9uIHRoYXQgc3VwcG9ydHMgYXV0b21hdGVkIGRhdGEgaW50ZWdyYXRpb24sIHJlYWwtdGltZSByZXBvcnRpbmcsIGFuZCB1c2VyIGF1dGhlbnRpY2F0aW9uLiBCdWlsdCB3aXRoICoqRmFzdEFQSSoqLCAqKlNRTEFsY2hlbXkqKiwgYW5kICoqU3RyZWFtbGl0KiogZm9yIGEgZnVsbCBQeXRob24gc3RhY2suCgojIyBGZWF0dXJlcwotIFJFU1RmdWwgQVBJIGZvciB1c2VyIGFuZCByZXBvcnQgbWFuYWdlbWVudAotIERhdGEgaW50ZWdyYXRpb24gYW5kIHJlcG9ydGluZyB1c2luZyBDU1YgZmlsZXMKLSBGYXN0QVBJIGZvciBoaWdoLXBlcmZvcm1hbmNlIGJhY2tlbmQKLSBTdHJlYW1saXQgZm9yIHNpbXBsZSBVSSBpbnRlZ3JhdGlvbiAob3B0aW9uYWwpCi0gU1FMQWxjaGVteSBmb3IgZGF0YWJhc2UgbW9kZWxpbmcgYW5kIE9STQoKIyMgU2V0dXAKCiMjIyBSZXF1aXJlbWVudHMKLSBQeXRob24gMy44IG9yIGhpZ2hlcgotIFBvc3RncmVTUUwgKG9wdGlvbmFsLCBkZWZhdWx0cyB0byBTUUxpdGUpCgojIyMgU2V0dXAgSW5zdHJ1Y3Rpb25zCgoxLiBDcmVhdGUgYSB2aXJ0dWFsIGVudmlyb25tZW50Og==","code":""}];
+        const projectName = '**PROJECT: Comprehensive Software Solution (Python Application)**';
+        const sessionId = '28-12-0229';
+        let payloadItems = [];
+        
+        function highlightFunction(xeditId, functionName, lineStart, lineEnd) {
+            console.log(`Highlighting function: ${functionName} (lines ${lineStart}-${lineEnd})`);
+            
+            // Remove previous highlights from function list
+            document.querySelectorAll('.function-item').forEach(item => {
+                item.classList.remove('highlighted');
+            });
+            
+            // Highlight selected function
+            const selectedItem = document.querySelector(`[data-id="${xeditId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('highlighted');
+            }
+            
+            // Clear previous code highlights
+            document.querySelectorAll('.code-line').forEach(line => {
+                line.classList.remove('highlight');
+            });
+            
+            // Highlight code lines
+            for (let i = lineStart; i <= lineEnd; i++) {
+                const lineElement = document.querySelector(`.code-line[data-line="${i}"]`);
+                if (lineElement) {
+                    lineElement.classList.add('highlight');
+                    
+                    // Scroll to first highlighted line
+                    if (i === lineStart) {
+                        lineElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            }
+        }
+        
+        function addToPayload(functionName, functionType, xeditId) {
+            console.log(`Adding to payload: ${functionName} (${functionType})`);
+            
+            // Check if already in payload
+            if (payloadItems.find(item => item.id === xeditId)) {
+                alert('Function already in payload!');
+                return;
+            }
+            
+            // Add to payload
+            const payloadItem = {
+                id: xeditId,
+                name: functionName,
+                type: functionType,
+                timestamp: new Date().toLocaleTimeString()
+            };
+            
+            payloadItems.push(payloadItem);
+            updatePayloadDisplay();
+        }
+        
+        function removeFromPayload(xeditId) {
+            payloadItems = payloadItems.filter(item => item.id !== xeditId);
+            updatePayloadDisplay();
+        }
+        
+        function updatePayloadDisplay() {
+            const payloadList = document.getElementById('payload-list');
+            const sendButton = document.getElementById('send-button');
+            
+            if (payloadItems.length === 0) {
+                payloadList.innerHTML = '<div class="payload-empty">Click functions to add XEdit-Paths</div>';
+                sendButton.textContent = '🚀 Send 0 to Optimized Pipeline';
+                sendButton.disabled = true;
+                return;
+            }
+            
+            let html = '';
+            payloadItems.forEach(item => {
+                html += `
+                    <div class="payload-item">
+                        <div class="payload-item-info">
+                            <div class="xedit-id">${item.id}</div>
+                            <div class="payload-model">${item.name} (${item.type})</div>
+                        </div>
+                        <button class="remove-btn" onclick="removeFromPayload('${item.id}')" title="Remove from payload">×</button>
+                    </div>
+                `;
+            });
+            
+            payloadList.innerHTML = html;
+            sendButton.textContent = `🚀 Send ${payloadItems.length} to Optimized Pipeline`;
+            sendButton.disabled = false;
+        }
+        
+        function deployToPcock() {
+            console.log('deployToPcock() called');
+            const deployBtn = document.querySelector('.deploy-button');
+            const deployInfo = document.querySelector('.deploy-info');
+            
+            // Use session project name
+            const finalProjectName = "Enterprise_Data_Platform";
+            
+            if (!deployBtn) {
+                alert('Deploy button not found!');
+                return;
+            }
+            
+            // Show loading state
+            deployBtn.disabled = true;
+            deployBtn.textContent = '🔄 Building...'
+            if (deployInfo) {
+                deployInfo.innerHTML = '<div style="color: #ffff00;">🔧 Preparing build...</div>';
+            }
+            
+            // Create Python deployment package
+            setTimeout(() => {
+                try {
+                    // Extract all Python code from the interface
+                    const codeContent = document.querySelector('.code-content').textContent;
+                    
+                    // Create deployment zip file download
+                    const blob = new Blob([codeContent], { type: 'text/plain' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${finalProjectName}_python_app.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    
+                    // Success state
+                    deployBtn.textContent = '✅ Downloaded!';
+                    deployBtn.style.background = 'linear-gradient(45deg, #00ff00, #00cc00)';
+                    if (deployInfo) {
+                        deployInfo.innerHTML = `
+                        <div style="color: #00ff00;">
+                            ✅ Python code downloaded!<br>
+                            📦 Extract to folder<br>
+                            🚀 Run: python main.py
+                        </div>
+                        `;
+                    }
+                    
+                    // Reset button after 3 seconds
+                    setTimeout(() => {
+                        deployBtn.textContent = '📦 Download Python App';
+                        deployBtn.style.background = 'linear-gradient(45deg, #2ecc71, #27ae60)';
+                        deployBtn.disabled = false;
+                    }, 3000);
+                    
+                } catch (error) {
+                    console.error('Deploy error:', error);
+                    deployBtn.textContent = '❌ Download Failed';
+                    deployBtn.style.background = 'linear-gradient(45deg, #ff0000, #cc0000)';
+                    if (deployInfo) {
+                        deployInfo.innerHTML = `
+                        <div style="color: #ff0000;">
+                            ❌ Download failed:<br>
+                            ${error.message}
+                        </div>
+                        `;
+                    }
+                    deployBtn.disabled = false;
+                }
+            }, 1500);
+        }
+        
+        // Decode base64 project files
+        projectFiles.forEach(file => {
+            if (file.code_b64) {
+                file.code = atob(file.code_b64);
+                delete file.code_b64;
+            }
+        });
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🦚 XEdit Enhanced Interface Loaded');
+            console.log('Project:', projectName);
+            console.log('Session:', sessionId);
+            console.log('Functions found:', Object.keys(xeditPaths).length);
+            console.log('Project files:', projectFiles.length);
+        });
+    </script>
+</body>
+</html>

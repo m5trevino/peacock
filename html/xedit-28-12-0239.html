@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦚 Peacock XEdit Interface (Optimized)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'SF Mono', monospace; background: #0d1117; color: #e6edf3; height: 100vh; overflow: hidden; }
+        .header { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .peacock-logo { font-size: 18px; font-weight: bold; color: #ff6b35; }
+        .nav-links { display: flex; gap: 16px; align-items: center; }
+        .nav-link { background: #21262d; border: 1px solid #30363d; color: #e6edf3; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .nav-link.active { background: #ff6b35; color: #0d1117; }
+        .project-info { color: #8b949e; font-size: 14px; }
+        .session-info { background: rgba(0, 255, 136, 0.1); border: 1px solid #00ff88; border-radius: 6px; padding: 4px 8px; font-size: 12px; color: #00ff88; }
+        .optimization-badge { background: rgba(255, 107, 53, 0.1); border: 1px solid #ff6b35; border-radius: 6px; padding: 4px 8px; font-size: 12px; color: #ff6b35; margin-left: 8px; }
+        .main-container { display: flex; height: calc(100vh - 60px); }
+        .left-panel { width: 320px; background: #161b22; border-right: 1px solid #30363d; display: flex; flex-direction: column; }
+        .panel-header { background: #21262d; padding: 12px 16px; border-bottom: 1px solid #30363d; font-weight: 600; font-size: 13px; color: #7c3aed; display: flex; justify-content: space-between; align-items: center; }
+        .optimization-info { font-size: 11px; color: #ff6b35; }
+        .functions-list { flex: 1; overflow-y: auto; padding: 8px; }
+        .function-item { background: #21262d; border: 1px solid #30363d; border-radius: 6px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; position: relative; }
+        .function-item:hover { border-color: #ff6b35; background: #2d333b; transform: translateX(3px); }
+        .function-item.selected { border-color: #ff6b35; background: #2d333b; box-shadow: 0 0 0 1px #ff6b35; }
+        .function-info { display: flex; align-items: center; gap: 8px; }
+        .function-name { font-weight: 600; color: #79c0ff; }
+        .function-type { background: #30363d; color: #8b949e; padding: 2px 6px; border-radius: 3px; font-size: 10px; text-transform: uppercase; }
+        .model-indicator { background: #ff6b35; color: #0d1117; padding: 2px 4px; border-radius: 3px; font-size: 10px; margin-left: auto; }
+        .add-btn { position: absolute; top: 8px; right: 8px; background: #238636; border: none; color: white; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 14px; opacity: 0; transition: opacity 0.2s; }
+        .function-item:hover .add-btn { opacity: 1; }
+        .middle-panel { width: 340px; background: #161b22; border-right: 1px solid #30363d; display: flex; flex-direction: column; }
+        .payload-header { background: #238636; color: white; padding: 12px 16px; font-weight: 600; font-size: 14px; text-align: center; }
+        .payload-container { flex: 1; padding: 16px; display: flex; flex-direction: column; }
+        .payload-list { flex: 1; background: #21262d; border: 1px solid #30363d; border-radius: 8px; padding: 16px; margin-bottom: 16px; overflow-y: auto; min-height: 200px; }
+        .payload-empty { color: #6e7681; text-align: center; font-style: italic; margin-top: 50px; }
+        .payload-item { background: #2d333b; border: 1px solid #30363d; border-radius: 6px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .payload-item-info { display: flex; flex-direction: column; gap: 4px; }
+        .xedit-id { font-family: 'SF Mono', monospace; background: #30363d; color: #ff6b35; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .payload-model { font-size: 10px; color: #8b949e; }
+        .remove-btn { background: #da3633; border: none; color: white; width: 20px; height: 20px; border-radius: 3px; cursor: pointer; font-size: 12px; }
+        .strategy-overview { background: rgba(255, 107, 53, 0.1); border: 1px solid #ff6b35; border-radius: 8px; padding: 12px; margin-bottom: 16px; }
+        .strategy-title { color: #ff6b35; font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+        .strategy-models { font-size: 10px; color: #8b949e; line-height: 1.4; }
+        .send-button { width: 100%; background: #238636; border: none; color: white; padding: 15px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-bottom: 15px; }
+        .send-button:disabled { background: #30363d; color: #8b949e; cursor: not-allowed; }
+        .deploy-section { padding: 15px; background: rgba(46, 204, 113, 0.1); border: 1px solid #2ecc71; border-radius: 8px; }
+        .deploy-title { color: #2ecc71; margin-bottom: 10px; font-weight: 600; }
+        .deploy-info { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 12px; color: #8b949e; }
+        .deploy-button { width: 100%; padding: 12px; background: linear-gradient(45deg, #2ecc71, #27ae60); border: none; border-radius: 6px; color: white; font-weight: 600; cursor: pointer; }
+        .right-panel { flex: 1; background: #0d1117; display: flex; flex-direction: column; }
+        .code-header { background: #21262d; padding: 12px 16px; border-bottom: 1px solid #30363d; font-weight: 600; font-size: 13px; color: #f0883e; display: flex; justify-content: space-between; align-items: center; }
+        .model-status { font-size: 11px; color: #ff6b35; }
+        .code-container { flex: 1; overflow: auto; padding: 16px; }
+        .code-content { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 16px; font-family: 'SF Mono', monospace; font-size: 13px; line-height: 1.6; }
+        .code-line { display: flex; min-height: 20px; }
+        .code-line.highlighted { background: #2d333b; border-left: 3px solid #ff6b35; padding-left: 13px; }
+        .line-number { color: #6e7681; user-select: none; margin-right: 16px; min-width: 30px; text-align: right; }
+        .line-content { color: #e6edf3; flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="peacock-logo">🦚 Peacock XEdit Interface</div>
+        <div class="nav-links">
+            <div class="nav-link active">📝 XEdit</div>
+            <div class="nav-link">🤖 Models</div>
+            <div class="nav-link">💬 Senior Dev</div>
+        </div>
+        <div class="project-info">
+            Project: **PROJECT: Requirements Analysis Platform (Python Application)** • Session: <span class="session-info">28-12-0239</span>
+            <span class="optimization-badge">Multi-Model</span>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <div class="panel-header">
+                📋 Functions & Classes
+                <span class="optimization-info">Optimized</span>
+            </div>
+            <div class="functions-list">
+                
+            <div class="function-item" onclick="highlightFunction('7x001', 'create_app', 5, 17)" data-id="7x001">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">create_app</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('create_app', 'function', '7x001')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x002', 'Config', 6, 8)" data-id="7x002">
+                <div class="function-info">
+                    <span class="function-icon">🏗️</span>
+                    <span class="function-name">Config</span>
+                    <span class="function-type">class</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('Config', 'class', '7x002')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x003', 'Requirement', 6, 36)" data-id="7x003">
+                <div class="function-info">
+                    <span class="function-icon">🏗️</span>
+                    <span class="function-name">Requirement</span>
+                    <span class="function-type">class</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('Requirement', 'class', '7x003')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x004', 'to_dict', 22, 37)" data-id="7x004">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">to_dict</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('to_dict', 'function', '7x004')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x005', 'Stakeholder', 33, 63)" data-id="7x005">
+                <div class="function-info">
+                    <span class="function-icon">🏗️</span>
+                    <span class="function-name">Stakeholder</span>
+                    <span class="function-type">class</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('Stakeholder', 'class', '7x005')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x006', 'to_dict', 43, 58)" data-id="7x006">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">to_dict</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('to_dict', 'function', '7x006')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x007', 'Project', 51, 81)" data-id="7x007">
+                <div class="function-info">
+                    <span class="function-icon">🏗️</span>
+                    <span class="function-name">Project</span>
+                    <span class="function-type">class</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('Project', 'class', '7x007')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x008', 'to_dict', 62, 77)" data-id="7x008">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">to_dict</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('to_dict', 'function', '7x008')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x009', 'Risk', 71, 89)" data-id="7x009">
+                <div class="function-info">
+                    <span class="function-icon">🏗️</span>
+                    <span class="function-name">Risk</span>
+                    <span class="function-type">class</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('Risk', 'class', '7x009')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x010', 'to_dict', 81, 89)" data-id="7x010">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">to_dict</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('to_dict', 'function', '7x010')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x011', 'get_requirements', 7, 22)" data-id="7x011">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">get_requirements</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('get_requirements', 'function', '7x011')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x012', 'create_requirement', 12, 27)" data-id="7x012">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">create_requirement</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('create_requirement', 'function', '7x012')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x013', 'get_stakeholders', 25, 40)" data-id="7x013">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">get_stakeholders</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('get_stakeholders', 'function', '7x013')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x014', 'create_stakeholder', 30, 45)" data-id="7x014">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">create_stakeholder</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('create_stakeholder', 'function', '7x014')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x015', 'get_projects', 42, 57)" data-id="7x015">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">get_projects</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('get_projects', 'function', '7x015')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x016', 'create_project', 47, 62)" data-id="7x016">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">create_project</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('create_project', 'function', '7x016')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x017', 'get_risks', 60, 75)" data-id="7x017">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">get_risks</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('get_risks', 'function', '7x017')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x018', 'create_risk', 65, 78)" data-id="7x018">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">create_risk</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('create_risk', 'function', '7x018')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x019', 'register_routes', 77, 78)" data-id="7x019">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">register_routes</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('register_routes', 'function', '7x019')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x020', 'init_db', 6, 8)" data-id="7x020">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">init_db</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('init_db', 'function', '7x020')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x021', 'configure_logging', 4, 12)" data-id="7x021">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">configure_logging</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('configure_logging', 'function', '7x021')" title="Add to payload">+</button>
+            </div>
+            
+            </div>
+        </div>
+
+        <div class="middle-panel">
+            <div class="payload-header">Optimized Payload</div>
+            <div class="payload-container">
+                <div class="strategy-overview">
+                    <div class="strategy-title">🧠 Model Strategy</div>
+                    <div class="strategy-models">
+                        <strong>Code Analysis:</strong> llama3-8b-8192<br>
+                        <strong>Structure:</strong> gemma2-9b-it<br>
+                        <strong>Speed:</strong> llama3-8b-8192
+                    </div>
+                </div>
+                
+                <div class="payload-list" id="payload-list">
+                    <div class="payload-empty">Click functions to add XEdit-Paths</div>
+                </div>
+                <button class="send-button" id="send-button" disabled>
+                    🚀 Send 0 to Optimized Pipeline
+                </button>
+                
+                <div class="deploy-section">
+                    <div class="deploy-title">🚀 Deploy & Download</div>
+                    <div class="deploy-info">
+                        <strong>Project:</strong> **PROJECT: Requirements Analysis Platform (Python Application)**<br>
+                        <strong>Session:</strong> 28-12-0239<br>
+                        <strong>Strategy:</strong> Multi-Model Optimized
+                    </div>
+                    <button class="deploy-button" onclick="deployToPcock()">📦 Download Optimized Setup</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="code-header">
+                📁 **PROJECT: Requirements Analysis Platform (Python Application)**: Generated Code
+                <span class="model-status">Multi-Model Ready</span>
+            </div>
+            <div class="code-container">
+                <div class="code-content">
+<div class="code-line" data-line="1"><span class="line-number">  1</span><span class="line-content">Flask==2.2.5</span></div>
+<div class="code-line" data-line="2"><span class="line-number">  2</span><span class="line-content">SQLAlchemy==2.0.21</span></div>
+<div class="code-line" data-line="3"><span class="line-number">  3</span><span class="line-content">Pydantic==2.6.1</span></div>
+<div class="code-line" data-line="4"><span class="line-number">  4</span><span class="line-content">python-dotenv==1.0.0</span></div>
+<div class="code-line" data-line="5"><span class="line-number">  5</span><span class="line-content">psycopg2-binary==2.9.9</span></div>
+<div class="code-line" data-line="6"><span class="line-number">  6</span><span class="line-content">click==8.1.7</span></div>
+<div class="code-line" data-line="7"><span class="line-number">  7</span><span class="line-content"># Requirements Analysis Platform (Python Version)</span></div>
+<div class="code-line" data-line="8"><span class="line-number">  8</span><span class="line-content"></span></div>
+<div class="code-line" data-line="9"><span class="line-number">  9</span><span class="line-content">A comprehensive platform for requirements analysis and project management using Python.</span></div>
+<div class="code-line" data-line="10"><span class="line-number"> 10</span><span class="line-content"></span></div>
+<div class="code-line" data-line="11"><span class="line-number"> 11</span><span class="line-content">## Features</span></div>
+<div class="code-line" data-line="12"><span class="line-number"> 12</span><span class="line-content">- Requirements Management</span></div>
+<div class="code-line" data-line="13"><span class="line-number"> 13</span><span class="line-content">- Stakeholder Engagement</span></div>
+<div class="code-line" data-line="14"><span class="line-number"> 14</span><span class="line-content">- Scope Definition and Management</span></div>
+<div class="code-line" data-line="15"><span class="line-number"> 15</span><span class="line-content">- Risk Assessment and Mitigation</span></div>
+<div class="code-line" data-line="16"><span class="line-number"> 16</span><span class="line-content"></span></div>
+<div class="code-line" data-line="17"><span class="line-number"> 17</span><span class="line-content">## Setup Instructions</span></div>
+<div class="code-line" data-line="18"><span class="line-number"> 18</span><span class="line-content">1. Create virtual environment: python -m venv venv</span></div>
+<div class="code-line" data-line="19"><span class="line-number"> 19</span><span class="line-content">2. Activate virtual environment: source venv/bin/activate (Linux/Mac) or venv\Scripts\activate (Windows)</span></div>
+<div class="code-line" data-line="20"><span class="line-number"> 20</span><span class="line-content">3. Install dependencies: pip install -r requirements.txt</span></div>
+<div class="code-line" data-line="21"><span class="line-number"> 21</span><span class="line-content">4. Run application: python main.py</span></div>
+<div class="code-line" data-line="22"><span class="line-number"> 22</span><span class="line-content">5. Access the application at: http://localhost:5000</span></div>
+<div class="code-line" data-line="23"><span class="line-number"> 23</span><span class="line-content">from flask import Flask</span></div>
+<div class="code-line" data-line="24"><span class="line-number"> 24</span><span class="line-content">from app import create_app</span></div>
+<div class="code-line" data-line="25"><span class="line-number"> 25</span><span class="line-content"></span></div>
+<div class="code-line" data-line="26"><span class="line-number"> 26</span><span class="line-content">app = create_app()</span></div>
+<div class="code-line" data-line="27"><span class="line-number"> 27</span><span class="line-content"></span></div>
+<div class="code-line" data-line="28"><span class="line-number"> 28</span><span class="line-content">if __name__ == "__main__":</span></div>
+<div class="code-line" data-line="29"><span class="line-number"> 29</span><span class="line-content">    app.run(debug=True)</span></div>
+<div class="code-line" data-line="30"><span class="line-number"> 30</span><span class="line-content">from flask import Flask</span></div>
+<div class="code-line" data-line="31"><span class="line-number"> 31</span><span class="line-content">from app.models import db</span></div>
+<div class="code-line" data-line="32"><span class="line-number"> 32</span><span class="line-content">from app.routes import register_routes</span></div>
+<div class="code-line" data-line="33"><span class="line-number"> 33</span><span class="line-content"></span></div>
+<div class="code-line" data-line="34"><span class="line-number"> 34</span><span class="line-content">def create_app():</span></div>
+<div class="code-line" data-line="35"><span class="line-number"> 35</span><span class="line-content">    app = Flask(__name__)</span></div>
+<div class="code-line" data-line="36"><span class="line-number"> 36</span><span class="line-content"></span></div>
+<div class="code-line" data-line="37"><span class="line-number"> 37</span><span class="line-content">    # Load configuration from config.py</span></div>
+<div class="code-line" data-line="38"><span class="line-number"> 38</span><span class="line-content">    app.config.from_pyfile('config.py')</span></div>
+<div class="code-line" data-line="39"><span class="line-number"> 39</span><span class="line-content"></span></div>
+<div class="code-line" data-line="40"><span class="line-number"> 40</span><span class="line-content">    # Initialize database</span></div>
+<div class="code-line" data-line="41"><span class="line-number"> 41</span><span class="line-content">    db.init_app(app)</span></div>
+<div class="code-line" data-line="42"><span class="line-number"> 42</span><span class="line-content"></span></div>
+<div class="code-line" data-line="43"><span class="line-number"> 43</span><span class="line-content">    # Register routes</span></div>
+<div class="code-line" data-line="44"><span class="line-number"> 44</span><span class="line-content">    register_routes(app)</span></div>
+<div class="code-line" data-line="45"><span class="line-number"> 45</span><span class="line-content"></span></div>
+<div class="code-line" data-line="46"><span class="line-number"> 46</span><span class="line-content">    return app</span></div>
+<div class="code-line" data-line="47"><span class="line-number"> 47</span><span class="line-content">import os</span></div>
+<div class="code-line" data-line="48"><span class="line-number"> 48</span><span class="line-content">from dotenv import load_dotenv</span></div>
+<div class="code-line" data-line="49"><span class="line-number"> 49</span><span class="line-content"></span></div>
+<div class="code-line" data-line="50"><span class="line-number"> 50</span><span class="line-content">load_dotenv()</span></div>
+<div class="code-line" data-line="51"><span class="line-number"> 51</span><span class="line-content"></span></div>
+<div class="code-line" data-line="52"><span class="line-number"> 52</span><span class="line-content">class Config:</span></div>
+<div class="code-line" data-line="53"><span class="line-number"> 53</span><span class="line-content">    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://postgres:password@localhost:5432/requirements_analysis')</span></div>
+<div class="code-line" data-line="54"><span class="line-number"> 54</span><span class="line-content">    SQLALCHEMY_TRACK_MODIFICATIONS = False</span></div>
+<div class="code-line" data-line="55"><span class="line-number"> 55</span><span class="line-content">from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey</span></div>
+<div class="code-line" data-line="56"><span class="line-number"> 56</span><span class="line-content">from sqlalchemy.orm import relationship</span></div>
+<div class="code-line" data-line="57"><span class="line-number"> 57</span><span class="line-content">from sqlalchemy.sql import func</span></div>
+<div class="code-line" data-line="58"><span class="line-number"> 58</span><span class="line-content">from app import db</span></div>
+<div class="code-line" data-line="59"><span class="line-number"> 59</span><span class="line-content"></span></div>
+<div class="code-line" data-line="60"><span class="line-number"> 60</span><span class="line-content">class Requirement(db.Model):</span></div>
+<div class="code-line" data-line="61"><span class="line-number"> 61</span><span class="line-content">    __tablename__ = 'requirements'</span></div>
+<div class="code-line" data-line="62"><span class="line-number"> 62</span><span class="line-content"></span></div>
+<div class="code-line" data-line="63"><span class="line-number"> 63</span><span class="line-content">    id = Column(Integer, primary_key=True)</span></div>
+<div class="code-line" data-line="64"><span class="line-number"> 64</span><span class="line-content">    title = Column(String(255), nullable=False)</span></div>
+<div class="code-line" data-line="65"><span class="line-number"> 65</span><span class="line-content">    description = Column(Text, nullable=False)</span></div>
+<div class="code-line" data-line="66"><span class="line-number"> 66</span><span class="line-content">    created_at = Column(DateTime(timezone=True), server_default=func.now())</span></div>
+<div class="code-line" data-line="67"><span class="line-number"> 67</span><span class="line-content">    updated_at = Column(DateTime(timezone=True), onupdate=func.now())</span></div>
+<div class="code-line" data-line="68"><span class="line-number"> 68</span><span class="line-content"></span></div>
+<div class="code-line" data-line="69"><span class="line-number"> 69</span><span class="line-content">    # Relationships</span></div>
+<div class="code-line" data-line="70"><span class="line-number"> 70</span><span class="line-content">    stakeholder_id = Column(Integer, ForeignKey('stakeholders.id'))</span></div>
+<div class="code-line" data-line="71"><span class="line-number"> 71</span><span class="line-content">    stakeholder = relationship('Stakeholder', back_populates='requirements')</span></div>
+<div class="code-line" data-line="72"><span class="line-number"> 72</span><span class="line-content"></span></div>
+<div class="code-line" data-line="73"><span class="line-number"> 73</span><span class="line-content">    project_id = Column(Integer, ForeignKey('projects.id'))</span></div>
+<div class="code-line" data-line="74"><span class="line-number"> 74</span><span class="line-content">    project = relationship('Project', back_populates='requirements')</span></div>
+<div class="code-line" data-line="75"><span class="line-number"> 75</span><span class="line-content"></span></div>
+<div class="code-line" data-line="76"><span class="line-number"> 76</span><span class="line-content">    def to_dict(self):</span></div>
+<div class="code-line" data-line="77"><span class="line-number"> 77</span><span class="line-content">        return {</span></div>
+<div class="code-line" data-line="78"><span class="line-number"> 78</span><span class="line-content">            'id': self.id,</span></div>
+<div class="code-line" data-line="79"><span class="line-number"> 79</span><span class="line-content">            'title': self.title,</span></div>
+<div class="code-line" data-line="80"><span class="line-number"> 80</span><span class="line-content">            'description': self.description,</span></div>
+<div class="code-line" data-line="81"><span class="line-number"> 81</span><span class="line-content">            'created_at': self.created_at.isoformat(),</span></div>
+<div class="code-line" data-line="82"><span class="line-number"> 82</span><span class="line-content">            'updated_at': self.updated_at.isoformat() if self.updated_at else None,</span></div>
+<div class="code-line" data-line="83"><span class="line-number"> 83</span><span class="line-content">            'stakeholder_id': self.stakeholder_id,</span></div>
+<div class="code-line" data-line="84"><span class="line-number"> 84</span><span class="line-content">            'project_id': self.project_id</span></div>
+<div class="code-line" data-line="85"><span class="line-number"> 85</span><span class="line-content">        }</span></div>
+<div class="code-line" data-line="86"><span class="line-number"> 86</span><span class="line-content"></span></div>
+<div class="code-line" data-line="87"><span class="line-number"> 87</span><span class="line-content">class Stakeholder(db.Model):</span></div>
+<div class="code-line" data-line="88"><span class="line-number"> 88</span><span class="line-content">    __tablename__ = 'stakeholders'</span></div>
+<div class="code-line" data-line="89"><span class="line-number"> 89</span><span class="line-content"></span></div>
+<div class="code-line" data-line="90"><span class="line-number"> 90</span><span class="line-content">    id = Column(Integer, primary_key=True)</span></div>
+<div class="code-line" data-line="91"><span class="line-number"> 91</span><span class="line-content">    name = Column(String(255), nullable=False)</span></div>
+<div class="code-line" data-line="92"><span class="line-number"> 92</span><span class="line-content">    role = Column(String(255), nullable=False)</span></div>
+<div class="code-line" data-line="93"><span class="line-number"> 93</span><span class="line-content">    contact_info = Column(String(255))</span></div>
+<div class="code-line" data-line="94"><span class="line-number"> 94</span><span class="line-content"></span></div>
+<div class="code-line" data-line="95"><span class="line-number"> 95</span><span class="line-content">    requirements = relationship('Requirement', back_populates='stakeholder')</span></div>
+<div class="code-line" data-line="96"><span class="line-number"> 96</span><span class="line-content"></span></div>
+<div class="code-line" data-line="97"><span class="line-number"> 97</span><span class="line-content">    def to_dict(self):</span></div>
+<div class="code-line" data-line="98"><span class="line-number"> 98</span><span class="line-content">        return {</span></div>
+<div class="code-line" data-line="99"><span class="line-number"> 99</span><span class="line-content">            'id': self.id,</span></div>
+<div class="code-line" data-line="100"><span class="line-number">100</span><span class="line-content">            'name': self.name,</span></div>
+<div class="code-line" data-line="101"><span class="line-number">101</span><span class="line-content">            'role': self.role,</span></div>
+<div class="code-line" data-line="102"><span class="line-number">102</span><span class="line-content">            'contact_info': self.contact_info</span></div>
+<div class="code-line" data-line="103"><span class="line-number">103</span><span class="line-content">        }</span></div>
+<div class="code-line" data-line="104"><span class="line-number">104</span><span class="line-content"></span></div>
+<div class="code-line" data-line="105"><span class="line-number">105</span><span class="line-content">class Project(db.Model):</span></div>
+<div class="code-line" data-line="106"><span class="line-number">106</span><span class="line-content">    __tablename__ = 'projects'</span></div>
+<div class="code-line" data-line="107"><span class="line-number">107</span><span class="line-content"></span></div>
+<div class="code-line" data-line="108"><span class="line-number">108</span><span class="line-content">    id = Column(Integer, primary_key=True)</span></div>
+<div class="code-line" data-line="109"><span class="line-number">109</span><span class="line-content">    name = Column(String(255), nullable=False)</span></div>
+<div class="code-line" data-line="110"><span class="line-number">110</span><span class="line-content">    description = Column(Text)</span></div>
+<div class="code-line" data-line="111"><span class="line-number">111</span><span class="line-content">    start_date = Column(DateTime(timezone=True))</span></div>
+<div class="code-line" data-line="112"><span class="line-number">112</span><span class="line-content">    end_date = Column(DateTime(timezone=True))</span></div>
+<div class="code-line" data-line="113"><span class="line-number">113</span><span class="line-content"></span></div>
+<div class="code-line" data-line="114"><span class="line-number">114</span><span class="line-content">    requirements = relationship('Requirement', back_populates='project')</span></div>
+<div class="code-line" data-line="115"><span class="line-number">115</span><span class="line-content"></span></div>
+<div class="code-line" data-line="116"><span class="line-number">116</span><span class="line-content">    def to_dict(self):</span></div>
+<div class="code-line" data-line="117"><span class="line-number">117</span><span class="line-content">        return {</span></div>
+<div class="code-line" data-line="118"><span class="line-number">118</span><span class="line-content">            'id': self.id,</span></div>
+<div class="code-line" data-line="119"><span class="line-number">119</span><span class="line-content">            'name': self.name,</span></div>
+<div class="code-line" data-line="120"><span class="line-number">120</span><span class="line-content">            'description': self.description,</span></div>
+<div class="code-line" data-line="121"><span class="line-number">121</span><span class="line-content">            'start_date': self.start_date.isoformat() if self.start_date else None,</span></div>
+<div class="code-line" data-line="122"><span class="line-number">122</span><span class="line-content">            'end_date': self.end_date.isoformat() if self.end_date else None</span></div>
+<div class="code-line" data-line="123"><span class="line-number">123</span><span class="line-content">        }</span></div>
+<div class="code-line" data-line="124"><span class="line-number">124</span><span class="line-content"></span></div>
+<div class="code-line" data-line="125"><span class="line-number">125</span><span class="line-content">class Risk(db.Model):</span></div>
+<div class="code-line" data-line="126"><span class="line-number">126</span><span class="line-content">    __tablename__ = 'risks'</span></div>
+<div class="code-line" data-line="127"><span class="line-number">127</span><span class="line-content"></span></div>
+<div class="code-line" data-line="128"><span class="line-number">128</span><span class="line-content">    id = Column(Integer, primary_key=True)</span></div>
+<div class="code-line" data-line="129"><span class="line-number">129</span><span class="line-content">    description = Column(Text, nullable=False)</span></div>
+<div class="code-line" data-line="130"><span class="line-number">130</span><span class="line-content">    impact = Column(String(100), nullable=False)</span></div>
+<div class="code-line" data-line="131"><span class="line-number">131</span><span class="line-content">    probability = Column(String(100), nullable=False)</span></div>
+<div class="code-line" data-line="132"><span class="line-number">132</span><span class="line-content">    mitigation_strategy = Column(Text)</span></div>
+<div class="code-line" data-line="133"><span class="line-number">133</span><span class="line-content">    created_at = Column(DateTime(timezone=True), server_default=func.now())</span></div>
+<div class="code-line" data-line="134"><span class="line-number">134</span><span class="line-content"></span></div>
+<div class="code-line" data-line="135"><span class="line-number">135</span><span class="line-content">    def to_dict(self):</span></div>
+<div class="code-line" data-line="136"><span class="line-number">136</span><span class="line-content">        return {</span></div>
+<div class="code-line" data-line="137"><span class="line-number">137</span><span class="line-content">            'id': self.id,</span></div>
+<div class="code-line" data-line="138"><span class="line-number">138</span><span class="line-content">            'description': self.description,</span></div>
+<div class="code-line" data-line="139"><span class="line-number">139</span><span class="line-content">            'impact': self.impact,</span></div>
+<div class="code-line" data-line="140"><span class="line-number">140</span><span class="line-content">            'probability': self.probability,</span></div>
+<div class="code-line" data-line="141"><span class="line-number">141</span><span class="line-content">            'mitigation_strategy': self.mitigation_strategy,</span></div>
+<div class="code-line" data-line="142"><span class="line-number">142</span><span class="line-content">            'created_at': self.created_at.isoformat()</span></div>
+<div class="code-line" data-line="143"><span class="line-number">143</span><span class="line-content">        }</span></div>
+<div class="code-line" data-line="144"><span class="line-number">144</span><span class="line-content">from flask import Blueprint, jsonify, request</span></div>
+<div class="code-line" data-line="145"><span class="line-number">145</span><span class="line-content">from app.models import Requirement, Stakeholder, Project, Risk, db</span></div>
+<div class="code-line" data-line="146"><span class="line-number">146</span><span class="line-content"></span></div>
+<div class="code-line" data-line="147"><span class="line-number">147</span><span class="line-content">api = Blueprint('api', __name__)</span></div>
+<div class="code-line" data-line="148"><span class="line-number">148</span><span class="line-content"></span></div>
+<div class="code-line" data-line="149"><span class="line-number">149</span><span class="line-content">@api.route('/requirements', methods=['GET'])</span></div>
+<div class="code-line" data-line="150"><span class="line-number">150</span><span class="line-content">def get_requirements():</span></div>
+<div class="code-line" data-line="151"><span class="line-number">151</span><span class="line-content">    requirements = Requirement.query.all()</span></div>
+<div class="code-line" data-line="152"><span class="line-number">152</span><span class="line-content">    return jsonify([req.to_dict() for req in requirements])</span></div>
+<div class="code-line" data-line="153"><span class="line-number">153</span><span class="line-content"></span></div>
+<div class="code-line" data-line="154"><span class="line-number">154</span><span class="line-content">@api.route('/requirements', methods=['POST'])</span></div>
+<div class="code-line" data-line="155"><span class="line-number">155</span><span class="line-content">def create_requirement():</span></div>
+<div class="code-line" data-line="156"><span class="line-number">156</span><span class="line-content">    data = request.get_json()</span></div>
+<div class="code-line" data-line="157"><span class="line-number">157</span><span class="line-content">    new_requirement = Requirement(</span></div>
+<div class="code-line" data-line="158"><span class="line-number">158</span><span class="line-content">        title=data['title'],</span></div>
+<div class="code-line" data-line="159"><span class="line-number">159</span><span class="line-content">        description=data['description'],</span></div>
+<div class="code-line" data-line="160"><span class="line-number">160</span><span class="line-content">        stakeholder_id=data.get('stakeholder_id'),</span></div>
+<div class="code-line" data-line="161"><span class="line-number">161</span><span class="line-content">        project_id=data.get('project_id')</span></div>
+<div class="code-line" data-line="162"><span class="line-number">162</span><span class="line-content">    )</span></div>
+<div class="code-line" data-line="163"><span class="line-number">163</span><span class="line-content">    db.session.add(new_requirement)</span></div>
+<div class="code-line" data-line="164"><span class="line-number">164</span><span class="line-content">    db.session.commit()</span></div>
+<div class="code-line" data-line="165"><span class="line-number">165</span><span class="line-content">    return jsonify(new_requirement.to_dict()), 201</span></div>
+<div class="code-line" data-line="166"><span class="line-number">166</span><span class="line-content"></span></div>
+<div class="code-line" data-line="167"><span class="line-number">167</span><span class="line-content">@api.route('/stakeholders', methods=['GET'])</span></div>
+<div class="code-line" data-line="168"><span class="line-number">168</span><span class="line-content">def get_stakeholders():</span></div>
+<div class="code-line" data-line="169"><span class="line-number">169</span><span class="line-content">    stakeholders = Stakeholder.query.all()</span></div>
+<div class="code-line" data-line="170"><span class="line-number">170</span><span class="line-content">    return jsonify([stakeholder.to_dict() for stakeholder in stakeholders])</span></div>
+<div class="code-line" data-line="171"><span class="line-number">171</span><span class="line-content"></span></div>
+<div class="code-line" data-line="172"><span class="line-number">172</span><span class="line-content">@api.route('/stakeholders', methods=['POST'])</span></div>
+<div class="code-line" data-line="173"><span class="line-number">173</span><span class="line-content">def create_stakeholder():</span></div>
+<div class="code-line" data-line="174"><span class="line-number">174</span><span class="line-content">    data = request.get_json()</span></div>
+<div class="code-line" data-line="175"><span class="line-number">175</span><span class="line-content">    new_stakeholder = Stakeholder(</span></div>
+<div class="code-line" data-line="176"><span class="line-number">176</span><span class="line-content">        name=data['name'],</span></div>
+<div class="code-line" data-line="177"><span class="line-number">177</span><span class="line-content">        role=data['role'],</span></div>
+<div class="code-line" data-line="178"><span class="line-number">178</span><span class="line-content">        contact_info=data.get('contact_info')</span></div>
+<div class="code-line" data-line="179"><span class="line-number">179</span><span class="line-content">    )</span></div>
+<div class="code-line" data-line="180"><span class="line-number">180</span><span class="line-content">    db.session.add(new_stakeholder)</span></div>
+<div class="code-line" data-line="181"><span class="line-number">181</span><span class="line-content">    db.session.commit()</span></div>
+<div class="code-line" data-line="182"><span class="line-number">182</span><span class="line-content">    return jsonify(new_stakeholder.to_dict()), 201</span></div>
+<div class="code-line" data-line="183"><span class="line-number">183</span><span class="line-content"></span></div>
+<div class="code-line" data-line="184"><span class="line-number">184</span><span class="line-content">@api.route('/projects', methods=['GET'])</span></div>
+<div class="code-line" data-line="185"><span class="line-number">185</span><span class="line-content">def get_projects():</span></div>
+<div class="code-line" data-line="186"><span class="line-number">186</span><span class="line-content">    projects = Project.query.all()</span></div>
+<div class="code-line" data-line="187"><span class="line-number">187</span><span class="line-content">    return jsonify([project.to_dict() for project in projects])</span></div>
+<div class="code-line" data-line="188"><span class="line-number">188</span><span class="line-content"></span></div>
+<div class="code-line" data-line="189"><span class="line-number">189</span><span class="line-content">@api.route('/projects', methods=['POST'])</span></div>
+<div class="code-line" data-line="190"><span class="line-number">190</span><span class="line-content">def create_project():</span></div>
+<div class="code-line" data-line="191"><span class="line-number">191</span><span class="line-content">    data = request.get_json()</span></div>
+<div class="code-line" data-line="192"><span class="line-number">192</span><span class="line-content">    new_project = Project(</span></div>
+<div class="code-line" data-line="193"><span class="line-number">193</span><span class="line-content">        name=data['name'],</span></div>
+<div class="code-line" data-line="194"><span class="line-number">194</span><span class="line-content">        description=data.get('description'),</span></div>
+<div class="code-line" data-line="195"><span class="line-number">195</span><span class="line-content">        start_date=data.get('start_date'),</span></div>
+<div class="code-line" data-line="196"><span class="line-number">196</span><span class="line-content">        end_date=data.get('end_date')</span></div>
+<div class="code-line" data-line="197"><span class="line-number">197</span><span class="line-content">    )</span></div>
+<div class="code-line" data-line="198"><span class="line-number">198</span><span class="line-content">    db.session.add(new_project)</span></div>
+<div class="code-line" data-line="199"><span class="line-number">199</span><span class="line-content">    db.session.commit()</span></div>
+<div class="code-line" data-line="200"><span class="line-number">200</span><span class="line-content">    return jsonify(new_project.to_dict()), 201</span></div>
+<div class="code-line" data-line="201"><span class="line-number">201</span><span class="line-content"></span></div>
+<div class="code-line" data-line="202"><span class="line-number">202</span><span class="line-content">@api.route('/risks', methods=['GET'])</span></div>
+<div class="code-line" data-line="203"><span class="line-number">203</span><span class="line-content">def get_risks():</span></div>
+<div class="code-line" data-line="204"><span class="line-number">204</span><span class="line-content">    risks = Risk.query.all()</span></div>
+<div class="code-line" data-line="205"><span class="line-number">205</span><span class="line-content">    return jsonify([risk.to_dict() for risk in risks])</span></div>
+<div class="code-line" data-line="206"><span class="line-number">206</span><span class="line-content"></span></div>
+<div class="code-line" data-line="207"><span class="line-number">207</span><span class="line-content">@api.route('/risks', methods=['POST'])</span></div>
+<div class="code-line" data-line="208"><span class="line-number">208</span><span class="line-content">def create_risk():</span></div>
+<div class="code-line" data-line="209"><span class="line-number">209</span><span class="line-content">    data = request.get_json()</span></div>
+<div class="code-line" data-line="210"><span class="line-number">210</span><span class="line-content">    new_risk = Risk(</span></div>
+<div class="code-line" data-line="211"><span class="line-number">211</span><span class="line-content">        description=data['description'],</span></div>
+<div class="code-line" data-line="212"><span class="line-number">212</span><span class="line-content">        impact=data['impact'],</span></div>
+<div class="code-line" data-line="213"><span class="line-number">213</span><span class="line-content">        probability=data['probability'],</span></div>
+<div class="code-line" data-line="214"><span class="line-number">214</span><span class="line-content">        mitigation_strategy=data.get('mitigation_strategy')</span></div>
+<div class="code-line" data-line="215"><span class="line-number">215</span><span class="line-content">    )</span></div>
+<div class="code-line" data-line="216"><span class="line-number">216</span><span class="line-content">    db.session.add(new_risk)</span></div>
+<div class="code-line" data-line="217"><span class="line-number">217</span><span class="line-content">    db.session.commit()</span></div>
+<div class="code-line" data-line="218"><span class="line-number">218</span><span class="line-content">    return jsonify(new_risk.to_dict()), 201</span></div>
+<div class="code-line" data-line="219"><span class="line-number">219</span><span class="line-content"></span></div>
+<div class="code-line" data-line="220"><span class="line-number">220</span><span class="line-content">def register_routes(app):</span></div>
+<div class="code-line" data-line="221"><span class="line-number">221</span><span class="line-content">    app.register_blueprint(api, url_prefix='/api')</span></div>
+<div class="code-line" data-line="222"><span class="line-number">222</span><span class="line-content">from flask_sqlalchemy import SQLAlchemy</span></div>
+<div class="code-line" data-line="223"><span class="line-number">223</span><span class="line-content">from flask import current_app</span></div>
+<div class="code-line" data-line="224"><span class="line-number">224</span><span class="line-content"></span></div>
+<div class="code-line" data-line="225"><span class="line-number">225</span><span class="line-content">db = SQLAlchemy()</span></div>
+<div class="code-line" data-line="226"><span class="line-number">226</span><span class="line-content"></span></div>
+<div class="code-line" data-line="227"><span class="line-number">227</span><span class="line-content">def init_db():</span></div>
+<div class="code-line" data-line="228"><span class="line-number">228</span><span class="line-content">    with current_app.app_context():</span></div>
+<div class="code-line" data-line="229"><span class="line-number">229</span><span class="line-content">        db.create_all()</span></div>
+<div class="code-line" data-line="230"><span class="line-number">230</span><span class="line-content">import logging</span></div>
+<div class="code-line" data-line="231"><span class="line-number">231</span><span class="line-content">from datetime import datetime</span></div>
+<div class="code-line" data-line="232"><span class="line-number">232</span><span class="line-content"></span></div>
+<div class="code-line" data-line="233"><span class="line-number">233</span><span class="line-content">def configure_logging():</span></div>
+<div class="code-line" data-line="234"><span class="line-number">234</span><span class="line-content">    logging.basicConfig(</span></div>
+<div class="code-line" data-line="235"><span class="line-number">235</span><span class="line-content">        level=logging.INFO,</span></div>
+<div class="code-line" data-line="236"><span class="line-number">236</span><span class="line-content">        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',</span></div>
+<div class="code-line" data-line="237"><span class="line-number">237</span><span class="line-content">        handlers=[</span></div>
+<div class="code-line" data-line="238"><span class="line-number">238</span><span class="line-content">            logging.FileHandler(f'logs/app_{datetime.now().strftime("%Y%m%d")}.log'),</span></div>
+<div class="code-line" data-line="239"><span class="line-number">239</span><span class="line-content">            logging.StreamHandler()</span></div>
+<div class="code-line" data-line="240"><span class="line-number">240</span><span class="line-content">        ]</span></div>
+<div class="code-line" data-line="241"><span class="line-number">241</span><span class="line-content">    )</span></div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // XEdit data and state
+        const xeditPaths = {"7x001": {"display_name": "create_app", "type": "function", "filename": "app/__init__.py", "language": "python", "line_start": 5, "line_end": 17, "lines_display": "5-17", "technical_path": "app/__init__.py::function.create_app/lines[5-17]", "optimal_model": "llama-3.1-70b-versatile"}, "7x002": {"display_name": "Config", "type": "class", "filename": "app/config.py", "language": "python", "line_start": 6, "line_end": 8, "lines_display": "6-8", "technical_path": "app/config.py::class.Config/lines[6-8]", "optimal_model": "llama-3.1-70b-versatile"}, "7x003": {"display_name": "Requirement", "type": "class", "filename": "app/models.py", "language": "python", "line_start": 6, "line_end": 36, "lines_display": "6-36", "technical_path": "app/models.py::class.Requirement/lines[6-36]", "optimal_model": "llama-3.1-70b-versatile"}, "7x004": {"display_name": "to_dict", "type": "function", "filename": "app/models.py", "language": "python", "line_start": 22, "line_end": 37, "lines_display": "22-37", "technical_path": "app/models.py::function.to_dict/lines[22-37]", "optimal_model": "llama-3.1-70b-versatile"}, "7x005": {"display_name": "Stakeholder", "type": "class", "filename": "app/models.py", "language": "python", "line_start": 33, "line_end": 63, "lines_display": "33-63", "technical_path": "app/models.py::class.Stakeholder/lines[33-63]", "optimal_model": "llama-3.1-70b-versatile"}, "7x006": {"display_name": "to_dict", "type": "function", "filename": "app/models.py", "language": "python", "line_start": 43, "line_end": 58, "lines_display": "43-58", "technical_path": "app/models.py::function.to_dict/lines[43-58]", "optimal_model": "llama-3.1-70b-versatile"}, "7x007": {"display_name": "Project", "type": "class", "filename": "app/models.py", "language": "python", "line_start": 51, "line_end": 81, "lines_display": "51-81", "technical_path": "app/models.py::class.Project/lines[51-81]", "optimal_model": "llama-3.1-70b-versatile"}, "7x008": {"display_name": "to_dict", "type": "function", "filename": "app/models.py", "language": "python", "line_start": 62, "line_end": 77, "lines_display": "62-77", "technical_path": "app/models.py::function.to_dict/lines[62-77]", "optimal_model": "llama-3.1-70b-versatile"}, "7x009": {"display_name": "Risk", "type": "class", "filename": "app/models.py", "language": "python", "line_start": 71, "line_end": 89, "lines_display": "71-89", "technical_path": "app/models.py::class.Risk/lines[71-89]", "optimal_model": "llama-3.1-70b-versatile"}, "7x010": {"display_name": "to_dict", "type": "function", "filename": "app/models.py", "language": "python", "line_start": 81, "line_end": 89, "lines_display": "81-89", "technical_path": "app/models.py::function.to_dict/lines[81-89]", "optimal_model": "llama-3.1-70b-versatile"}, "7x011": {"display_name": "get_requirements", "type": "function", "filename": "app/routes.py", "language": "python", "line_start": 7, "line_end": 22, "lines_display": "7-22", "technical_path": "app/routes.py::function.get_requirements/lines[7-22]", "optimal_model": "llama-3.1-70b-versatile"}, "7x012": {"display_name": "create_requirement", "type": "function", "filename": "app/routes.py", "language": "python", "line_start": 12, "line_end": 27, "lines_display": "12-27", "technical_path": "app/routes.py::function.create_requirement/lines[12-27]", "optimal_model": "llama-3.1-70b-versatile"}, "7x013": {"display_name": "get_stakeholders", "type": "function", "filename": "app/routes.py", "language": "python", "line_start": 25, "line_end": 40, "lines_display": "25-40", "technical_path": "app/routes.py::function.get_stakeholders/lines[25-40]", "optimal_model": "llama-3.1-70b-versatile"}, "7x014": {"display_name": "create_stakeholder", "type": "function", "filename": "app/routes.py", "language": "python", "line_start": 30, "line_end": 45, "lines_display": "30-45", "technical_path": "app/routes.py::function.create_stakeholder/lines[30-45]", "optimal_model": "llama-3.1-70b-versatile"}, "7x015": {"display_name": "get_projects", "type": "function", "filename": "app/routes.py", "language": "python", "line_start": 42, "line_end": 57, "lines_display": "42-57", "technical_path": "app/routes.py::function.get_projects/lines[42-57]", "optimal_model": "llama-3.1-70b-versatile"}, "7x016": {"display_name": "create_project", "type": "function", "filename": "app/routes.py", "language": "python", "line_start": 47, "line_end": 62, "lines_display": "47-62", "technical_path": "app/routes.py::function.create_project/lines[47-62]", "optimal_model": "llama-3.1-70b-versatile"}, "7x017": {"display_name": "get_risks", "type": "function", "filename": "app/routes.py", "language": "python", "line_start": 60, "line_end": 75, "lines_display": "60-75", "technical_path": "app/routes.py::function.get_risks/lines[60-75]", "optimal_model": "llama-3.1-70b-versatile"}, "7x018": {"display_name": "create_risk", "type": "function", "filename": "app/routes.py", "language": "python", "line_start": 65, "line_end": 78, "lines_display": "65-78", "technical_path": "app/routes.py::function.create_risk/lines[65-78]", "optimal_model": "llama-3.1-70b-versatile"}, "7x019": {"display_name": "register_routes", "type": "function", "filename": "app/routes.py", "language": "python", "line_start": 77, "line_end": 78, "lines_display": "77-78", "technical_path": "app/routes.py::function.register_routes/lines[77-78]", "optimal_model": "llama-3.1-70b-versatile"}, "7x020": {"display_name": "init_db", "type": "function", "filename": "app/database.py", "language": "python", "line_start": 6, "line_end": 8, "lines_display": "6-8", "technical_path": "app/database.py::function.init_db/lines[6-8]", "optimal_model": "llama-3.1-70b-versatile"}, "7x021": {"display_name": "configure_logging", "type": "function", "filename": "app/utils.py", "language": "python", "line_start": 4, "line_end": 12, "lines_display": "4-12", "technical_path": "app/utils.py::function.configure_logging/lines[4-12]", "optimal_model": "llama-3.1-70b-versatile"}};
+        const projectFiles = [{"filename":"requirements.txt","language":"text","code_b64":"Rmxhc2s9PTIuMi41ClNRTEFsY2hlbXk9PTIuMC4yMQpQeWRhbnRpYz09Mi42LjEKcHl0aG9uLWRvdGVudj09MS4wLjAKcHN5Y29wZzItYmluYXJ5PT0yLjkuOQpjbGljaz09OC4xLjc=","code":""},{"filename":"README.md","language":"markdown","code_b64":"IyBSZXF1aXJlbWVudHMgQW5hbHlzaXMgUGxhdGZvcm0gKFB5dGhvbiBWZXJzaW9uKQoKQSBjb21wcmVoZW5zaXZlIHBsYXRmb3JtIGZvciByZXF1aXJlbWVudHMgYW5hbHlzaXMgYW5kIHByb2plY3QgbWFuYWdlbWVudCB1c2luZyBQeXRob24uCgojIyBGZWF0dXJlcwotIFJlcXVpcmVtZW50cyBNYW5hZ2VtZW50Ci0gU3Rha2Vob2xkZXIgRW5nYWdlbWVudAotIFNjb3BlIERlZmluaXRpb24gYW5kIE1hbmFnZW1lbnQKLSBSaXNrIEFzc2Vzc21lbnQgYW5kIE1pdGlnYXRpb24KCiMjIFNldHVwIEluc3RydWN0aW9ucwoxLiBDcmVhdGUgdmlydHVhbCBlbnZpcm9ubWVudDogcHl0aG9uIC1tIHZlbnYgdmVudgoyLiBBY3RpdmF0ZSB2aXJ0dWFsIGVudmlyb25tZW50OiBzb3VyY2UgdmVudi9iaW4vYWN0aXZhdGUgKExpbnV4L01hYykgb3IgdmVudlxTY3JpcHRzXGFjdGl2YXRlIChXaW5kb3dzKQozLiBJbnN0YWxsIGRlcGVuZGVuY2llczogcGlwIGluc3RhbGwgLXIgcmVxdWlyZW1lbnRzLnR4dAo0LiBSdW4gYXBwbGljYXRpb246IHB5dGhvbiBtYWluLnB5CjUuIEFjY2VzcyB0aGUgYXBwbGljYXRpb24gYXQ6IGh0dHA6Ly9sb2NhbGhvc3Q6NTAwMA==","code":""},{"filename":"main.py","language":"python","code_b64":"ZnJvbSBmbGFzayBpbXBvcnQgRmxhc2sKZnJvbSBhcHAgaW1wb3J0IGNyZWF0ZV9hcHAKCmFwcCA9IGNyZWF0ZV9hcHAoKQoKaWYgX19uYW1lX18gPT0gIl9fbWFpbl9fIjoKICAgIGFwcC5ydW4oZGVidWc9VHJ1ZSk=","code":""},{"filename":"app/__init__.py","language":"python","code_b64":"ZnJvbSBmbGFzayBpbXBvcnQgRmxhc2sKZnJvbSBhcHAubW9kZWxzIGltcG9ydCBkYgpmcm9tIGFwcC5yb3V0ZXMgaW1wb3J0IHJlZ2lzdGVyX3JvdXRlcwoKZGVmIGNyZWF0ZV9hcHAoKToKICAgIGFwcCA9IEZsYXNrKF9fbmFtZV9fKQoKICAgICMgTG9hZCBjb25maWd1cmF0aW9uIGZyb20gY29uZmlnLnB5CiAgICBhcHAuY29uZmlnLmZyb21fcHlmaWxlKCdjb25maWcucHknKQoKICAgICMgSW5pdGlhbGl6ZSBkYXRhYmFzZQogICAgZGIuaW5pdF9hcHAoYXBwKQoKICAgICMgUmVnaXN0ZXIgcm91dGVzCiAgICByZWdpc3Rlcl9yb3V0ZXMoYXBwKQoKICAgIHJldHVybiBhcHA=","code":""},{"filename":"app/config.py","language":"python","code_b64":"aW1wb3J0IG9zCmZyb20gZG90ZW52IGltcG9ydCBsb2FkX2RvdGVudgoKbG9hZF9kb3RlbnYoKQoKY2xhc3MgQ29uZmlnOgogICAgU1FMQUxDSEVNWV9EQVRBQkFTRV9VUkkgPSBvcy5nZXRlbnYoJ0RBVEFCQVNFX1VSTCcsICdwb3N0Z3Jlc3FsOi8vcG9zdGdyZXM6cGFzc3dvcmRAbG9jYWxob3N0OjU0MzIvcmVxdWlyZW1lbnRzX2FuYWx5c2lzJykKICAgIFNRTEFMQ0hFTVlfVFJBQ0tfTU9ESUZJQ0FUSU9OUyA9IEZhbHNl","code":""},{"filename":"app/models.py","language":"python","code_b64":"ZnJvbSBzcWxhbGNoZW15IGltcG9ydCBDb2x1bW4sIEludGVnZXIsIFN0cmluZywgVGV4dCwgRGF0ZVRpbWUsIEZvcmVpZ25LZXkKZnJvbSBzcWxhbGNoZW15Lm9ybSBpbXBvcnQgcmVsYXRpb25zaGlwCmZyb20gc3FsYWxjaGVteS5zcWwgaW1wb3J0IGZ1bmMKZnJvbSBhcHAgaW1wb3J0IGRiCgpjbGFzcyBSZXF1aXJlbWVudChkYi5Nb2RlbCk6CiAgICBfX3RhYmxlbmFtZV9fID0gJ3JlcXVpcmVtZW50cycKCiAgICBpZCA9IENvbHVtbihJbnRlZ2VyLCBwcmltYXJ5X2tleT1UcnVlKQogICAgdGl0bGUgPSBDb2x1bW4oU3RyaW5nKDI1NSksIG51bGxhYmxlPUZhbHNlKQogICAgZGVzY3JpcHRpb24gPSBDb2x1bW4oVGV4dCwgbnVsbGFibGU9RmFsc2UpCiAgICBjcmVhdGVkX2F0ID0gQ29sdW1uKERhdGVUaW1lKHRpbWV6b25lPVRydWUpLCBzZXJ2ZXJfZGVmYXVsdD1mdW5jLm5vdygpKQogICAgdXBkYXRlZF9hdCA9IENvbHVtbihEYXRlVGltZSh0aW1lem9uZT1UcnVlKSwgb251cGRhdGU9ZnVuYy5ub3coKSkKCiAgICAjIFJlbGF0aW9uc2hpcHMKICAgIHN0YWtlaG9sZGVyX2lkID0gQ29sdW1uKEludGVnZXIsIEZvcmVpZ25LZXkoJ3N0YWtlaG9sZGVycy5pZCcpKQogICAgc3Rha2Vob2xkZXIgPSByZWxhdGlvbnNoaXAoJ1N0YWtlaG9sZGVyJywgYmFja19wb3B1bGF0ZXM9J3JlcXVpcmVtZW50cycpCgogICAgcHJvamVjdF9pZCA9IENvbHVtbihJbnRlZ2VyLCBGb3JlaWduS2V5KCdwcm9qZWN0cy5pZCcpKQogICAgcHJvamVjdCA9IHJlbGF0aW9uc2hpcCgnUHJvamVjdCcsIGJhY2tfcG9wdWxhdGVzPSdyZXF1aXJlbWVudHMnKQoKICAgIGRlZiB0b19kaWN0KHNlbGYpOgogICAgICAgIHJldHVybiB7CiAgICAgICAgICAgICdpZCc6IHNlbGYuaWQsCiAgICAgICAgICAgICd0aXRsZSc6IHNlbGYudGl0bGUsCiAgICAgICAgICAgICdkZXNjcmlwdGlvbic6IHNlbGYuZGVzY3JpcHRpb24sCiAgICAgICAgICAgICdjcmVhdGVkX2F0Jzogc2VsZi5jcmVhdGVkX2F0Lmlzb2Zvcm1hdCgpLAogICAgICAgICAgICAndXBkYXRlZF9hdCc6IHNlbGYudXBkYXRlZF9hdC5pc29mb3JtYXQoKSBpZiBzZWxmLnVwZGF0ZWRfYXQgZWxzZSBOb25lLAogICAgICAgICAgICAnc3Rha2Vob2xkZXJfaWQnOiBzZWxmLnN0YWtlaG9sZGVyX2lkLAogICAgICAgICAgICAncHJvamVjdF9pZCc6IHNlbGYucHJvamVjdF9pZAogICAgICAgIH0KCmNsYXNzIFN0YWtlaG9sZGVyKGRiLk1vZGVsKToKICAgIF9fdGFibGVuYW1lX18gPSAnc3Rha2Vob2xkZXJzJwoKICAgIGlkID0gQ29sdW1uKEludGVnZXIsIHByaW1hcnlfa2V5PVRydWUpCiAgICBuYW1lID0gQ29sdW1uKFN0cmluZygyNTUpLCBudWxsYWJsZT1GYWxzZSkKICAgIHJvbGUgPSBDb2x1bW4oU3RyaW5nKDI1NSksIG51bGxhYmxlPUZhbHNlKQogICAgY29udGFjdF9pbmZvID0gQ29sdW1uKFN0cmluZygyNTUpKQoKICAgIHJlcXVpcmVtZW50cyA9IHJlbGF0aW9uc2hpcCgnUmVxdWlyZW1lbnQnLCBiYWNrX3BvcHVsYXRlcz0nc3Rha2Vob2xkZXInKQoKICAgIGRlZiB0b19kaWN0KHNlbGYpOgogICAgICAgIHJldHVybiB7CiAgICAgICAgICAgICdpZCc6IHNlbGYuaWQsCiAgICAgICAgICAgICduYW1lJzogc2VsZi5uYW1lLAogICAgICAgICAgICAncm9sZSc6IHNlbGYucm9sZSwKICAgICAgICAgICAgJ2NvbnRhY3RfaW5mbyc6IHNlbGYuY29udGFjdF9pbmZvCiAgICAgICAgfQoKY2xhc3MgUHJvamVjdChkYi5Nb2RlbCk6CiAgICBfX3RhYmxlbmFtZV9fID0gJ3Byb2plY3RzJwoKICAgIGlkID0gQ29sdW1uKEludGVnZXIsIHByaW1hcnlfa2V5PVRydWUpCiAgICBuYW1lID0gQ29sdW1uKFN0cmluZygyNTUpLCBudWxsYWJsZT1GYWxzZSkKICAgIGRlc2NyaXB0aW9uID0gQ29sdW1uKFRleHQpCiAgICBzdGFydF9kYXRlID0gQ29sdW1uKERhdGVUaW1lKHRpbWV6b25lPVRydWUpKQogICAgZW5kX2RhdGUgPSBDb2x1bW4oRGF0ZVRpbWUodGltZXpvbmU9VHJ1ZSkpCgogICAgcmVxdWlyZW1lbnRzID0gcmVsYXRpb25zaGlwKCdSZXF1aXJlbWVudCcsIGJhY2tfcG9wdWxhdGVzPSdwcm9qZWN0JykKCiAgICBkZWYgdG9fZGljdChzZWxmKToKICAgICAgICByZXR1cm4gewogICAgICAgICAgICAnaWQnOiBzZWxmLmlkLAogICAgICAgICAgICAnbmFtZSc6IHNlbGYubmFtZSwKICAgICAgICAgICAgJ2Rlc2NyaXB0aW9uJzogc2VsZi5kZXNjcmlwdGlvbiwKICAgICAgICAgICAgJ3N0YXJ0X2RhdGUnOiBzZWxmLnN0YXJ0X2RhdGUuaXNvZm9ybWF0KCkgaWYgc2VsZi5zdGFydF9kYXRlIGVsc2UgTm9uZSwKICAgICAgICAgICAgJ2VuZF9kYXRlJzogc2VsZi5lbmRfZGF0ZS5pc29mb3JtYXQoKSBpZiBzZWxmLmVuZF9kYXRlIGVsc2UgTm9uZQogICAgICAgIH0KCmNsYXNzIFJpc2soZGIuTW9kZWwpOgogICAgX190YWJsZW5hbWVfXyA9ICdyaXNrcycKCiAgICBpZCA9IENvbHVtbihJbnRlZ2VyLCBwcmltYXJ5X2tleT1UcnVlKQogICAgZGVzY3JpcHRpb24gPSBDb2x1bW4oVGV4dCwgbnVsbGFibGU9RmFsc2UpCiAgICBpbXBhY3QgPSBDb2x1bW4oU3RyaW5nKDEwMCksIG51bGxhYmxlPUZhbHNlKQogICAgcHJvYmFiaWxpdHkgPSBDb2x1bW4oU3RyaW5nKDEwMCksIG51bGxhYmxlPUZhbHNlKQogICAgbWl0aWdhdGlvbl9zdHJhdGVneSA9IENvbHVtbihUZXh0KQogICAgY3JlYXRlZF9hdCA9IENvbHVtbihEYXRlVGltZSh0aW1lem9uZT1UcnVlKSwgc2VydmVyX2RlZmF1bHQ9ZnVuYy5ub3coKSkKCiAgICBkZWYgdG9fZGljdChzZWxmKToKICAgICAgICByZXR1cm4gewogICAgICAgICAgICAnaWQnOiBzZWxmLmlkLAogICAgICAgICAgICAnZGVzY3JpcHRpb24nOiBzZWxmLmRlc2NyaXB0aW9uLAogICAgICAgICAgICAnaW1wYWN0Jzogc2VsZi5pbXBhY3QsCiAgICAgICAgICAgICdwcm9iYWJpbGl0eSc6IHNlbGYucHJvYmFiaWxpdHksCiAgICAgICAgICAgICdtaXRpZ2F0aW9uX3N0cmF0ZWd5Jzogc2VsZi5taXRpZ2F0aW9uX3N0cmF0ZWd5LAogICAgICAgICAgICAnY3JlYXRlZF9hdCc6IHNlbGYuY3JlYXRlZF9hdC5pc29mb3JtYXQoKQogICAgICAgIH0=","code":""},{"filename":"app/routes.py","language":"python","code_b64":"ZnJvbSBmbGFzayBpbXBvcnQgQmx1ZXByaW50LCBqc29uaWZ5LCByZXF1ZXN0CmZyb20gYXBwLm1vZGVscyBpbXBvcnQgUmVxdWlyZW1lbnQsIFN0YWtlaG9sZGVyLCBQcm9qZWN0LCBSaXNrLCBkYgoKYXBpID0gQmx1ZXByaW50KCdhcGknLCBfX25hbWVfXykKCkBhcGkucm91dGUoJy9yZXF1aXJlbWVudHMnLCBtZXRob2RzPVsnR0VUJ10pCmRlZiBnZXRfcmVxdWlyZW1lbnRzKCk6CiAgICByZXF1aXJlbWVudHMgPSBSZXF1aXJlbWVudC5xdWVyeS5hbGwoKQogICAgcmV0dXJuIGpzb25pZnkoW3JlcS50b19kaWN0KCkgZm9yIHJlcSBpbiByZXF1aXJlbWVudHNdKQoKQGFwaS5yb3V0ZSgnL3JlcXVpcmVtZW50cycsIG1ldGhvZHM9WydQT1NUJ10pCmRlZiBjcmVhdGVfcmVxdWlyZW1lbnQoKToKICAgIGRhdGEgPSByZXF1ZXN0LmdldF9qc29uKCkKICAgIG5ld19yZXF1aXJlbWVudCA9IFJlcXVpcmVtZW50KAogICAgICAgIHRpdGxlPWRhdGFbJ3RpdGxlJ10sCiAgICAgICAgZGVzY3JpcHRpb249ZGF0YVsnZGVzY3JpcHRpb24nXSwKICAgICAgICBzdGFrZWhvbGRlcl9pZD1kYXRhLmdldCgnc3Rha2Vob2xkZXJfaWQnKSwKICAgICAgICBwcm9qZWN0X2lkPWRhdGEuZ2V0KCdwcm9qZWN0X2lkJykKICAgICkKICAgIGRiLnNlc3Npb24uYWRkKG5ld19yZXF1aXJlbWVudCkKICAgIGRiLnNlc3Npb24uY29tbWl0KCkKICAgIHJldHVybiBqc29uaWZ5KG5ld19yZXF1aXJlbWVudC50b19kaWN0KCkpLCAyMDEKCkBhcGkucm91dGUoJy9zdGFrZWhvbGRlcnMnLCBtZXRob2RzPVsnR0VUJ10pCmRlZiBnZXRfc3Rha2Vob2xkZXJzKCk6CiAgICBzdGFrZWhvbGRlcnMgPSBTdGFrZWhvbGRlci5xdWVyeS5hbGwoKQogICAgcmV0dXJuIGpzb25pZnkoW3N0YWtlaG9sZGVyLnRvX2RpY3QoKSBmb3Igc3Rha2Vob2xkZXIgaW4gc3Rha2Vob2xkZXJzXSkKCkBhcGkucm91dGUoJy9zdGFrZWhvbGRlcnMnLCBtZXRob2RzPVsnUE9TVCddKQpkZWYgY3JlYXRlX3N0YWtlaG9sZGVyKCk6CiAgICBkYXRhID0gcmVxdWVzdC5nZXRfanNvbigpCiAgICBuZXdfc3Rha2Vob2xkZXIgPSBTdGFrZWhvbGRlcigKICAgICAgICBuYW1lPWRhdGFbJ25hbWUnXSwKICAgICAgICByb2xlPWRhdGFbJ3JvbGUnXSwKICAgICAgICBjb250YWN0X2luZm89ZGF0YS5nZXQoJ2NvbnRhY3RfaW5mbycpCiAgICApCiAgICBkYi5zZXNzaW9uLmFkZChuZXdfc3Rha2Vob2xkZXIpCiAgICBkYi5zZXNzaW9uLmNvbW1pdCgpCiAgICByZXR1cm4ganNvbmlmeShuZXdfc3Rha2Vob2xkZXIudG9fZGljdCgpKSwgMjAxCgpAYXBpLnJvdXRlKCcvcHJvamVjdHMnLCBtZXRob2RzPVsnR0VUJ10pCmRlZiBnZXRfcHJvamVjdHMoKToKICAgIHByb2plY3RzID0gUHJvamVjdC5xdWVyeS5hbGwoKQogICAgcmV0dXJuIGpzb25pZnkoW3Byb2plY3QudG9fZGljdCgpIGZvciBwcm9qZWN0IGluIHByb2plY3RzXSkKCkBhcGkucm91dGUoJy9wcm9qZWN0cycsIG1ldGhvZHM9WydQT1NUJ10pCmRlZiBjcmVhdGVfcHJvamVjdCgpOgogICAgZGF0YSA9IHJlcXVlc3QuZ2V0X2pzb24oKQogICAgbmV3X3Byb2plY3QgPSBQcm9qZWN0KAogICAgICAgIG5hbWU9ZGF0YVsnbmFtZSddLAogICAgICAgIGRlc2NyaXB0aW9uPWRhdGEuZ2V0KCdkZXNjcmlwdGlvbicpLAogICAgICAgIHN0YXJ0X2RhdGU9ZGF0YS5nZXQoJ3N0YXJ0X2RhdGUnKSwKICAgICAgICBlbmRfZGF0ZT1kYXRhLmdldCgnZW5kX2RhdGUnKQogICAgKQogICAgZGIuc2Vzc2lvbi5hZGQobmV3X3Byb2plY3QpCiAgICBkYi5zZXNzaW9uLmNvbW1pdCgpCiAgICByZXR1cm4ganNvbmlmeShuZXdfcHJvamVjdC50b19kaWN0KCkpLCAyMDEKCkBhcGkucm91dGUoJy9yaXNrcycsIG1ldGhvZHM9WydHRVQnXSkKZGVmIGdldF9yaXNrcygpOgogICAgcmlza3MgPSBSaXNrLnF1ZXJ5LmFsbCgpCiAgICByZXR1cm4ganNvbmlmeShbcmlzay50b19kaWN0KCkgZm9yIHJpc2sgaW4gcmlza3NdKQoKQGFwaS5yb3V0ZSgnL3Jpc2tzJywgbWV0aG9kcz1bJ1BPU1QnXSkKZGVmIGNyZWF0ZV9yaXNrKCk6CiAgICBkYXRhID0gcmVxdWVzdC5nZXRfanNvbigpCiAgICBuZXdfcmlzayA9IFJpc2soCiAgICAgICAgZGVzY3JpcHRpb249ZGF0YVsnZGVzY3JpcHRpb24nXSwKICAgICAgICBpbXBhY3Q9ZGF0YVsnaW1wYWN0J10sCiAgICAgICAgcHJvYmFiaWxpdHk9ZGF0YVsncHJvYmFiaWxpdHknXSwKICAgICAgICBtaXRpZ2F0aW9uX3N0cmF0ZWd5PWRhdGEuZ2V0KCdtaXRpZ2F0aW9uX3N0cmF0ZWd5JykKICAgICkKICAgIGRiLnNlc3Npb24uYWRkKG5ld19yaXNrKQogICAgZGIuc2Vzc2lvbi5jb21taXQoKQogICAgcmV0dXJuIGpzb25pZnkobmV3X3Jpc2sudG9fZGljdCgpKSwgMjAxCgpkZWYgcmVnaXN0ZXJfcm91dGVzKGFwcCk6CiAgICBhcHAucmVnaXN0ZXJfYmx1ZXByaW50KGFwaSwgdXJsX3ByZWZpeD0nL2FwaScp","code":""},{"filename":"app/database.py","language":"python","code_b64":"ZnJvbSBmbGFza19zcWxhbGNoZW15IGltcG9ydCBTUUxBbGNoZW15CmZyb20gZmxhc2sgaW1wb3J0IGN1cnJlbnRfYXBwCgpkYiA9IFNRTEFsY2hlbXkoKQoKZGVmIGluaXRfZGIoKToKICAgIHdpdGggY3VycmVudF9hcHAuYXBwX2NvbnRleHQoKToKICAgICAgICBkYi5jcmVhdGVfYWxsKCk=","code":""},{"filename":"app/utils.py","language":"python","code_b64":"aW1wb3J0IGxvZ2dpbmcKZnJvbSBkYXRldGltZSBpbXBvcnQgZGF0ZXRpbWUKCmRlZiBjb25maWd1cmVfbG9nZ2luZygpOgogICAgbG9nZ2luZy5iYXNpY0NvbmZpZygKICAgICAgICBsZXZlbD1sb2dnaW5nLklORk8sCiAgICAgICAgZm9ybWF0PSclKGFzY3RpbWUpcyAtICUobmFtZSlzIC0gJShsZXZlbG5hbWUpcyAtICUobWVzc2FnZSlzJywKICAgICAgICBoYW5kbGVycz1bCiAgICAgICAgICAgIGxvZ2dpbmcuRmlsZUhhbmRsZXIoZidsb2dzL2FwcF97ZGF0ZXRpbWUubm93KCkuc3RyZnRpbWUoIiVZJW0lZCIpfS5sb2cnKSwKICAgICAgICAgICAgbG9nZ2luZy5TdHJlYW1IYW5kbGVyKCkKICAgICAgICBdCiAgICAp","code":""}];
+        const projectName = '**PROJECT: Requirements Analysis Platform (Python Application)**';
+        const sessionId = '28-12-0239';
+        let payloadItems = [];
+        
+        function highlightFunction(xeditId, functionName, lineStart, lineEnd) {
+            console.log(`Highlighting function: ${functionName} (lines ${lineStart}-${lineEnd})`);
+            
+            // Remove previous highlights from function list
+            document.querySelectorAll('.function-item').forEach(item => {
+                item.classList.remove('highlighted');
+            });
+            
+            // Highlight selected function
+            const selectedItem = document.querySelector(`[data-id="${xeditId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('highlighted');
+            }
+            
+            // Clear previous code highlights
+            document.querySelectorAll('.code-line').forEach(line => {
+                line.classList.remove('highlight');
+            });
+            
+            // Highlight code lines
+            for (let i = lineStart; i <= lineEnd; i++) {
+                const lineElement = document.querySelector(`.code-line[data-line="${i}"]`);
+                if (lineElement) {
+                    lineElement.classList.add('highlight');
+                    
+                    // Scroll to first highlighted line
+                    if (i === lineStart) {
+                        lineElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            }
+        }
+        
+        function addToPayload(functionName, functionType, xeditId) {
+            console.log(`Adding to payload: ${functionName} (${functionType})`);
+            
+            // Check if already in payload
+            if (payloadItems.find(item => item.id === xeditId)) {
+                alert('Function already in payload!');
+                return;
+            }
+            
+            // Add to payload
+            const payloadItem = {
+                id: xeditId,
+                name: functionName,
+                type: functionType,
+                timestamp: new Date().toLocaleTimeString()
+            };
+            
+            payloadItems.push(payloadItem);
+            updatePayloadDisplay();
+        }
+        
+        function removeFromPayload(xeditId) {
+            payloadItems = payloadItems.filter(item => item.id !== xeditId);
+            updatePayloadDisplay();
+        }
+        
+        function updatePayloadDisplay() {
+            const payloadList = document.getElementById('payload-list');
+            const sendButton = document.getElementById('send-button');
+            
+            if (payloadItems.length === 0) {
+                payloadList.innerHTML = '<div class="payload-empty">Click functions to add XEdit-Paths</div>';
+                sendButton.textContent = '🚀 Send 0 to Optimized Pipeline';
+                sendButton.disabled = true;
+                return;
+            }
+            
+            let html = '';
+            payloadItems.forEach(item => {
+                html += `
+                    <div class="payload-item">
+                        <div class="payload-item-info">
+                            <div class="xedit-id">${item.id}</div>
+                            <div class="payload-model">${item.name} (${item.type})</div>
+                        </div>
+                        <button class="remove-btn" onclick="removeFromPayload('${item.id}')" title="Remove from payload">×</button>
+                    </div>
+                `;
+            });
+            
+            payloadList.innerHTML = html;
+            sendButton.textContent = `🚀 Send ${payloadItems.length} to Optimized Pipeline`;
+            sendButton.disabled = false;
+        }
+        
+        function deployToPcock() {
+            console.log('deployToPcock() called');
+            const deployBtn = document.querySelector('.deploy-button');
+            const deployInfo = document.querySelector('.deploy-info');
+            
+            // Use session project name
+            const finalProjectName = "Requirements_Analysis_Platform";
+            
+            if (!deployBtn) {
+                alert('Deploy button not found!');
+                return;
+            }
+            
+            // Show loading state
+            deployBtn.disabled = true;
+            deployBtn.textContent = '🔄 Building...'
+            if (deployInfo) {
+                deployInfo.innerHTML = '<div style="color: #ffff00;">🔧 Preparing build...</div>';
+            }
+            
+            // Create Python deployment package
+            setTimeout(() => {
+                try {
+                    // Extract all Python code from the interface
+                    const codeContent = document.querySelector('.code-content').textContent;
+                    
+                    // Create deployment zip file download
+                    const blob = new Blob([codeContent], { type: 'text/plain' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${finalProjectName}_python_app.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    
+                    // Success state
+                    deployBtn.textContent = '✅ Downloaded!';
+                    deployBtn.style.background = 'linear-gradient(45deg, #00ff00, #00cc00)';
+                    if (deployInfo) {
+                        deployInfo.innerHTML = `
+                        <div style="color: #00ff00;">
+                            ✅ Python code downloaded!<br>
+                            📦 Extract to folder<br>
+                            🚀 Run: python main.py
+                        </div>
+                        `;
+                    }
+                    
+                    // Reset button after 3 seconds
+                    setTimeout(() => {
+                        deployBtn.textContent = '📦 Download Python App';
+                        deployBtn.style.background = 'linear-gradient(45deg, #2ecc71, #27ae60)';
+                        deployBtn.disabled = false;
+                    }, 3000);
+                    
+                } catch (error) {
+                    console.error('Deploy error:', error);
+                    deployBtn.textContent = '❌ Download Failed';
+                    deployBtn.style.background = 'linear-gradient(45deg, #ff0000, #cc0000)';
+                    if (deployInfo) {
+                        deployInfo.innerHTML = `
+                        <div style="color: #ff0000;">
+                            ❌ Download failed:<br>
+                            ${error.message}
+                        </div>
+                        `;
+                    }
+                    deployBtn.disabled = false;
+                }
+            }, 1500);
+        }
+        
+        // Decode base64 project files
+        projectFiles.forEach(file => {
+            if (file.code_b64) {
+                file.code = atob(file.code_b64);
+                delete file.code_b64;
+            }
+        });
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🦚 XEdit Enhanced Interface Loaded');
+            console.log('Project:', projectName);
+            console.log('Session:', sessionId);
+            console.log('Functions found:', Object.keys(xeditPaths).length);
+            console.log('Project files:', projectFiles.length);
+        });
+    </script>
+</body>
+</html>

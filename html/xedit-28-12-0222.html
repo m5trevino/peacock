@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦚 Peacock XEdit Interface (Optimized)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'SF Mono', monospace; background: #0d1117; color: #e6edf3; height: 100vh; overflow: hidden; }
+        .header { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .peacock-logo { font-size: 18px; font-weight: bold; color: #ff6b35; }
+        .nav-links { display: flex; gap: 16px; align-items: center; }
+        .nav-link { background: #21262d; border: 1px solid #30363d; color: #e6edf3; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .nav-link.active { background: #ff6b35; color: #0d1117; }
+        .project-info { color: #8b949e; font-size: 14px; }
+        .session-info { background: rgba(0, 255, 136, 0.1); border: 1px solid #00ff88; border-radius: 6px; padding: 4px 8px; font-size: 12px; color: #00ff88; }
+        .optimization-badge { background: rgba(255, 107, 53, 0.1); border: 1px solid #ff6b35; border-radius: 6px; padding: 4px 8px; font-size: 12px; color: #ff6b35; margin-left: 8px; }
+        .main-container { display: flex; height: calc(100vh - 60px); }
+        .left-panel { width: 320px; background: #161b22; border-right: 1px solid #30363d; display: flex; flex-direction: column; }
+        .panel-header { background: #21262d; padding: 12px 16px; border-bottom: 1px solid #30363d; font-weight: 600; font-size: 13px; color: #7c3aed; display: flex; justify-content: space-between; align-items: center; }
+        .optimization-info { font-size: 11px; color: #ff6b35; }
+        .functions-list { flex: 1; overflow-y: auto; padding: 8px; }
+        .function-item { background: #21262d; border: 1px solid #30363d; border-radius: 6px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; position: relative; }
+        .function-item:hover { border-color: #ff6b35; background: #2d333b; transform: translateX(3px); }
+        .function-item.selected { border-color: #ff6b35; background: #2d333b; box-shadow: 0 0 0 1px #ff6b35; }
+        .function-info { display: flex; align-items: center; gap: 8px; }
+        .function-name { font-weight: 600; color: #79c0ff; }
+        .function-type { background: #30363d; color: #8b949e; padding: 2px 6px; border-radius: 3px; font-size: 10px; text-transform: uppercase; }
+        .model-indicator { background: #ff6b35; color: #0d1117; padding: 2px 4px; border-radius: 3px; font-size: 10px; margin-left: auto; }
+        .add-btn { position: absolute; top: 8px; right: 8px; background: #238636; border: none; color: white; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 14px; opacity: 0; transition: opacity 0.2s; }
+        .function-item:hover .add-btn { opacity: 1; }
+        .middle-panel { width: 340px; background: #161b22; border-right: 1px solid #30363d; display: flex; flex-direction: column; }
+        .payload-header { background: #238636; color: white; padding: 12px 16px; font-weight: 600; font-size: 14px; text-align: center; }
+        .payload-container { flex: 1; padding: 16px; display: flex; flex-direction: column; }
+        .payload-list { flex: 1; background: #21262d; border: 1px solid #30363d; border-radius: 8px; padding: 16px; margin-bottom: 16px; overflow-y: auto; min-height: 200px; }
+        .payload-empty { color: #6e7681; text-align: center; font-style: italic; margin-top: 50px; }
+        .payload-item { background: #2d333b; border: 1px solid #30363d; border-radius: 6px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .payload-item-info { display: flex; flex-direction: column; gap: 4px; }
+        .xedit-id { font-family: 'SF Mono', monospace; background: #30363d; color: #ff6b35; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .payload-model { font-size: 10px; color: #8b949e; }
+        .remove-btn { background: #da3633; border: none; color: white; width: 20px; height: 20px; border-radius: 3px; cursor: pointer; font-size: 12px; }
+        .strategy-overview { background: rgba(255, 107, 53, 0.1); border: 1px solid #ff6b35; border-radius: 8px; padding: 12px; margin-bottom: 16px; }
+        .strategy-title { color: #ff6b35; font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+        .strategy-models { font-size: 10px; color: #8b949e; line-height: 1.4; }
+        .send-button { width: 100%; background: #238636; border: none; color: white; padding: 15px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-bottom: 15px; }
+        .send-button:disabled { background: #30363d; color: #8b949e; cursor: not-allowed; }
+        .deploy-section { padding: 15px; background: rgba(46, 204, 113, 0.1); border: 1px solid #2ecc71; border-radius: 8px; }
+        .deploy-title { color: #2ecc71; margin-bottom: 10px; font-weight: 600; }
+        .deploy-info { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 12px; color: #8b949e; }
+        .deploy-button { width: 100%; padding: 12px; background: linear-gradient(45deg, #2ecc71, #27ae60); border: none; border-radius: 6px; color: white; font-weight: 600; cursor: pointer; }
+        .right-panel { flex: 1; background: #0d1117; display: flex; flex-direction: column; }
+        .code-header { background: #21262d; padding: 12px 16px; border-bottom: 1px solid #30363d; font-weight: 600; font-size: 13px; color: #f0883e; display: flex; justify-content: space-between; align-items: center; }
+        .model-status { font-size: 11px; color: #ff6b35; }
+        .code-container { flex: 1; overflow: auto; padding: 16px; }
+        .code-content { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 16px; font-family: 'SF Mono', monospace; font-size: 13px; line-height: 1.6; }
+        .code-line { display: flex; min-height: 20px; }
+        .code-line.highlighted { background: #2d333b; border-left: 3px solid #ff6b35; padding-left: 13px; }
+        .line-number { color: #6e7681; user-select: none; margin-right: 16px; min-width: 30px; text-align: right; }
+        .line-content { color: #e6edf3; flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="peacock-logo">🦚 Peacock XEdit Interface</div>
+        <div class="nav-links">
+            <div class="nav-link active">📝 XEdit</div>
+            <div class="nav-link">🤖 Models</div>
+            <div class="nav-link">💬 Senior Dev</div>
+        </div>
+        <div class="project-info">
+            Project: Enterprise Data Platform • Session: <span class="session-info">28-12-0222</span>
+            <span class="optimization-badge">Multi-Model</span>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <div class="panel-header">
+                📋 Functions & Classes
+                <span class="optimization-info">Optimized</span>
+            </div>
+            <div class="functions-list">
+                
+            <div class="function-item" onclick="highlightFunction('7x001', 'generateToken', 3, 13)" data-id="7x001">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">generateToken</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('generateToken', 'function', '7x001')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x002', 'verifyToken', 9, 13)" data-id="7x002">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">verifyToken</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('verifyToken', 'function', '7x002')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x003', 'div#root', 9, 11)" data-id="7x003">
+                <div class="function-info">
+                    <span class="function-icon">🏗️</span>
+                    <span class="function-name">div#root</span>
+                    <span class="function-type">element</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('div#root', 'element', '7x003')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x004', 'App', 8, 21)" data-id="7x004">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">App</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('App', 'function', '7x004')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x005', 'Login', 5, 15)" data-id="7x005">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">Login</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('Login', 'function', '7x005')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x006', 'Register', 5, 15)" data-id="7x006">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">Register</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('Register', 'function', '7x006')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x007', 'Dashboard', 4, 14)" data-id="7x007">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">Dashboard</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('Dashboard', 'function', '7x007')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x008', 'DataList', 4, 14)" data-id="7x008">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">DataList</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('DataList', 'function', '7x008')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x009', 'login', 3, 13)" data-id="7x009">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">login</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('login', 'function', '7x009')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x010', 'register', 12, 19)" data-id="7x010">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">register</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('register', 'function', '7x010')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x011', 'userReducer', 6, 16)" data-id="7x011">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">userReducer</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('userReducer', 'function', '7x011')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x012', 'body', 1, 11)" data-id="7x012">
+                <div class="function-info">
+                    <span class="function-icon">🏗️</span>
+                    <span class="function-name">body</span>
+                    <span class="function-type">selector</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('body', 'selector', '7x012')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x013', 'form', 7, 17)" data-id="7x013">
+                <div class="function-info">
+                    <span class="function-icon">🏗️</span>
+                    <span class="function-name">form</span>
+                    <span class="function-type">selector</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('form', 'selector', '7x013')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x014', 'button', 23, 32)" data-id="7x014">
+                <div class="function-info">
+                    <span class="function-icon">🏗️</span>
+                    <span class="function-name">button</span>
+                    <span class="function-type">selector</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('button', 'selector', '7x014')" title="Add to payload">+</button>
+            </div>
+            
+            </div>
+        </div>
+
+        <div class="middle-panel">
+            <div class="payload-header">Optimized Payload</div>
+            <div class="payload-container">
+                <div class="strategy-overview">
+                    <div class="strategy-title">🧠 Model Strategy</div>
+                    <div class="strategy-models">
+                        <strong>Code Analysis:</strong> llama3-8b-8192<br>
+                        <strong>Structure:</strong> gemma2-9b-it<br>
+                        <strong>Speed:</strong> llama3-8b-8192
+                    </div>
+                </div>
+                
+                <div class="payload-list" id="payload-list">
+                    <div class="payload-empty">Click functions to add XEdit-Paths</div>
+                </div>
+                <button class="send-button" id="send-button" disabled>
+                    🚀 Send 0 to Optimized Pipeline
+                </button>
+                
+                <div class="deploy-section">
+                    <div class="deploy-title">🚀 Deploy & Download</div>
+                    <div class="deploy-info">
+                        <strong>Project:</strong> Enterprise Data Platform<br>
+                        <strong>Session:</strong> 28-12-0222<br>
+                        <strong>Strategy:</strong> Multi-Model Optimized
+                    </div>
+                    <button class="deploy-button" onclick="deployToPcock()">📦 Download Optimized Setup</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="code-header">
+                📁 Enterprise Data Platform: Generated Code
+                <span class="model-status">Multi-Model Ready</span>
+            </div>
+            <div class="code-container">
+                <div class="code-content">
+<div class="code-line" data-line="1"><span class="line-number">  1</span><span class="line-content">{</span></div>
+<div class="code-line" data-line="2"><span class="line-number">  2</span><span class="line-content">  "name": "enterprise-data-platform",</span></div>
+<div class="code-line" data-line="3"><span class="line-number">  3</span><span class="line-content">  "version": "1.0.0",</span></div>
+<div class="code-line" data-line="4"><span class="line-number">  4</span><span class="line-content">  "description": "Enterprise Data Management Platform",</span></div>
+<div class="code-line" data-line="5"><span class="line-number">  5</span><span class="line-content">  "scripts": {</span></div>
+<div class="code-line" data-line="6"><span class="line-number">  6</span><span class="line-content">    "start": "node backend/server.js",</span></div>
+<div class="code-line" data-line="7"><span class="line-number">  7</span><span class="line-content">    "dev": "nodemon backend/server.js",</span></div>
+<div class="code-line" data-line="8"><span class="line-number">  8</span><span class="line-content">    "build": "cd frontend &amp;&amp; npm run build",</span></div>
+<div class="code-line" data-line="9"><span class="line-number">  9</span><span class="line-content">    "test": "jest",</span></div>
+<div class="code-line" data-line="10"><span class="line-number"> 10</span><span class="line-content">    "test:e2e": "cd frontend &amp;&amp; cypress run",</span></div>
+<div class="code-line" data-line="11"><span class="line-number"> 11</span><span class="line-content">    "db:migrate": "npx sequelize-cli db:migrate",</span></div>
+<div class="code-line" data-line="12"><span class="line-number"> 12</span><span class="line-content">    "db:seed": "npx sequelize-cli db:seed:all"</span></div>
+<div class="code-line" data-line="13"><span class="line-number"> 13</span><span class="line-content">  },</span></div>
+<div class="code-line" data-line="14"><span class="line-number"> 14</span><span class="line-content">  "dependencies": {</span></div>
+<div class="code-line" data-line="15"><span class="line-number"> 15</span><span class="line-content">    "express": "^4.17.1",</span></div>
+<div class="code-line" data-line="16"><span class="line-number"> 16</span><span class="line-content">    "pg": "^8.7.3",</span></div>
+<div class="code-line" data-line="17"><span class="line-number"> 17</span><span class="line-content">    "sequelize": "^6.21.4",</span></div>
+<div class="code-line" data-line="18"><span class="line-number"> 18</span><span class="line-content">    "jsonwebtoken": "^8.5.1",</span></div>
+<div class="code-line" data-line="19"><span class="line-number"> 19</span><span class="line-content">    "passport": "^0.6.0",</span></div>
+<div class="code-line" data-line="20"><span class="line-number"> 20</span><span class="line-content">    "passport-jwt": "^4.0.0",</span></div>
+<div class="code-line" data-line="21"><span class="line-number"> 21</span><span class="line-content">    "bcryptjs": "^2.4.3",</span></div>
+<div class="code-line" data-line="22"><span class="line-number"> 22</span><span class="line-content">    "dotenv": "^16.0.3",</span></div>
+<div class="code-line" data-line="23"><span class="line-number"> 23</span><span class="line-content">    "cors": "^2.8.5",</span></div>
+<div class="code-line" data-line="24"><span class="line-number"> 24</span><span class="line-content">    "body-parser": "^1.20.1",</span></div>
+<div class="code-line" data-line="25"><span class="line-number"> 25</span><span class="line-content">    "axios": "^1.4.0"</span></div>
+<div class="code-line" data-line="26"><span class="line-number"> 26</span><span class="line-content">  },</span></div>
+<div class="code-line" data-line="27"><span class="line-number"> 27</span><span class="line-content">  "devDependencies": {</span></div>
+<div class="code-line" data-line="28"><span class="line-number"> 28</span><span class="line-content">    "jest": "^29.7.0",</span></div>
+<div class="code-line" data-line="29"><span class="line-number"> 29</span><span class="line-content">    "supertest": "^6.3.3",</span></div>
+<div class="code-line" data-line="30"><span class="line-number"> 30</span><span class="line-content">    "nodemon": "^2.0.19",</span></div>
+<div class="code-line" data-line="31"><span class="line-number"> 31</span><span class="line-content">    "eslint": "^8.50.0",</span></div>
+<div class="code-line" data-line="32"><span class="line-number"> 32</span><span class="line-content">    "eslint-config-airbnb": "^20.0.0",</span></div>
+<div class="code-line" data-line="33"><span class="line-number"> 33</span><span class="line-content">    "eslint-plugin-react": "^7.32.2",</span></div>
+<div class="code-line" data-line="34"><span class="line-number"> 34</span><span class="line-content">    "sequelize-cli": "^6.6.0"</span></div>
+<div class="code-line" data-line="35"><span class="line-number"> 35</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="36"><span class="line-number"> 36</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="37"><span class="line-number"> 37</span><span class="line-content">DB_HOST=localhost</span></div>
+<div class="code-line" data-line="38"><span class="line-number"> 38</span><span class="line-content">DB_USER=postgres</span></div>
+<div class="code-line" data-line="39"><span class="line-number"> 39</span><span class="line-content">DB_PASSWORD=yourpassword</span></div>
+<div class="code-line" data-line="40"><span class="line-number"> 40</span><span class="line-content">DB_NAME=edmp</span></div>
+<div class="code-line" data-line="41"><span class="line-number"> 41</span><span class="line-content">DB_DIALECT=postgres</span></div>
+<div class="code-line" data-line="42"><span class="line-number"> 42</span><span class="line-content">JWT_SECRET=your_jwt_secret</span></div>
+<div class="code-line" data-line="43"><span class="line-number"> 43</span><span class="line-content">PORT=3001</span></div>
+<div class="code-line" data-line="44"><span class="line-number"> 44</span><span class="line-content">require('dotenv').config();</span></div>
+<div class="code-line" data-line="45"><span class="line-number"> 45</span><span class="line-content">const { Sequelize } = require('sequelize');</span></div>
+<div class="code-line" data-line="46"><span class="line-number"> 46</span><span class="line-content"></span></div>
+<div class="code-line" data-line="47"><span class="line-number"> 47</span><span class="line-content">const sequelize = new Sequelize(</span></div>
+<div class="code-line" data-line="48"><span class="line-number"> 48</span><span class="line-content">  process.env.DB_NAME,</span></div>
+<div class="code-line" data-line="49"><span class="line-number"> 49</span><span class="line-content">  process.env.DB_USER,</span></div>
+<div class="code-line" data-line="50"><span class="line-number"> 50</span><span class="line-content">  process.env.DB_PASSWORD,</span></div>
+<div class="code-line" data-line="51"><span class="line-number"> 51</span><span class="line-content">  {</span></div>
+<div class="code-line" data-line="52"><span class="line-number"> 52</span><span class="line-content">    host: process.env.DB_HOST,</span></div>
+<div class="code-line" data-line="53"><span class="line-number"> 53</span><span class="line-content">    dialect: process.env.DB_DIALECT,</span></div>
+<div class="code-line" data-line="54"><span class="line-number"> 54</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="55"><span class="line-number"> 55</span><span class="line-content">);</span></div>
+<div class="code-line" data-line="56"><span class="line-number"> 56</span><span class="line-content"></span></div>
+<div class="code-line" data-line="57"><span class="line-number"> 57</span><span class="line-content">module.exports = sequelize;</span></div>
+<div class="code-line" data-line="58"><span class="line-number"> 58</span><span class="line-content">const jwt = require('jsonwebtoken');</span></div>
+<div class="code-line" data-line="59"><span class="line-number"> 59</span><span class="line-content"></span></div>
+<div class="code-line" data-line="60"><span class="line-number"> 60</span><span class="line-content">const generateToken = (user) =&gt; {</span></div>
+<div class="code-line" data-line="61"><span class="line-number"> 61</span><span class="line-content">  return jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET, {</span></div>
+<div class="code-line" data-line="62"><span class="line-number"> 62</span><span class="line-content">    expiresIn: '7d',</span></div>
+<div class="code-line" data-line="63"><span class="line-number"> 63</span><span class="line-content">  });</span></div>
+<div class="code-line" data-line="64"><span class="line-number"> 64</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="65"><span class="line-number"> 65</span><span class="line-content"></span></div>
+<div class="code-line" data-line="66"><span class="line-number"> 66</span><span class="line-content">const verifyToken = (token) =&gt; {</span></div>
+<div class="code-line" data-line="67"><span class="line-number"> 67</span><span class="line-content">  return jwt.verify(token, process.env.JWT_SECRET);</span></div>
+<div class="code-line" data-line="68"><span class="line-number"> 68</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="69"><span class="line-number"> 69</span><span class="line-content"></span></div>
+<div class="code-line" data-line="70"><span class="line-number"> 70</span><span class="line-content">module.exports = { generateToken, verifyToken };</span></div>
+<div class="code-line" data-line="71"><span class="line-number"> 71</span><span class="line-content">const { DataTypes } = require('sequelize');</span></div>
+<div class="code-line" data-line="72"><span class="line-number"> 72</span><span class="line-content">const sequelize = require('./db');</span></div>
+<div class="code-line" data-line="73"><span class="line-number"> 73</span><span class="line-content"></span></div>
+<div class="code-line" data-line="74"><span class="line-number"> 74</span><span class="line-content">const User = sequelize.define('User', {</span></div>
+<div class="code-line" data-line="75"><span class="line-number"> 75</span><span class="line-content">  id: {</span></div>
+<div class="code-line" data-line="76"><span class="line-number"> 76</span><span class="line-content">    type: DataTypes.INTEGER,</span></div>
+<div class="code-line" data-line="77"><span class="line-number"> 77</span><span class="line-content">    primaryKey: true,</span></div>
+<div class="code-line" data-line="78"><span class="line-number"> 78</span><span class="line-content">    autoIncrement: true,</span></div>
+<div class="code-line" data-line="79"><span class="line-number"> 79</span><span class="line-content">  },</span></div>
+<div class="code-line" data-line="80"><span class="line-number"> 80</span><span class="line-content">  email: {</span></div>
+<div class="code-line" data-line="81"><span class="line-number"> 81</span><span class="line-content">    type: DataTypes.STRING,</span></div>
+<div class="code-line" data-line="82"><span class="line-number"> 82</span><span class="line-content">    allowNull: false,</span></div>
+<div class="code-line" data-line="83"><span class="line-number"> 83</span><span class="line-content">    unique: true,</span></div>
+<div class="code-line" data-line="84"><span class="line-number"> 84</span><span class="line-content">  },</span></div>
+<div class="code-line" data-line="85"><span class="line-number"> 85</span><span class="line-content">  password: {</span></div>
+<div class="code-line" data-line="86"><span class="line-number"> 86</span><span class="line-content">    type: DataTypes.STRING,</span></div>
+<div class="code-line" data-line="87"><span class="line-number"> 87</span><span class="line-content">    allowNull: false,</span></div>
+<div class="code-line" data-line="88"><span class="line-number"> 88</span><span class="line-content">  },</span></div>
+<div class="code-line" data-line="89"><span class="line-number"> 89</span><span class="line-content">  role: {</span></div>
+<div class="code-line" data-line="90"><span class="line-number"> 90</span><span class="line-content">    type: DataTypes.ENUM('admin', 'user'),</span></div>
+<div class="code-line" data-line="91"><span class="line-number"> 91</span><span class="line-content">    defaultValue: 'user',</span></div>
+<div class="code-line" data-line="92"><span class="line-number"> 92</span><span class="line-content">  },</span></div>
+<div class="code-line" data-line="93"><span class="line-number"> 93</span><span class="line-content">});</span></div>
+<div class="code-line" data-line="94"><span class="line-number"> 94</span><span class="line-content"></span></div>
+<div class="code-line" data-line="95"><span class="line-number"> 95</span><span class="line-content">module.exports = User;</span></div>
+<div class="code-line" data-line="96"><span class="line-number"> 96</span><span class="line-content">const { DataTypes } = require('sequelize');</span></div>
+<div class="code-line" data-line="97"><span class="line-number"> 97</span><span class="line-content">const sequelize = require('./db');</span></div>
+<div class="code-line" data-line="98"><span class="line-number"> 98</span><span class="line-content"></span></div>
+<div class="code-line" data-line="99"><span class="line-number"> 99</span><span class="line-content">const Data = sequelize.define('Data', {</span></div>
+<div class="code-line" data-line="100"><span class="line-number">100</span><span class="line-content">  id: {</span></div>
+<div class="code-line" data-line="101"><span class="line-number">101</span><span class="line-content">    type: DataTypes.INTEGER,</span></div>
+<div class="code-line" data-line="102"><span class="line-number">102</span><span class="line-content">    primaryKey: true,</span></div>
+<div class="code-line" data-line="103"><span class="line-number">103</span><span class="line-content">    autoIncrement: true,</span></div>
+<div class="code-line" data-line="104"><span class="line-number">104</span><span class="line-content">  },</span></div>
+<div class="code-line" data-line="105"><span class="line-number">105</span><span class="line-content">  title: {</span></div>
+<div class="code-line" data-line="106"><span class="line-number">106</span><span class="line-content">    type: DataTypes.STRING,</span></div>
+<div class="code-line" data-line="107"><span class="line-number">107</span><span class="line-content">    allowNull: false,</span></div>
+<div class="code-line" data-line="108"><span class="line-number">108</span><span class="line-content">  },</span></div>
+<div class="code-line" data-line="109"><span class="line-number">109</span><span class="line-content">  content: {</span></div>
+<div class="code-line" data-line="110"><span class="line-number">110</span><span class="line-content">    type: DataTypes.TEXT,</span></div>
+<div class="code-line" data-line="111"><span class="line-number">111</span><span class="line-content">    allowNull: false,</span></div>
+<div class="code-line" data-line="112"><span class="line-number">112</span><span class="line-content">  },</span></div>
+<div class="code-line" data-line="113"><span class="line-number">113</span><span class="line-content">  userId: {</span></div>
+<div class="code-line" data-line="114"><span class="line-number">114</span><span class="line-content">    type: DataTypes.INTEGER,</span></div>
+<div class="code-line" data-line="115"><span class="line-number">115</span><span class="line-content">    references: {</span></div>
+<div class="code-line" data-line="116"><span class="line-number">116</span><span class="line-content">      model: 'Users',</span></div>
+<div class="code-line" data-line="117"><span class="line-number">117</span><span class="line-content">      key: 'id',</span></div>
+<div class="code-line" data-line="118"><span class="line-number">118</span><span class="line-content">    },</span></div>
+<div class="code-line" data-line="119"><span class="line-number">119</span><span class="line-content">  },</span></div>
+<div class="code-line" data-line="120"><span class="line-number">120</span><span class="line-content">});</span></div>
+<div class="code-line" data-line="121"><span class="line-number">121</span><span class="line-content"></span></div>
+<div class="code-line" data-line="122"><span class="line-number">122</span><span class="line-content">module.exports = Data;</span></div>
+<div class="code-line" data-line="123"><span class="line-number">123</span><span class="line-content">const jwt = require('jsonwebtoken');</span></div>
+<div class="code-line" data-line="124"><span class="line-number">124</span><span class="line-content">const { User } = require('../models/user');</span></div>
+<div class="code-line" data-line="125"><span class="line-number">125</span><span class="line-content">const { generateToken } = require('../config/auth');</span></div>
+<div class="code-line" data-line="126"><span class="line-number">126</span><span class="line-content"></span></div>
+<div class="code-line" data-line="127"><span class="line-number">127</span><span class="line-content">const auth = async (req, res, next) =&gt; {</span></div>
+<div class="code-line" data-line="128"><span class="line-number">128</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="129"><span class="line-number">129</span><span class="line-content">    const token = req.header('Authorization').replace('Bearer ', '');</span></div>
+<div class="code-line" data-line="130"><span class="line-number">130</span><span class="line-content">    const decoded = jwt.verify(token, process.env.JWT_SECRET);</span></div>
+<div class="code-line" data-line="131"><span class="line-number">131</span><span class="line-content">    const user = await User.findByPk(decoded.id);</span></div>
+<div class="code-line" data-line="132"><span class="line-number">132</span><span class="line-content">    if (!user) {</span></div>
+<div class="code-line" data-line="133"><span class="line-number">133</span><span class="line-content">      throw new Error('User not found');</span></div>
+<div class="code-line" data-line="134"><span class="line-number">134</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="135"><span class="line-number">135</span><span class="line-content">    req.user = user;</span></div>
+<div class="code-line" data-line="136"><span class="line-number">136</span><span class="line-content">    next();</span></div>
+<div class="code-line" data-line="137"><span class="line-number">137</span><span class="line-content">  } catch (err) {</span></div>
+<div class="code-line" data-line="138"><span class="line-number">138</span><span class="line-content">    res.status(401).json({ error: 'Authentication required' });</span></div>
+<div class="code-line" data-line="139"><span class="line-number">139</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="140"><span class="line-number">140</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="141"><span class="line-number">141</span><span class="line-content"></span></div>
+<div class="code-line" data-line="142"><span class="line-number">142</span><span class="line-content">module.exports = { auth };</span></div>
+<div class="code-line" data-line="143"><span class="line-number">143</span><span class="line-content">const bcrypt = require('bcryptjs');</span></div>
+<div class="code-line" data-line="144"><span class="line-number">144</span><span class="line-content">const { User } = require('../models/user');</span></div>
+<div class="code-line" data-line="145"><span class="line-number">145</span><span class="line-content">const { generateToken } = require('../config/auth');</span></div>
+<div class="code-line" data-line="146"><span class="line-number">146</span><span class="line-content"></span></div>
+<div class="code-line" data-line="147"><span class="line-number">147</span><span class="line-content">const register = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="148"><span class="line-number">148</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="149"><span class="line-number">149</span><span class="line-content">    const { email, password, role } = req.body;</span></div>
+<div class="code-line" data-line="150"><span class="line-number">150</span><span class="line-content">    const hashedPassword = await bcrypt.hash(password, 10);</span></div>
+<div class="code-line" data-line="151"><span class="line-number">151</span><span class="line-content">    const user = await User.create({ email, password: hashedPassword, role });</span></div>
+<div class="code-line" data-line="152"><span class="line-number">152</span><span class="line-content">    const token = generateToken(user);</span></div>
+<div class="code-line" data-line="153"><span class="line-number">153</span><span class="line-content">    res.status(201).json({ user, token });</span></div>
+<div class="code-line" data-line="154"><span class="line-number">154</span><span class="line-content">  } catch (err) {</span></div>
+<div class="code-line" data-line="155"><span class="line-number">155</span><span class="line-content">    res.status(400).json({ error: err.message });</span></div>
+<div class="code-line" data-line="156"><span class="line-number">156</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="157"><span class="line-number">157</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="158"><span class="line-number">158</span><span class="line-content"></span></div>
+<div class="code-line" data-line="159"><span class="line-number">159</span><span class="line-content">const login = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="160"><span class="line-number">160</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="161"><span class="line-number">161</span><span class="line-content">    const { email, password } = req.body;</span></div>
+<div class="code-line" data-line="162"><span class="line-number">162</span><span class="line-content">    const user = await User.findOne({ where: { email } });</span></div>
+<div class="code-line" data-line="163"><span class="line-number">163</span><span class="line-content">    if (!user || !(await bcrypt.compare(password, user.password))) {</span></div>
+<div class="code-line" data-line="164"><span class="line-number">164</span><span class="line-content">      return res.status(401).json({ error: 'Invalid credentials' });</span></div>
+<div class="code-line" data-line="165"><span class="line-number">165</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="166"><span class="line-number">166</span><span class="line-content">    const token = generateToken(user);</span></div>
+<div class="code-line" data-line="167"><span class="line-number">167</span><span class="line-content">    res.json({ user, token });</span></div>
+<div class="code-line" data-line="168"><span class="line-number">168</span><span class="line-content">  } catch (err) {</span></div>
+<div class="code-line" data-line="169"><span class="line-number">169</span><span class="line-content">    res.status(400).json({ error: err.message });</span></div>
+<div class="code-line" data-line="170"><span class="line-number">170</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="171"><span class="line-number">171</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="172"><span class="line-number">172</span><span class="line-content"></span></div>
+<div class="code-line" data-line="173"><span class="line-number">173</span><span class="line-content">module.exports = { register, login };</span></div>
+<div class="code-line" data-line="174"><span class="line-number">174</span><span class="line-content">const { Data } = require('../models/data');</span></div>
+<div class="code-line" data-line="175"><span class="line-number">175</span><span class="line-content">const { auth } = require('../middleware/authMiddleware');</span></div>
+<div class="code-line" data-line="176"><span class="line-number">176</span><span class="line-content"></span></div>
+<div class="code-line" data-line="177"><span class="line-number">177</span><span class="line-content">const createData = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="178"><span class="line-number">178</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="179"><span class="line-number">179</span><span class="line-content">    const { title, content } = req.body;</span></div>
+<div class="code-line" data-line="180"><span class="line-number">180</span><span class="line-content">    const data = await Data.create({ title, content, userId: req.user.id });</span></div>
+<div class="code-line" data-line="181"><span class="line-number">181</span><span class="line-content">    res.status(201).json(data);</span></div>
+<div class="code-line" data-line="182"><span class="line-number">182</span><span class="line-content">  } catch (err) {</span></div>
+<div class="code-line" data-line="183"><span class="line-number">183</span><span class="line-content">    res.status(400).json({ error: err.message });</span></div>
+<div class="code-line" data-line="184"><span class="line-number">184</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="185"><span class="line-number">185</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="186"><span class="line-number">186</span><span class="line-content"></span></div>
+<div class="code-line" data-line="187"><span class="line-number">187</span><span class="line-content">const getAllData = async (req, res) =&gt; {</span></div>
+<div class="code-line" data-line="188"><span class="line-number">188</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="189"><span class="line-number">189</span><span class="line-content">    const data = await Data.findAll({ where: { userId: req.user.id } });</span></div>
+<div class="code-line" data-line="190"><span class="line-number">190</span><span class="line-content">    res.json(data);</span></div>
+<div class="code-line" data-line="191"><span class="line-number">191</span><span class="line-content">  } catch (err) {</span></div>
+<div class="code-line" data-line="192"><span class="line-number">192</span><span class="line-content">    res.status(400).json({ error: err.message });</span></div>
+<div class="code-line" data-line="193"><span class="line-number">193</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="194"><span class="line-number">194</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="195"><span class="line-number">195</span><span class="line-content"></span></div>
+<div class="code-line" data-line="196"><span class="line-number">196</span><span class="line-content">module.exports = { createData, getAllData };</span></div>
+<div class="code-line" data-line="197"><span class="line-number">197</span><span class="line-content">const express = require('express');</span></div>
+<div class="code-line" data-line="198"><span class="line-number">198</span><span class="line-content">const { register, login } = require('../controllers/userController');</span></div>
+<div class="code-line" data-line="199"><span class="line-number">199</span><span class="line-content"></span></div>
+<div class="code-line" data-line="200"><span class="line-number">200</span><span class="line-content">const router = express.Router();</span></div>
+<div class="code-line" data-line="201"><span class="line-number">201</span><span class="line-content"></span></div>
+<div class="code-line" data-line="202"><span class="line-number">202</span><span class="line-content">router.post('/register', register);</span></div>
+<div class="code-line" data-line="203"><span class="line-number">203</span><span class="line-content">router.post('/login', login);</span></div>
+<div class="code-line" data-line="204"><span class="line-number">204</span><span class="line-content"></span></div>
+<div class="code-line" data-line="205"><span class="line-number">205</span><span class="line-content">module.exports = router;</span></div>
+<div class="code-line" data-line="206"><span class="line-number">206</span><span class="line-content">const express = require('express');</span></div>
+<div class="code-line" data-line="207"><span class="line-number">207</span><span class="line-content">const { createData, getAllData } = require('../controllers/dataController');</span></div>
+<div class="code-line" data-line="208"><span class="line-number">208</span><span class="line-content">const { auth } = require('../middleware/authMiddleware');</span></div>
+<div class="code-line" data-line="209"><span class="line-number">209</span><span class="line-content"></span></div>
+<div class="code-line" data-line="210"><span class="line-number">210</span><span class="line-content">const router = express.Router();</span></div>
+<div class="code-line" data-line="211"><span class="line-number">211</span><span class="line-content"></span></div>
+<div class="code-line" data-line="212"><span class="line-number">212</span><span class="line-content">router.use(auth);</span></div>
+<div class="code-line" data-line="213"><span class="line-number">213</span><span class="line-content"></span></div>
+<div class="code-line" data-line="214"><span class="line-number">214</span><span class="line-content">router.post('/data', createData);</span></div>
+<div class="code-line" data-line="215"><span class="line-number">215</span><span class="line-content">router.get('/data', getAllData);</span></div>
+<div class="code-line" data-line="216"><span class="line-number">216</span><span class="line-content"></span></div>
+<div class="code-line" data-line="217"><span class="line-number">217</span><span class="line-content">module.exports = router;</span></div>
+<div class="code-line" data-line="218"><span class="line-number">218</span><span class="line-content">const express = require('express');</span></div>
+<div class="code-line" data-line="219"><span class="line-number">219</span><span class="line-content">const cors = require('cors');</span></div>
+<div class="code-line" data-line="220"><span class="line-number">220</span><span class="line-content">const bodyParser = require('body-parser');</span></div>
+<div class="code-line" data-line="221"><span class="line-number">221</span><span class="line-content">const userRoutes = require('./routes/userRoutes');</span></div>
+<div class="code-line" data-line="222"><span class="line-number">222</span><span class="line-content">const dataRoutes = require('./routes/dataRoutes');</span></div>
+<div class="code-line" data-line="223"><span class="line-number">223</span><span class="line-content"></span></div>
+<div class="code-line" data-line="224"><span class="line-number">224</span><span class="line-content">const app = express();</span></div>
+<div class="code-line" data-line="225"><span class="line-number">225</span><span class="line-content"></span></div>
+<div class="code-line" data-line="226"><span class="line-number">226</span><span class="line-content">app.use(cors());</span></div>
+<div class="code-line" data-line="227"><span class="line-number">227</span><span class="line-content">app.use(bodyParser.json());</span></div>
+<div class="code-line" data-line="228"><span class="line-number">228</span><span class="line-content"></span></div>
+<div class="code-line" data-line="229"><span class="line-number">229</span><span class="line-content">app.use('/api/v1', userRoutes);</span></div>
+<div class="code-line" data-line="230"><span class="line-number">230</span><span class="line-content">app.use('/api/v1', dataRoutes);</span></div>
+<div class="code-line" data-line="231"><span class="line-number">231</span><span class="line-content"></span></div>
+<div class="code-line" data-line="232"><span class="line-number">232</span><span class="line-content">module.exports = app;</span></div>
+<div class="code-line" data-line="233"><span class="line-number">233</span><span class="line-content">const express = require('express');</span></div>
+<div class="code-line" data-line="234"><span class="line-number">234</span><span class="line-content">const app = require('./app');</span></div>
+<div class="code-line" data-line="235"><span class="line-number">235</span><span class="line-content">const sequelize = require('./config/db');</span></div>
+<div class="code-line" data-line="236"><span class="line-number">236</span><span class="line-content">const { PORT } = require('./config/db');</span></div>
+<div class="code-line" data-line="237"><span class="line-number">237</span><span class="line-content"></span></div>
+<div class="code-line" data-line="238"><span class="line-number">238</span><span class="line-content">const startServer = async () =&gt; {</span></div>
+<div class="code-line" data-line="239"><span class="line-number">239</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="240"><span class="line-number">240</span><span class="line-content">    await sequelize.authenticate();</span></div>
+<div class="code-line" data-line="241"><span class="line-number">241</span><span class="line-content">    await sequelize.sync();</span></div>
+<div class="code-line" data-line="242"><span class="line-number">242</span><span class="line-content">    app.listen(PORT, () =&gt; {</span></div>
+<div class="code-line" data-line="243"><span class="line-number">243</span><span class="line-content">      console.log(`Server running on port ${PORT}`);</span></div>
+<div class="code-line" data-line="244"><span class="line-number">244</span><span class="line-content">    });</span></div>
+<div class="code-line" data-line="245"><span class="line-number">245</span><span class="line-content">  } catch (err) {</span></div>
+<div class="code-line" data-line="246"><span class="line-number">246</span><span class="line-content">    console.error('Unable to connect to the database:', err);</span></div>
+<div class="code-line" data-line="247"><span class="line-number">247</span><span class="line-content">    process.exit(1);</span></div>
+<div class="code-line" data-line="248"><span class="line-number">248</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="249"><span class="line-number">249</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="250"><span class="line-number">250</span><span class="line-content"></span></div>
+<div class="code-line" data-line="251"><span class="line-number">251</span><span class="line-content">startServer();</span></div>
+<div class="code-line" data-line="252"><span class="line-number">252</span><span class="line-content">&lt;!DOCTYPE html&gt;</span></div>
+<div class="code-line" data-line="253"><span class="line-number">253</span><span class="line-content">&lt;html lang="en"&gt;</span></div>
+<div class="code-line" data-line="254"><span class="line-number">254</span><span class="line-content">&lt;head&gt;</span></div>
+<div class="code-line" data-line="255"><span class="line-number">255</span><span class="line-content">  &lt;meta charset="UTF-8" /&gt;</span></div>
+<div class="code-line" data-line="256"><span class="line-number">256</span><span class="line-content">  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0" /&gt;</span></div>
+<div class="code-line" data-line="257"><span class="line-number">257</span><span class="line-content">  &lt;title&gt;Enterprise Data Management Platform&lt;/title&gt;</span></div>
+<div class="code-line" data-line="258"><span class="line-number">258</span><span class="line-content">&lt;/head&gt;</span></div>
+<div class="code-line" data-line="259"><span class="line-number">259</span><span class="line-content">&lt;body&gt;</span></div>
+<div class="code-line" data-line="260"><span class="line-number">260</span><span class="line-content">  &lt;div id="root"&gt;&lt;/div&gt;</span></div>
+<div class="code-line" data-line="261"><span class="line-number">261</span><span class="line-content">&lt;/body&gt;</span></div>
+<div class="code-line" data-line="262"><span class="line-number">262</span><span class="line-content">&lt;/html&gt;</span></div>
+<div class="code-line" data-line="263"><span class="line-number">263</span><span class="line-content">import React from 'react';</span></div>
+<div class="code-line" data-line="264"><span class="line-number">264</span><span class="line-content">import ReactDOM from 'react-dom/client';</span></div>
+<div class="code-line" data-line="265"><span class="line-number">265</span><span class="line-content">import App from './App';</span></div>
+<div class="code-line" data-line="266"><span class="line-number">266</span><span class="line-content">import { Provider } from 'react-redux';</span></div>
+<div class="code-line" data-line="267"><span class="line-number">267</span><span class="line-content">import store from './store';</span></div>
+<div class="code-line" data-line="268"><span class="line-number">268</span><span class="line-content"></span></div>
+<div class="code-line" data-line="269"><span class="line-number">269</span><span class="line-content">const root = ReactDOM.createRoot(document.getElementById('root'));</span></div>
+<div class="code-line" data-line="270"><span class="line-number">270</span><span class="line-content">root.render(</span></div>
+<div class="code-line" data-line="271"><span class="line-number">271</span><span class="line-content">  &lt;Provider store={store}&gt;</span></div>
+<div class="code-line" data-line="272"><span class="line-number">272</span><span class="line-content">    &lt;App /&gt;</span></div>
+<div class="code-line" data-line="273"><span class="line-number">273</span><span class="line-content">  &lt;/Provider&gt;</span></div>
+<div class="code-line" data-line="274"><span class="line-number">274</span><span class="line-content">);</span></div>
+<div class="code-line" data-line="275"><span class="line-number">275</span><span class="line-content">import React from 'react';</span></div>
+<div class="code-line" data-line="276"><span class="line-number">276</span><span class="line-content">import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';</span></div>
+<div class="code-line" data-line="277"><span class="line-number">277</span><span class="line-content">import Dashboard from './components/Dashboard';</span></div>
+<div class="code-line" data-line="278"><span class="line-number">278</span><span class="line-content">import Login from './components/Login';</span></div>
+<div class="code-line" data-line="279"><span class="line-number">279</span><span class="line-content">import Register from './components/Register';</span></div>
+<div class="code-line" data-line="280"><span class="line-number">280</span><span class="line-content">import DataList from './components/DataList';</span></div>
+<div class="code-line" data-line="281"><span class="line-number">281</span><span class="line-content"></span></div>
+<div class="code-line" data-line="282"><span class="line-number">282</span><span class="line-content">function App() {</span></div>
+<div class="code-line" data-line="283"><span class="line-number">283</span><span class="line-content">  return (</span></div>
+<div class="code-line" data-line="284"><span class="line-number">284</span><span class="line-content">    &lt;Router&gt;</span></div>
+<div class="code-line" data-line="285"><span class="line-number">285</span><span class="line-content">      &lt;Routes&gt;</span></div>
+<div class="code-line" data-line="286"><span class="line-number">286</span><span class="line-content">        &lt;Route path="/" element={&lt;Dashboard /&gt;} /&gt;</span></div>
+<div class="code-line" data-line="287"><span class="line-number">287</span><span class="line-content">        &lt;Route path="/login" element={&lt;Login /&gt;} /&gt;</span></div>
+<div class="code-line" data-line="288"><span class="line-number">288</span><span class="line-content">        &lt;Route path="/register" element={&lt;Register /&gt;} /&gt;</span></div>
+<div class="code-line" data-line="289"><span class="line-number">289</span><span class="line-content">        &lt;Route path="/data" element={&lt;DataList /&gt;} /&gt;</span></div>
+<div class="code-line" data-line="290"><span class="line-number">290</span><span class="line-content">      &lt;/Routes&gt;</span></div>
+<div class="code-line" data-line="291"><span class="line-number">291</span><span class="line-content">    &lt;/Router&gt;</span></div>
+<div class="code-line" data-line="292"><span class="line-number">292</span><span class="line-content">  );</span></div>
+<div class="code-line" data-line="293"><span class="line-number">293</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="294"><span class="line-number">294</span><span class="line-content"></span></div>
+<div class="code-line" data-line="295"><span class="line-number">295</span><span class="line-content">export default App;</span></div>
+<div class="code-line" data-line="296"><span class="line-number">296</span><span class="line-content">import React, { useState } from 'react';</span></div>
+<div class="code-line" data-line="297"><span class="line-number">297</span><span class="line-content">import { useDispatch } from 'react-redux';</span></div>
+<div class="code-line" data-line="298"><span class="line-number">298</span><span class="line-content">import { login } from '../store/actions';</span></div>
+<div class="code-line" data-line="299"><span class="line-number">299</span><span class="line-content"></span></div>
+<div class="code-line" data-line="300"><span class="line-number">300</span><span class="line-content">const Login = () =&gt; {</span></div>
+<div class="code-line" data-line="301"><span class="line-number">301</span><span class="line-content">  const [email, setEmail] = useState('');</span></div>
+<div class="code-line" data-line="302"><span class="line-number">302</span><span class="line-content">  const [password, setPassword] = useState('');</span></div>
+<div class="code-line" data-line="303"><span class="line-number">303</span><span class="line-content">  const dispatch = useDispatch();</span></div>
+<div class="code-line" data-line="304"><span class="line-number">304</span><span class="line-content"></span></div>
+<div class="code-line" data-line="305"><span class="line-number">305</span><span class="line-content">  const handleSubmit = async (e) =&gt; {</span></div>
+<div class="code-line" data-line="306"><span class="line-number">306</span><span class="line-content">    e.preventDefault();</span></div>
+<div class="code-line" data-line="307"><span class="line-number">307</span><span class="line-content">    dispatch(login(email, password));</span></div>
+<div class="code-line" data-line="308"><span class="line-number">308</span><span class="line-content">  };</span></div>
+<div class="code-line" data-line="309"><span class="line-number">309</span><span class="line-content"></span></div>
+<div class="code-line" data-line="310"><span class="line-number">310</span><span class="line-content">  return (</span></div>
+<div class="code-line" data-line="311"><span class="line-number">311</span><span class="line-content">    &lt;form onSubmit={handleSubmit}&gt;</span></div>
+<div class="code-line" data-line="312"><span class="line-number">312</span><span class="line-content">      &lt;h2&gt;Login&lt;/h2&gt;</span></div>
+<div class="code-line" data-line="313"><span class="line-number">313</span><span class="line-content">      &lt;input</span></div>
+<div class="code-line" data-line="314"><span class="line-number">314</span><span class="line-content">        type="email"</span></div>
+<div class="code-line" data-line="315"><span class="line-number">315</span><span class="line-content">        placeholder="Email"</span></div>
+<div class="code-line" data-line="316"><span class="line-number">316</span><span class="line-content">        value={email}</span></div>
+<div class="code-line" data-line="317"><span class="line-number">317</span><span class="line-content">        onChange={(e) =&gt; setEmail(e.target.value)}</span></div>
+<div class="code-line" data-line="318"><span class="line-number">318</span><span class="line-content">      /&gt;</span></div>
+<div class="code-line" data-line="319"><span class="line-number">319</span><span class="line-content">      &lt;input</span></div>
+<div class="code-line" data-line="320"><span class="line-number">320</span><span class="line-content">        type="password"</span></div>
+<div class="code-line" data-line="321"><span class="line-number">321</span><span class="line-content">        placeholder="Password"</span></div>
+<div class="code-line" data-line="322"><span class="line-number">322</span><span class="line-content">        value={password}</span></div>
+<div class="code-line" data-line="323"><span class="line-number">323</span><span class="line-content">        onChange={(e) =&gt; setPassword(e.target.value)}</span></div>
+<div class="code-line" data-line="324"><span class="line-number">324</span><span class="line-content">      /&gt;</span></div>
+<div class="code-line" data-line="325"><span class="line-number">325</span><span class="line-content">      &lt;button type="submit"&gt;Login&lt;/button&gt;</span></div>
+<div class="code-line" data-line="326"><span class="line-number">326</span><span class="line-content">    &lt;/form&gt;</span></div>
+<div class="code-line" data-line="327"><span class="line-number">327</span><span class="line-content">  );</span></div>
+<div class="code-line" data-line="328"><span class="line-number">328</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="329"><span class="line-number">329</span><span class="line-content"></span></div>
+<div class="code-line" data-line="330"><span class="line-number">330</span><span class="line-content">export default Login;</span></div>
+<div class="code-line" data-line="331"><span class="line-number">331</span><span class="line-content">import React, { useState } from 'react';</span></div>
+<div class="code-line" data-line="332"><span class="line-number">332</span><span class="line-content">import { useDispatch } from 'react-redux';</span></div>
+<div class="code-line" data-line="333"><span class="line-number">333</span><span class="line-content">import { register } from '../store/actions';</span></div>
+<div class="code-line" data-line="334"><span class="line-number">334</span><span class="line-content"></span></div>
+<div class="code-line" data-line="335"><span class="line-number">335</span><span class="line-content">const Register = () =&gt; {</span></div>
+<div class="code-line" data-line="336"><span class="line-number">336</span><span class="line-content">  const [email, setEmail] = useState('');</span></div>
+<div class="code-line" data-line="337"><span class="line-number">337</span><span class="line-content">  const [password, setPassword] = useState('');</span></div>
+<div class="code-line" data-line="338"><span class="line-number">338</span><span class="line-content">  const [role, setRole] = useState('user');</span></div>
+<div class="code-line" data-line="339"><span class="line-number">339</span><span class="line-content">  const dispatch = useDispatch();</span></div>
+<div class="code-line" data-line="340"><span class="line-number">340</span><span class="line-content"></span></div>
+<div class="code-line" data-line="341"><span class="line-number">341</span><span class="line-content">  const handleSubmit = async (e) =&gt; {</span></div>
+<div class="code-line" data-line="342"><span class="line-number">342</span><span class="line-content">    e.preventDefault();</span></div>
+<div class="code-line" data-line="343"><span class="line-number">343</span><span class="line-content">    dispatch(register(email, password, role));</span></div>
+<div class="code-line" data-line="344"><span class="line-number">344</span><span class="line-content">  };</span></div>
+<div class="code-line" data-line="345"><span class="line-number">345</span><span class="line-content"></span></div>
+<div class="code-line" data-line="346"><span class="line-number">346</span><span class="line-content">  return (</span></div>
+<div class="code-line" data-line="347"><span class="line-number">347</span><span class="line-content">    &lt;form onSubmit={handleSubmit}&gt;</span></div>
+<div class="code-line" data-line="348"><span class="line-number">348</span><span class="line-content">      &lt;h2&gt;Register&lt;/h2&gt;</span></div>
+<div class="code-line" data-line="349"><span class="line-number">349</span><span class="line-content">      &lt;input</span></div>
+<div class="code-line" data-line="350"><span class="line-number">350</span><span class="line-content">        type="email"</span></div>
+<div class="code-line" data-line="351"><span class="line-number">351</span><span class="line-content">        placeholder="Email"</span></div>
+<div class="code-line" data-line="352"><span class="line-number">352</span><span class="line-content">        value={email}</span></div>
+<div class="code-line" data-line="353"><span class="line-number">353</span><span class="line-content">        onChange={(e) =&gt; setEmail(e.target.value)}</span></div>
+<div class="code-line" data-line="354"><span class="line-number">354</span><span class="line-content">      /&gt;</span></div>
+<div class="code-line" data-line="355"><span class="line-number">355</span><span class="line-content">      &lt;input</span></div>
+<div class="code-line" data-line="356"><span class="line-number">356</span><span class="line-content">        type="password"</span></div>
+<div class="code-line" data-line="357"><span class="line-number">357</span><span class="line-content">        placeholder="Password"</span></div>
+<div class="code-line" data-line="358"><span class="line-number">358</span><span class="line-content">        value={password}</span></div>
+<div class="code-line" data-line="359"><span class="line-number">359</span><span class="line-content">        onChange={(e) =&gt; setPassword(e.target.value)}</span></div>
+<div class="code-line" data-line="360"><span class="line-number">360</span><span class="line-content">      /&gt;</span></div>
+<div class="code-line" data-line="361"><span class="line-number">361</span><span class="line-content">      &lt;select value={role} onChange={(e) =&gt; setRole(e.target.value)}&gt;</span></div>
+<div class="code-line" data-line="362"><span class="line-number">362</span><span class="line-content">        &lt;option value="user"&gt;User&lt;/option&gt;</span></div>
+<div class="code-line" data-line="363"><span class="line-number">363</span><span class="line-content">        &lt;option value="admin"&gt;Admin&lt;/option&gt;</span></div>
+<div class="code-line" data-line="364"><span class="line-number">364</span><span class="line-content">      &lt;/select&gt;</span></div>
+<div class="code-line" data-line="365"><span class="line-number">365</span><span class="line-content">      &lt;button type="submit"&gt;Register&lt;/button&gt;</span></div>
+<div class="code-line" data-line="366"><span class="line-number">366</span><span class="line-content">    &lt;/form&gt;</span></div>
+<div class="code-line" data-line="367"><span class="line-number">367</span><span class="line-content">  );</span></div>
+<div class="code-line" data-line="368"><span class="line-number">368</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="369"><span class="line-number">369</span><span class="line-content"></span></div>
+<div class="code-line" data-line="370"><span class="line-number">370</span><span class="line-content">export default Register;</span></div>
+<div class="code-line" data-line="371"><span class="line-number">371</span><span class="line-content">import React from 'react';</span></div>
+<div class="code-line" data-line="372"><span class="line-number">372</span><span class="line-content">import { useSelector } from 'react-redux';</span></div>
+<div class="code-line" data-line="373"><span class="line-number">373</span><span class="line-content"></span></div>
+<div class="code-line" data-line="374"><span class="line-number">374</span><span class="line-content">const Dashboard = () =&gt; {</span></div>
+<div class="code-line" data-line="375"><span class="line-number">375</span><span class="line-content">  const user = useSelector((state) =&gt; state.user);</span></div>
+<div class="code-line" data-line="376"><span class="line-number">376</span><span class="line-content"></span></div>
+<div class="code-line" data-line="377"><span class="line-number">377</span><span class="line-content">  return (</span></div>
+<div class="code-line" data-line="378"><span class="line-number">378</span><span class="line-content">    &lt;div&gt;</span></div>
+<div class="code-line" data-line="379"><span class="line-number">379</span><span class="line-content">      &lt;h1&gt;Welcome, {user.email}&lt;/h1&gt;</span></div>
+<div class="code-line" data-line="380"><span class="line-number">380</span><span class="line-content">      &lt;p&gt;Role: {user.role}&lt;/p&gt;</span></div>
+<div class="code-line" data-line="381"><span class="line-number">381</span><span class="line-content">    &lt;/div&gt;</span></div>
+<div class="code-line" data-line="382"><span class="line-number">382</span><span class="line-content">  );</span></div>
+<div class="code-line" data-line="383"><span class="line-number">383</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="384"><span class="line-number">384</span><span class="line-content"></span></div>
+<div class="code-line" data-line="385"><span class="line-number">385</span><span class="line-content">export default Dashboard;</span></div>
+<div class="code-line" data-line="386"><span class="line-number">386</span><span class="line-content">import React, { useEffect, useState } from 'react';</span></div>
+<div class="code-line" data-line="387"><span class="line-number">387</span><span class="line-content">import axios from 'axios';</span></div>
+<div class="code-line" data-line="388"><span class="line-number">388</span><span class="line-content"></span></div>
+<div class="code-line" data-line="389"><span class="line-number">389</span><span class="line-content">const DataList = () =&gt; {</span></div>
+<div class="code-line" data-line="390"><span class="line-number">390</span><span class="line-content">  const [data, setData] = useState([]);</span></div>
+<div class="code-line" data-line="391"><span class="line-number">391</span><span class="line-content"></span></div>
+<div class="code-line" data-line="392"><span class="line-number">392</span><span class="line-content">  useEffect(() =&gt; {</span></div>
+<div class="code-line" data-line="393"><span class="line-number">393</span><span class="line-content">    const fetchData = async () =&gt; {</span></div>
+<div class="code-line" data-line="394"><span class="line-number">394</span><span class="line-content">      const res = await axios.get('/api/v1/data');</span></div>
+<div class="code-line" data-line="395"><span class="line-number">395</span><span class="line-content">      setData(res.data);</span></div>
+<div class="code-line" data-line="396"><span class="line-number">396</span><span class="line-content">    };</span></div>
+<div class="code-line" data-line="397"><span class="line-number">397</span><span class="line-content">    fetchData();</span></div>
+<div class="code-line" data-line="398"><span class="line-number">398</span><span class="line-content">  }, []);</span></div>
+<div class="code-line" data-line="399"><span class="line-number">399</span><span class="line-content"></span></div>
+<div class="code-line" data-line="400"><span class="line-number">400</span><span class="line-content">  return (</span></div>
+<div class="code-line" data-line="401"><span class="line-number">401</span><span class="line-content">    &lt;div&gt;</span></div>
+<div class="code-line" data-line="402"><span class="line-number">402</span><span class="line-content">      &lt;h2&gt;Data List&lt;/h2&gt;</span></div>
+<div class="code-line" data-line="403"><span class="line-number">403</span><span class="line-content">      &lt;ul&gt;</span></div>
+<div class="code-line" data-line="404"><span class="line-number">404</span><span class="line-content">        {data.map((item) =&gt; (</span></div>
+<div class="code-line" data-line="405"><span class="line-number">405</span><span class="line-content">          &lt;li key={item.id}&gt;</span></div>
+<div class="code-line" data-line="406"><span class="line-number">406</span><span class="line-content">            &lt;h3&gt;{item.title}&lt;/h3&gt;</span></div>
+<div class="code-line" data-line="407"><span class="line-number">407</span><span class="line-content">            &lt;p&gt;{item.content}&lt;/p&gt;</span></div>
+<div class="code-line" data-line="408"><span class="line-number">408</span><span class="line-content">          &lt;/li&gt;</span></div>
+<div class="code-line" data-line="409"><span class="line-number">409</span><span class="line-content">        ))}</span></div>
+<div class="code-line" data-line="410"><span class="line-number">410</span><span class="line-content">      &lt;/ul&gt;</span></div>
+<div class="code-line" data-line="411"><span class="line-number">411</span><span class="line-content">    &lt;/div&gt;</span></div>
+<div class="code-line" data-line="412"><span class="line-number">412</span><span class="line-content">  );</span></div>
+<div class="code-line" data-line="413"><span class="line-number">413</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="414"><span class="line-number">414</span><span class="line-content"></span></div>
+<div class="code-line" data-line="415"><span class="line-number">415</span><span class="line-content">export default DataList;</span></div>
+<div class="code-line" data-line="416"><span class="line-number">416</span><span class="line-content">import { configureStore } from '@reduxjs/toolkit';</span></div>
+<div class="code-line" data-line="417"><span class="line-number">417</span><span class="line-content">import rootReducer from './reducers';</span></div>
+<div class="code-line" data-line="418"><span class="line-number">418</span><span class="line-content"></span></div>
+<div class="code-line" data-line="419"><span class="line-number">419</span><span class="line-content">const store = configureStore({</span></div>
+<div class="code-line" data-line="420"><span class="line-number">420</span><span class="line-content">  reducer: rootReducer,</span></div>
+<div class="code-line" data-line="421"><span class="line-number">421</span><span class="line-content">});</span></div>
+<div class="code-line" data-line="422"><span class="line-number">422</span><span class="line-content"></span></div>
+<div class="code-line" data-line="423"><span class="line-number">423</span><span class="line-content">export default store;</span></div>
+<div class="code-line" data-line="424"><span class="line-number">424</span><span class="line-content">import axios from 'axios';</span></div>
+<div class="code-line" data-line="425"><span class="line-number">425</span><span class="line-content"></span></div>
+<div class="code-line" data-line="426"><span class="line-number">426</span><span class="line-content">export const login = (email, password) =&gt; async (dispatch) =&gt; {</span></div>
+<div class="code-line" data-line="427"><span class="line-number">427</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="428"><span class="line-number">428</span><span class="line-content">    const res = await axios.post('/api/v1/login', { email, password });</span></div>
+<div class="code-line" data-line="429"><span class="line-number">429</span><span class="line-content">    dispatch({ type: 'LOGIN_SUCCESS', payload: res.data });</span></div>
+<div class="code-line" data-line="430"><span class="line-number">430</span><span class="line-content">  } catch (err) {</span></div>
+<div class="code-line" data-line="431"><span class="line-number">431</span><span class="line-content">    dispatch({ type: 'LOGIN_FAILURE', payload: err.message });</span></div>
+<div class="code-line" data-line="432"><span class="line-number">432</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="433"><span class="line-number">433</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="434"><span class="line-number">434</span><span class="line-content"></span></div>
+<div class="code-line" data-line="435"><span class="line-number">435</span><span class="line-content">export const register = (email, password, role) =&gt; async (dispatch) =&gt; {</span></div>
+<div class="code-line" data-line="436"><span class="line-number">436</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="437"><span class="line-number">437</span><span class="line-content">    const res = await axios.post('/api/v1/register', { email, password, role });</span></div>
+<div class="code-line" data-line="438"><span class="line-number">438</span><span class="line-content">    dispatch({ type: 'REGISTER_SUCCESS', payload: res.data });</span></div>
+<div class="code-line" data-line="439"><span class="line-number">439</span><span class="line-content">  } catch (err) {</span></div>
+<div class="code-line" data-line="440"><span class="line-number">440</span><span class="line-content">    dispatch({ type: 'REGISTER_FAILURE', payload: err.message });</span></div>
+<div class="code-line" data-line="441"><span class="line-number">441</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="442"><span class="line-number">442</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="443"><span class="line-number">443</span><span class="line-content">const initialState = {</span></div>
+<div class="code-line" data-line="444"><span class="line-number">444</span><span class="line-content">  user: null,</span></div>
+<div class="code-line" data-line="445"><span class="line-number">445</span><span class="line-content">  error: null,</span></div>
+<div class="code-line" data-line="446"><span class="line-number">446</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="447"><span class="line-number">447</span><span class="line-content"></span></div>
+<div class="code-line" data-line="448"><span class="line-number">448</span><span class="line-content">const userReducer = (state = initialState, action) =&gt; {</span></div>
+<div class="code-line" data-line="449"><span class="line-number">449</span><span class="line-content">  switch (action.type) {</span></div>
+<div class="code-line" data-line="450"><span class="line-number">450</span><span class="line-content">    case 'LOGIN_SUCCESS':</span></div>
+<div class="code-line" data-line="451"><span class="line-number">451</span><span class="line-content">    case 'REGISTER_SUCCESS':</span></div>
+<div class="code-line" data-line="452"><span class="line-number">452</span><span class="line-content">      return { ...state, user: action.payload.user, error: null };</span></div>
+<div class="code-line" data-line="453"><span class="line-number">453</span><span class="line-content">    case 'LOGIN_FAILURE':</span></div>
+<div class="code-line" data-line="454"><span class="line-number">454</span><span class="line-content">    case 'REGISTER_FAILURE':</span></div>
+<div class="code-line" data-line="455"><span class="line-number">455</span><span class="line-content">      return { ...state, error: action.payload };</span></div>
+<div class="code-line" data-line="456"><span class="line-number">456</span><span class="line-content">    default:</span></div>
+<div class="code-line" data-line="457"><span class="line-number">457</span><span class="line-content">      return state;</span></div>
+<div class="code-line" data-line="458"><span class="line-number">458</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="459"><span class="line-number">459</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="460"><span class="line-number">460</span><span class="line-content"></span></div>
+<div class="code-line" data-line="461"><span class="line-number">461</span><span class="line-content">export default userReducer;</span></div>
+<div class="code-line" data-line="462"><span class="line-number">462</span><span class="line-content">import axios from 'axios';</span></div>
+<div class="code-line" data-line="463"><span class="line-number">463</span><span class="line-content"></span></div>
+<div class="code-line" data-line="464"><span class="line-number">464</span><span class="line-content">const api = axios.create({</span></div>
+<div class="code-line" data-line="465"><span class="line-number">465</span><span class="line-content">  baseURL: process.env.REACT_APP_API_URL,</span></div>
+<div class="code-line" data-line="466"><span class="line-number">466</span><span class="line-content">  headers: {</span></div>
+<div class="code-line" data-line="467"><span class="line-number">467</span><span class="line-content">    'Content-Type': 'application/json',</span></div>
+<div class="code-line" data-line="468"><span class="line-number">468</span><span class="line-content">  },</span></div>
+<div class="code-line" data-line="469"><span class="line-number">469</span><span class="line-content">});</span></div>
+<div class="code-line" data-line="470"><span class="line-number">470</span><span class="line-content"></span></div>
+<div class="code-line" data-line="471"><span class="line-number">471</span><span class="line-content">api.interceptors.request.use((config) =&gt; {</span></div>
+<div class="code-line" data-line="472"><span class="line-number">472</span><span class="line-content">  const token = localStorage.getItem('token');</span></div>
+<div class="code-line" data-line="473"><span class="line-number">473</span><span class="line-content">  if (token) {</span></div>
+<div class="code-line" data-line="474"><span class="line-number">474</span><span class="line-content">    config.headers.Authorization = `Bearer ${token}`;</span></div>
+<div class="code-line" data-line="475"><span class="line-number">475</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="476"><span class="line-number">476</span><span class="line-content">  return config;</span></div>
+<div class="code-line" data-line="477"><span class="line-number">477</span><span class="line-content">});</span></div>
+<div class="code-line" data-line="478"><span class="line-number">478</span><span class="line-content"></span></div>
+<div class="code-line" data-line="479"><span class="line-number">479</span><span class="line-content">export default api;</span></div>
+<div class="code-line" data-line="480"><span class="line-number">480</span><span class="line-content">body {</span></div>
+<div class="code-line" data-line="481"><span class="line-number">481</span><span class="line-content">  font-family: Arial, sans-serif;</span></div>
+<div class="code-line" data-line="482"><span class="line-number">482</span><span class="line-content">  margin: 0;</span></div>
+<div class="code-line" data-line="483"><span class="line-number">483</span><span class="line-content">  padding: 0;</span></div>
+<div class="code-line" data-line="484"><span class="line-number">484</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="485"><span class="line-number">485</span><span class="line-content"></span></div>
+<div class="code-line" data-line="486"><span class="line-number">486</span><span class="line-content">form {</span></div>
+<div class="code-line" data-line="487"><span class="line-number">487</span><span class="line-content">  max-width: 400px;</span></div>
+<div class="code-line" data-line="488"><span class="line-number">488</span><span class="line-content">  margin: 2rem auto;</span></div>
+<div class="code-line" data-line="489"><span class="line-number">489</span><span class="line-content">  padding: 1rem;</span></div>
+<div class="code-line" data-line="490"><span class="line-number">490</span><span class="line-content">  border: 1px solid #ccc;</span></div>
+<div class="code-line" data-line="491"><span class="line-number">491</span><span class="line-content">  border-radius: 8px;</span></div>
+<div class="code-line" data-line="492"><span class="line-number">492</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="493"><span class="line-number">493</span><span class="line-content"></span></div>
+<div class="code-line" data-line="494"><span class="line-number">494</span><span class="line-content">input, select, button {</span></div>
+<div class="code-line" data-line="495"><span class="line-number">495</span><span class="line-content">  display: block;</span></div>
+<div class="code-line" data-line="496"><span class="line-number">496</span><span class="line-content">  width: 100%;</span></div>
+<div class="code-line" data-line="497"><span class="line-number">497</span><span class="line-content">  margin-bottom: 1rem;</span></div>
+<div class="code-line" data-line="498"><span class="line-number">498</span><span class="line-content">  padding: 0.5rem;</span></div>
+<div class="code-line" data-line="499"><span class="line-number">499</span><span class="line-content">  font-size: 1rem;</span></div>
+<div class="code-line" data-line="500"><span class="line-number">500</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="501"><span class="line-number">501</span><span class="line-content"></span></div>
+<div class="code-line" data-line="502"><span class="line-number">502</span><span class="line-content">button {</span></div>
+<div class="code-line" data-line="503"><span class="line-number">503</span><span class="line-content">  background-color: #007bff;</span></div>
+<div class="code-line" data-line="504"><span class="line-number">504</span><span class="line-content">  color: white;</span></div>
+<div class="code-line" data-line="505"><span class="line-number">505</span><span class="line-content">  border: none;</span></div>
+<div class="code-line" data-line="506"><span class="line-number">506</span><span class="line-content">  cursor: pointer;</span></div>
+<div class="code-line" data-line="507"><span class="line-number">507</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="508"><span class="line-number">508</span><span class="line-content"></span></div>
+<div class="code-line" data-line="509"><span class="line-number">509</span><span class="line-content">button:hover {</span></div>
+<div class="code-line" data-line="510"><span class="line-number">510</span><span class="line-content">  background-color: #0056b3;</span></div>
+<div class="code-line" data-line="511"><span class="line-number">511</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="512"><span class="line-number">512</span><span class="line-content">{</span></div>
+<div class="code-line" data-line="513"><span class="line-number">513</span><span class="line-content">  "name": "edmp-frontend",</span></div>
+<div class="code-line" data-line="514"><span class="line-number">514</span><span class="line-content">  "version": "1.0.0",</span></div>
+<div class="code-line" data-line="515"><span class="line-number">515</span><span class="line-content">  "description": "Enterprise Data Management Platform Frontend",</span></div>
+<div class="code-line" data-line="516"><span class="line-number">516</span><span class="line-content">  "main": "index.js",</span></div>
+<div class="code-line" data-line="517"><span class="line-number">517</span><span class="line-content">  "scripts": {</span></div>
+<div class="code-line" data-line="518"><span class="line-number">518</span><span class="line-content">    "start": "react-scripts start",</span></div>
+<div class="code-line" data-line="519"><span class="line-number">519</span><span class="line-content">    "build": "react-scripts build",</span></div>
+<div class="code-line" data-line="520"><span class="line-number">520</span><span class="line-content">    "test": "react-scripts test",</span></div>
+<div class="code-line" data-line="521"><span class="line-number">521</span><span class="line-content">    "eject": "react-scripts eject"</span></div>
+<div class="code-line" data-line="522"><span class="line-number">522</span><span class="line-content">  },</span></div>
+<div class="code-line" data-line="523"><span class="line-number">523</span><span class="line-content">  "dependencies": {</span></div>
+<div class="code-line" data-line="524"><span class="line-number">524</span><span class="line-content">    "react": "^18.2.0",</span></div>
+<div class="code-line" data-line="525"><span class="line-number">525</span><span class="line-content">    "react-dom": "^18.2.0",</span></div>
+<div class="code-line" data-line="526"><span class="line-number">526</span><span class="line-content">    "react-router-dom": "^6.21.1",</span></div>
+<div class="code-line" data-line="527"><span class="line-number">527</span><span class="line-content">    "react-redux": "^9.1.1",</span></div>
+<div class="code-line" data-line="528"><span class="line-number">528</span><span class="line-content">    "redux": "^4.2.1",</span></div>
+<div class="code-line" data-line="529"><span class="line-number">529</span><span class="line-content">    "redux-toolkit": "^2.1.0",</span></div>
+<div class="code-line" data-line="530"><span class="line-number">530</span><span class="line-content">    "axios": "^1.4.0",</span></div>
+<div class="code-line" data-line="531"><span class="line-number">531</span><span class="line-content">    "dotenv": "^16.0.3",</span></div>
+<div class="code-line" data-line="532"><span class="line-number">532</span><span class="line-content">    "cypress": "^10.3.0",</span></div>
+<div class="code-line" data-line="533"><span class="line-number">533</span><span class="line-content">    "react-scripts": "5.0.1"</span></div>
+<div class="code-line" data-line="534"><span class="line-number">534</span><span class="line-content">  },</span></div>
+<div class="code-line" data-line="535"><span class="line-number">535</span><span class="line-content">  "devDependencies": {</span></div>
+<div class="code-line" data-line="536"><span class="line-number">536</span><span class="line-content">    "eslint": "^8.50.0",</span></div>
+<div class="code-line" data-line="537"><span class="line-number">537</span><span class="line-content">    "eslint-config-airbnb": "^20.0.0",</span></div>
+<div class="code-line" data-line="538"><span class="line-number">538</span><span class="line-content">    "eslint-plugin-react": "^7.32.2"</span></div>
+<div class="code-line" data-line="539"><span class="line-number">539</span><span class="line-content">  },</span></div>
+<div class="code-line" data-line="540"><span class="line-number">540</span><span class="line-content">  "browserslist": {</span></div>
+<div class="code-line" data-line="541"><span class="line-number">541</span><span class="line-content">    "production": [</span></div>
+<div class="code-line" data-line="542"><span class="line-number">542</span><span class="line-content">      "&gt;0.2%",</span></div>
+<div class="code-line" data-line="543"><span class="line-number">543</span><span class="line-content">      "not dead",</span></div>
+<div class="code-line" data-line="544"><span class="line-number">544</span><span class="line-content">      "not op_mini all"</span></div>
+<div class="code-line" data-line="545"><span class="line-number">545</span><span class="line-content">    ],</span></div>
+<div class="code-line" data-line="546"><span class="line-number">546</span><span class="line-content">    "development": [</span></div>
+<div class="code-line" data-line="547"><span class="line-number">547</span><span class="line-content">      "last 1 chrome version",</span></div>
+<div class="code-line" data-line="548"><span class="line-number">548</span><span class="line-content">      "last 1 firefox version",</span></div>
+<div class="code-line" data-line="549"><span class="line-number">549</span><span class="line-content">      "last 1 safari version"</span></div>
+<div class="code-line" data-line="550"><span class="line-number">550</span><span class="line-content">    ]</span></div>
+<div class="code-line" data-line="551"><span class="line-number">551</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="552"><span class="line-number">552</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="553"><span class="line-number">553</span><span class="line-content"># Use Node.js 16 as the base image</span></div>
+<div class="code-line" data-line="554"><span class="line-number">554</span><span class="line-content">FROM node:16</span></div>
+<div class="code-line" data-line="555"><span class="line-number">555</span><span class="line-content"></span></div>
+<div class="code-line" data-line="556"><span class="line-number">556</span><span class="line-content"># Set working directory</span></div>
+<div class="code-line" data-line="557"><span class="line-number">557</span><span class="line-content">WORKDIR /app</span></div>
+<div class="code-line" data-line="558"><span class="line-number">558</span><span class="line-content"></span></div>
+<div class="code-line" data-line="559"><span class="line-number">559</span><span class="line-content"># Copy package.json and install dependencies</span></div>
+<div class="code-line" data-line="560"><span class="line-number">560</span><span class="line-content">COPY package.json .</span></div>
+<div class="code-line" data-line="561"><span class="line-number">561</span><span class="line-content">RUN npm install</span></div>
+<div class="code-line" data-line="562"><span class="line-number">562</span><span class="line-content"></span></div>
+<div class="code-line" data-line="563"><span class="line-number">563</span><span class="line-content"># Copy the rest of the app</span></div>
+<div class="code-line" data-line="564"><span class="line-number">564</span><span class="line-content">COPY . .</span></div>
+<div class="code-line" data-line="565"><span class="line-number">565</span><span class="line-content"></span></div>
+<div class="code-line" data-line="566"><span class="line-number">566</span><span class="line-content"># Build frontend</span></div>
+<div class="code-line" data-line="567"><span class="line-number">567</span><span class="line-content">RUN cd frontend &amp;&amp; npm install &amp;&amp; npm run build</span></div>
+<div class="code-line" data-line="568"><span class="line-number">568</span><span class="line-content"></span></div>
+<div class="code-line" data-line="569"><span class="line-number">569</span><span class="line-content"># Expose port</span></div>
+<div class="code-line" data-line="570"><span class="line-number">570</span><span class="line-content">EXPOSE 3001</span></div>
+<div class="code-line" data-line="571"><span class="line-number">571</span><span class="line-content"></span></div>
+<div class="code-line" data-line="572"><span class="line-number">572</span><span class="line-content"># Start the server</span></div>
+<div class="code-line" data-line="573"><span class="line-number">573</span><span class="line-content">CMD ["node", "backend/server.js"]</span></div>
+<div class="code-line" data-line="574"><span class="line-number">574</span><span class="line-content">version: '3.8'</span></div>
+<div class="code-line" data-line="575"><span class="line-number">575</span><span class="line-content"></span></div>
+<div class="code-line" data-line="576"><span class="line-number">576</span><span class="line-content">services:</span></div>
+<div class="code-line" data-line="577"><span class="line-number">577</span><span class="line-content">  backend:</span></div>
+<div class="code-line" data-line="578"><span class="line-number">578</span><span class="line-content">    build: .</span></div>
+<div class="code-line" data-line="579"><span class="line-number">579</span><span class="line-content">    ports:</span></div>
+<div class="code-line" data-line="580"><span class="line-number">580</span><span class="line-content">      - "3001:3001"</span></div>
+<div class="code-line" data-line="581"><span class="line-number">581</span><span class="line-content">    environment:</span></div>
+<div class="code-line" data-line="582"><span class="line-number">582</span><span class="line-content">      - DB_HOST=postgres</span></div>
+<div class="code-line" data-line="583"><span class="line-number">583</span><span class="line-content">      - DB_USER=postgres</span></div>
+<div class="code-line" data-line="584"><span class="line-number">584</span><span class="line-content">      - DB_PASSWORD=yourpassword</span></div>
+<div class="code-line" data-line="585"><span class="line-number">585</span><span class="line-content">      - DB_NAME=edmp</span></div>
+<div class="code-line" data-line="586"><span class="line-number">586</span><span class="line-content">      - DB_DIALECT=postgres</span></div>
+<div class="code-line" data-line="587"><span class="line-number">587</span><span class="line-content">      - JWT_SECRET=your_jwt_secret</span></div>
+<div class="code-line" data-line="588"><span class="line-number">588</span><span class="line-content">    depends_on:</span></div>
+<div class="code-line" data-line="589"><span class="line-number">589</span><span class="line-content">      - postgres</span></div>
+<div class="code-line" data-line="590"><span class="line-number">590</span><span class="line-content"></span></div>
+<div class="code-line" data-line="591"><span class="line-number">591</span><span class="line-content">  postgres:</span></div>
+<div class="code-line" data-line="592"><span class="line-number">592</span><span class="line-content">    image: postgres:14</span></div>
+<div class="code-line" data-line="593"><span class="line-number">593</span><span class="line-content">    environment:</span></div>
+<div class="code-line" data-line="594"><span class="line-number">594</span><span class="line-content">      POSTGRES_USER: postgres</span></div>
+<div class="code-line" data-line="595"><span class="line-number">595</span><span class="line-content">      POSTGRES_PASSWORD: yourpassword</span></div>
+<div class="code-line" data-line="596"><span class="line-number">596</span><span class="line-content">      POSTGRES_DB: edmp</span></div>
+<div class="code-line" data-line="597"><span class="line-number">597</span><span class="line-content">    ports:</span></div>
+<div class="code-line" data-line="598"><span class="line-number">598</span><span class="line-content">      - "5432:5432"</span></div>
+<div class="code-line" data-line="599"><span class="line-number">599</span><span class="line-content">DB_HOST=localhost</span></div>
+<div class="code-line" data-line="600"><span class="line-number">600</span><span class="line-content">DB_USER=postgres</span></div>
+<div class="code-line" data-line="601"><span class="line-number">601</span><span class="line-content">DB_PASSWORD=yourpassword</span></div>
+<div class="code-line" data-line="602"><span class="line-number">602</span><span class="line-content">DB_NAME=edmp</span></div>
+<div class="code-line" data-line="603"><span class="line-number">603</span><span class="line-content">DB_DIALECT=postgres</span></div>
+<div class="code-line" data-line="604"><span class="line-number">604</span><span class="line-content">JWT_SECRET=your_jwt_secret</span></div>
+<div class="code-line" data-line="605"><span class="line-number">605</span><span class="line-content">PORT=3001</span></div>
+<div class="code-line" data-line="606"><span class="line-number">606</span><span class="line-content">REACT_APP_API_URL=http://localhost:3001</span></div>
+<div class="code-line" data-line="607"><span class="line-number">607</span><span class="line-content"># Enterprise Data Management Platform</span></div>
+<div class="code-line" data-line="608"><span class="line-number">608</span><span class="line-content"></span></div>
+<div class="code-line" data-line="609"><span class="line-number">609</span><span class="line-content">A comprehensive software solution designed to automate data management, enhance operational efficiency, and provide strategic insights through real-time reporting and scalable architecture.</span></div>
+<div class="code-line" data-line="610"><span class="line-number">610</span><span class="line-content"></span></div>
+<div class="code-line" data-line="611"><span class="line-number">611</span><span class="line-content">## Features</span></div>
+<div class="code-line" data-line="612"><span class="line-number">612</span><span class="line-content"></span></div>
+<div class="code-line" data-line="613"><span class="line-number">613</span><span class="line-content">- Automated Data Integration</span></div>
+<div class="code-line" data-line="614"><span class="line-number">614</span><span class="line-content">- Scalable Architecture</span></div>
+<div class="code-line" data-line="615"><span class="line-number">615</span><span class="line-content">- Real-Time Reporting</span></div>
+<div class="code-line" data-line="616"><span class="line-number">616</span><span class="line-content">- User Management with Role-Based Access Control</span></div>
+<div class="code-line" data-line="617"><span class="line-number">617</span><span class="line-content"></span></div>
+<div class="code-line" data-line="618"><span class="line-number">618</span><span class="line-content">## Technologies Used</span></div>
+<div class="code-line" data-line="619"><span class="line-number">619</span><span class="line-content"></span></div>
+<div class="code-line" data-line="620"><span class="line-number">620</span><span class="line-content">- **Frontend**: React 18.2, Redux, Material-UI</span></div>
+<div class="code-line" data-line="621"><span class="line-number">621</span><span class="line-content">- **Backend**: Node.js 16, Express, PostgreSQL, Sequelize</span></div>
+<div class="code-line" data-line="622"><span class="line-number">622</span><span class="line-content">- **Authentication**: JWT, OAuth 2.0</span></div>
+<div class="code-line" data-line="623"><span class="line-number">623</span><span class="line-content">- **Deployment**: Docker, Kubernetes, AWS</span></div>
+<div class="code-line" data-line="624"><span class="line-number">624</span><span class="line-content"></span></div>
+<div class="code-line" data-line="625"><span class="line-number">625</span><span class="line-content">## Getting Started</span></div>
+<div class="code-line" data-line="626"><span class="line-number">626</span><span class="line-content"></span></div>
+<div class="code-line" data-line="627"><span class="line-number">627</span><span class="line-content">1. Clone the repository</span></div>
+<div class="code-line" data-line="628"><span class="line-number">628</span><span class="line-content">2. Install dependencies</span></div>
+<div class="code-line" data-line="629"><span class="line-number">629</span><span class="line-content">3. Set up environment variables</span></div>
+<div class="code-line" data-line="630"><span class="line-number">630</span><span class="line-content">4. Run the backend and frontend</span></div>
+<div class="code-line" data-line="631"><span class="line-number">631</span><span class="line-content"></span></div>
+<div class="code-line" data-line="632"><span class="line-number">632</span><span class="line-content">## Documentation</span></div>
+<div class="code-line" data-line="633"><span class="line-number">633</span><span class="line-content"></span></div>
+<div class="code-line" data-line="634"><span class="line-number">634</span><span class="line-content">- [API Documentation](#)</span></div>
+<div class="code-line" data-line="635"><span class="line-number">635</span><span class="line-content">- [User Guide](#)</span></div>
+<div class="code-line" data-line="636"><span class="line-number">636</span><span class="line-content">- [Deployment Guide](#)</span></div>
+<div class="code-line" data-line="637"><span class="line-number">637</span><span class="line-content"></span></div>
+<div class="code-line" data-line="638"><span class="line-number">638</span><span class="line-content">## Contributing</span></div>
+<div class="code-line" data-line="639"><span class="line-number">639</span><span class="line-content"></span></div>
+<div class="code-line" data-line="640"><span class="line-number">640</span><span class="line-content">Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.</span></div>
+<div class="code-line" data-line="641"><span class="line-number">641</span><span class="line-content"></span></div>
+<div class="code-line" data-line="642"><span class="line-number">642</span><span class="line-content">## License</span></div>
+<div class="code-line" data-line="643"><span class="line-number">643</span><span class="line-content"></span></div>
+<div class="code-line" data-line="644"><span class="line-number">644</span><span class="line-content">MIT License</span></div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // XEdit data and state
+        const xeditPaths = {"7x001": {"display_name": "generateToken", "type": "function", "filename": "backend/config/auth.js", "language": "javascript", "line_start": 3, "line_end": 13, "lines_display": "3-13", "technical_path": "backend/config/auth.js::function.generateToken/lines[3-13]", "optimal_model": "llama-3.1-70b-versatile"}, "7x002": {"display_name": "verifyToken", "type": "function", "filename": "backend/config/auth.js", "language": "javascript", "line_start": 9, "line_end": 13, "lines_display": "9-13", "technical_path": "backend/config/auth.js::function.verifyToken/lines[9-13]", "optimal_model": "llama-3.1-70b-versatile"}, "7x003": {"display_name": "div#root", "type": "element", "filename": "frontend/public/index.html", "language": "html", "line_start": 9, "line_end": 11, "lines_display": "9-11", "technical_path": "frontend/public/index.html::element.div#root/lines[9-11]", "optimal_model": "llama-3.1-70b-versatile"}, "7x004": {"display_name": "App", "type": "function", "filename": "frontend/src/App.js", "language": "javascript", "line_start": 8, "line_end": 21, "lines_display": "8-21", "technical_path": "frontend/src/App.js::function.App/lines[8-21]", "optimal_model": "llama-3.1-70b-versatile"}, "7x005": {"display_name": "Login", "type": "function", "filename": "frontend/src/components/Login.js", "language": "javascript", "line_start": 5, "line_end": 15, "lines_display": "5-15", "technical_path": "frontend/src/components/Login.js::function.Login/lines[5-15]", "optimal_model": "llama-3.1-70b-versatile"}, "7x006": {"display_name": "Register", "type": "function", "filename": "frontend/src/components/Register.js", "language": "javascript", "line_start": 5, "line_end": 15, "lines_display": "5-15", "technical_path": "frontend/src/components/Register.js::function.Register/lines[5-15]", "optimal_model": "llama-3.1-70b-versatile"}, "7x007": {"display_name": "Dashboard", "type": "function", "filename": "frontend/src/components/Dashboard.js", "language": "javascript", "line_start": 4, "line_end": 14, "lines_display": "4-14", "technical_path": "frontend/src/components/Dashboard.js::function.Dashboard/lines[4-14]", "optimal_model": "llama-3.1-70b-versatile"}, "7x008": {"display_name": "DataList", "type": "function", "filename": "frontend/src/components/DataList.js", "language": "javascript", "line_start": 4, "line_end": 14, "lines_display": "4-14", "technical_path": "frontend/src/components/DataList.js::function.DataList/lines[4-14]", "optimal_model": "llama-3.1-70b-versatile"}, "7x009": {"display_name": "login", "type": "function", "filename": "frontend/src/store/actions.js", "language": "javascript", "line_start": 3, "line_end": 13, "lines_display": "3-13", "technical_path": "frontend/src/store/actions.js::function.login/lines[3-13]", "optimal_model": "llama-3.1-70b-versatile"}, "7x010": {"display_name": "register", "type": "function", "filename": "frontend/src/store/actions.js", "language": "javascript", "line_start": 12, "line_end": 19, "lines_display": "12-19", "technical_path": "frontend/src/store/actions.js::function.register/lines[12-19]", "optimal_model": "llama-3.1-70b-versatile"}, "7x011": {"display_name": "userReducer", "type": "function", "filename": "frontend/src/store/reducers.js", "language": "javascript", "line_start": 6, "line_end": 16, "lines_display": "6-16", "technical_path": "frontend/src/store/reducers.js::function.userReducer/lines[6-16]", "optimal_model": "llama-3.1-70b-versatile"}, "7x012": {"display_name": "body", "type": "selector", "filename": "frontend/src/App.css", "language": "css", "line_start": 1, "line_end": 11, "lines_display": "1-11", "technical_path": "frontend/src/App.css::selector.body/lines[1-11]", "optimal_model": "llama-3.1-70b-versatile"}, "7x013": {"display_name": "form", "type": "selector", "filename": "frontend/src/App.css", "language": "css", "line_start": 7, "line_end": 17, "lines_display": "7-17", "technical_path": "frontend/src/App.css::selector.form/lines[7-17]", "optimal_model": "llama-3.1-70b-versatile"}, "7x014": {"display_name": "button", "type": "selector", "filename": "frontend/src/App.css", "language": "css", "line_start": 23, "line_end": 32, "lines_display": "23-32", "technical_path": "frontend/src/App.css::selector.button/lines[23-32]", "optimal_model": "llama-3.1-70b-versatile"}};
+        const projectFiles = [{"filename":"package.json (Root)","language":"text","code_b64":"ewogICJuYW1lIjogImVudGVycHJpc2UtZGF0YS1wbGF0Zm9ybSIsCiAgInZlcnNpb24iOiAiMS4wLjAiLAogICJkZXNjcmlwdGlvbiI6ICJFbnRlcnByaXNlIERhdGEgTWFuYWdlbWVudCBQbGF0Zm9ybSIsCiAgInNjcmlwdHMiOiB7CiAgICAic3RhcnQiOiAibm9kZSBiYWNrZW5kL3NlcnZlci5qcyIsCiAgICAiZGV2IjogIm5vZGVtb24gYmFja2VuZC9zZXJ2ZXIuanMiLAogICAgImJ1aWxkIjogImNkIGZyb250ZW5kICYmIG5wbSBydW4gYnVpbGQiLAogICAgInRlc3QiOiAiamVzdCIsCiAgICAidGVzdDplMmUiOiAiY2QgZnJvbnRlbmQgJiYgY3lwcmVzcyBydW4iLAogICAgImRiOm1pZ3JhdGUiOiAibnB4IHNlcXVlbGl6ZS1jbGkgZGI6bWlncmF0ZSIsCiAgICAiZGI6c2VlZCI6ICJucHggc2VxdWVsaXplLWNsaSBkYjpzZWVkOmFsbCIKICB9LAogICJkZXBlbmRlbmNpZXMiOiB7CiAgICAiZXhwcmVzcyI6ICJeNC4xNy4xIiwKICAgICJwZyI6ICJeOC43LjMiLAogICAgInNlcXVlbGl6ZSI6ICJeNi4yMS40IiwKICAgICJqc29ud2VidG9rZW4iOiAiXjguNS4xIiwKICAgICJwYXNzcG9ydCI6ICJeMC42LjAiLAogICAgInBhc3Nwb3J0LWp3dCI6ICJeNC4wLjAiLAogICAgImJjcnlwdGpzIjogIl4yLjQuMyIsCiAgICAiZG90ZW52IjogIl4xNi4wLjMiLAogICAgImNvcnMiOiAiXjIuOC41IiwKICAgICJib2R5LXBhcnNlciI6ICJeMS4yMC4xIiwKICAgICJheGlvcyI6ICJeMS40LjAiCiAgfSwKICAiZGV2RGVwZW5kZW5jaWVzIjogewogICAgImplc3QiOiAiXjI5LjcuMCIsCiAgICAic3VwZXJ0ZXN0IjogIl42LjMuMyIsCiAgICAibm9kZW1vbiI6ICJeMi4wLjE5IiwKICAgICJlc2xpbnQiOiAiXjguNTAuMCIsCiAgICAiZXNsaW50LWNvbmZpZy1haXJibmIiOiAiXjIwLjAuMCIsCiAgICAiZXNsaW50LXBsdWdpbi1yZWFjdCI6ICJeNy4zMi4yIiwKICAgICJzZXF1ZWxpemUtY2xpIjogIl42LjYuMCIKICB9Cn0=","code":""},{"filename":"backend/.env","language":"text","code_b64":"REJfSE9TVD1sb2NhbGhvc3QKREJfVVNFUj1wb3N0Z3JlcwpEQl9QQVNTV09SRD15b3VycGFzc3dvcmQKREJfTkFNRT1lZG1wCkRCX0RJQUxFQ1Q9cG9zdGdyZXMKSldUX1NFQ1JFVD15b3VyX2p3dF9zZWNyZXQKUE9SVD0zMDAx","code":""},{"filename":"backend/config/db.js","language":"javascript","code_b64":"cmVxdWlyZSgnZG90ZW52JykuY29uZmlnKCk7CmNvbnN0IHsgU2VxdWVsaXplIH0gPSByZXF1aXJlKCdzZXF1ZWxpemUnKTsKCmNvbnN0IHNlcXVlbGl6ZSA9IG5ldyBTZXF1ZWxpemUoCiAgcHJvY2Vzcy5lbnYuREJfTkFNRSwKICBwcm9jZXNzLmVudi5EQl9VU0VSLAogIHByb2Nlc3MuZW52LkRCX1BBU1NXT1JELAogIHsKICAgIGhvc3Q6IHByb2Nlc3MuZW52LkRCX0hPU1QsCiAgICBkaWFsZWN0OiBwcm9jZXNzLmVudi5EQl9ESUFMRUNULAogIH0KKTsKCm1vZHVsZS5leHBvcnRzID0gc2VxdWVsaXplOw==","code":""},{"filename":"backend/config/auth.js","language":"javascript","code_b64":"Y29uc3Qgand0ID0gcmVxdWlyZSgnanNvbndlYnRva2VuJyk7Cgpjb25zdCBnZW5lcmF0ZVRva2VuID0gKHVzZXIpID0+IHsKICByZXR1cm4gand0LnNpZ24oeyBpZDogdXNlci5pZCwgZW1haWw6IHVzZXIuZW1haWwsIHJvbGU6IHVzZXIucm9sZSB9LCBwcm9jZXNzLmVudi5KV1RfU0VDUkVULCB7CiAgICBleHBpcmVzSW46ICc3ZCcsCiAgfSk7Cn07Cgpjb25zdCB2ZXJpZnlUb2tlbiA9ICh0b2tlbikgPT4gewogIHJldHVybiBqd3QudmVyaWZ5KHRva2VuLCBwcm9jZXNzLmVudi5KV1RfU0VDUkVUKTsKfTsKCm1vZHVsZS5leHBvcnRzID0geyBnZW5lcmF0ZVRva2VuLCB2ZXJpZnlUb2tlbiB9Ow==","code":""},{"filename":"backend/models/user.js","language":"javascript","code_b64":"Y29uc3QgeyBEYXRhVHlwZXMgfSA9IHJlcXVpcmUoJ3NlcXVlbGl6ZScpOwpjb25zdCBzZXF1ZWxpemUgPSByZXF1aXJlKCcuL2RiJyk7Cgpjb25zdCBVc2VyID0gc2VxdWVsaXplLmRlZmluZSgnVXNlcicsIHsKICBpZDogewogICAgdHlwZTogRGF0YVR5cGVzLklOVEVHRVIsCiAgICBwcmltYXJ5S2V5OiB0cnVlLAogICAgYXV0b0luY3JlbWVudDogdHJ1ZSwKICB9LAogIGVtYWlsOiB7CiAgICB0eXBlOiBEYXRhVHlwZXMuU1RSSU5HLAogICAgYWxsb3dOdWxsOiBmYWxzZSwKICAgIHVuaXF1ZTogdHJ1ZSwKICB9LAogIHBhc3N3b3JkOiB7CiAgICB0eXBlOiBEYXRhVHlwZXMuU1RSSU5HLAogICAgYWxsb3dOdWxsOiBmYWxzZSwKICB9LAogIHJvbGU6IHsKICAgIHR5cGU6IERhdGFUeXBlcy5FTlVNKCdhZG1pbicsICd1c2VyJyksCiAgICBkZWZhdWx0VmFsdWU6ICd1c2VyJywKICB9LAp9KTsKCm1vZHVsZS5leHBvcnRzID0gVXNlcjs=","code":""},{"filename":"backend/models/data.js","language":"javascript","code_b64":"Y29uc3QgeyBEYXRhVHlwZXMgfSA9IHJlcXVpcmUoJ3NlcXVlbGl6ZScpOwpjb25zdCBzZXF1ZWxpemUgPSByZXF1aXJlKCcuL2RiJyk7Cgpjb25zdCBEYXRhID0gc2VxdWVsaXplLmRlZmluZSgnRGF0YScsIHsKICBpZDogewogICAgdHlwZTogRGF0YVR5cGVzLklOVEVHRVIsCiAgICBwcmltYXJ5S2V5OiB0cnVlLAogICAgYXV0b0luY3JlbWVudDogdHJ1ZSwKICB9LAogIHRpdGxlOiB7CiAgICB0eXBlOiBEYXRhVHlwZXMuU1RSSU5HLAogICAgYWxsb3dOdWxsOiBmYWxzZSwKICB9LAogIGNvbnRlbnQ6IHsKICAgIHR5cGU6IERhdGFUeXBlcy5URVhULAogICAgYWxsb3dOdWxsOiBmYWxzZSwKICB9LAogIHVzZXJJZDogewogICAgdHlwZTogRGF0YVR5cGVzLklOVEVHRVIsCiAgICByZWZlcmVuY2VzOiB7CiAgICAgIG1vZGVsOiAnVXNlcnMnLAogICAgICBrZXk6ICdpZCcsCiAgICB9LAogIH0sCn0pOwoKbW9kdWxlLmV4cG9ydHMgPSBEYXRhOw==","code":""},{"filename":"backend/middleware/authMiddleware.js","language":"javascript","code_b64":"Y29uc3Qgand0ID0gcmVxdWlyZSgnanNvbndlYnRva2VuJyk7CmNvbnN0IHsgVXNlciB9ID0gcmVxdWlyZSgnLi4vbW9kZWxzL3VzZXInKTsKY29uc3QgeyBnZW5lcmF0ZVRva2VuIH0gPSByZXF1aXJlKCcuLi9jb25maWcvYXV0aCcpOwoKY29uc3QgYXV0aCA9IGFzeW5jIChyZXEsIHJlcywgbmV4dCkgPT4gewogIHRyeSB7CiAgICBjb25zdCB0b2tlbiA9IHJlcS5oZWFkZXIoJ0F1dGhvcml6YXRpb24nKS5yZXBsYWNlKCdCZWFyZXIgJywgJycpOwogICAgY29uc3QgZGVjb2RlZCA9IGp3dC52ZXJpZnkodG9rZW4sIHByb2Nlc3MuZW52LkpXVF9TRUNSRVQpOwogICAgY29uc3QgdXNlciA9IGF3YWl0IFVzZXIuZmluZEJ5UGsoZGVjb2RlZC5pZCk7CiAgICBpZiAoIXVzZXIpIHsKICAgICAgdGhyb3cgbmV3IEVycm9yKCdVc2VyIG5vdCBmb3VuZCcpOwogICAgfQogICAgcmVxLnVzZXIgPSB1c2VyOwogICAgbmV4dCgpOwogIH0gY2F0Y2ggKGVycikgewogICAgcmVzLnN0YXR1cyg0MDEpLmpzb24oeyBlcnJvcjogJ0F1dGhlbnRpY2F0aW9uIHJlcXVpcmVkJyB9KTsKICB9Cn07Cgptb2R1bGUuZXhwb3J0cyA9IHsgYXV0aCB9Ow==","code":""},{"filename":"backend/controllers/userController.js","language":"javascript","code_b64":"Y29uc3QgYmNyeXB0ID0gcmVxdWlyZSgnYmNyeXB0anMnKTsKY29uc3QgeyBVc2VyIH0gPSByZXF1aXJlKCcuLi9tb2RlbHMvdXNlcicpOwpjb25zdCB7IGdlbmVyYXRlVG9rZW4gfSA9IHJlcXVpcmUoJy4uL2NvbmZpZy9hdXRoJyk7Cgpjb25zdCByZWdpc3RlciA9IGFzeW5jIChyZXEsIHJlcykgPT4gewogIHRyeSB7CiAgICBjb25zdCB7IGVtYWlsLCBwYXNzd29yZCwgcm9sZSB9ID0gcmVxLmJvZHk7CiAgICBjb25zdCBoYXNoZWRQYXNzd29yZCA9IGF3YWl0IGJjcnlwdC5oYXNoKHBhc3N3b3JkLCAxMCk7CiAgICBjb25zdCB1c2VyID0gYXdhaXQgVXNlci5jcmVhdGUoeyBlbWFpbCwgcGFzc3dvcmQ6IGhhc2hlZFBhc3N3b3JkLCByb2xlIH0pOwogICAgY29uc3QgdG9rZW4gPSBnZW5lcmF0ZVRva2VuKHVzZXIpOwogICAgcmVzLnN0YXR1cygyMDEpLmpzb24oeyB1c2VyLCB0b2tlbiB9KTsKICB9IGNhdGNoIChlcnIpIHsKICAgIHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgZXJyb3I6IGVyci5tZXNzYWdlIH0pOwogIH0KfTsKCmNvbnN0IGxvZ2luID0gYXN5bmMgKHJlcSwgcmVzKSA9PiB7CiAgdHJ5IHsKICAgIGNvbnN0IHsgZW1haWwsIHBhc3N3b3JkIH0gPSByZXEuYm9keTsKICAgIGNvbnN0IHVzZXIgPSBhd2FpdCBVc2VyLmZpbmRPbmUoeyB3aGVyZTogeyBlbWFpbCB9IH0pOwogICAgaWYgKCF1c2VyIHx8ICEoYXdhaXQgYmNyeXB0LmNvbXBhcmUocGFzc3dvcmQsIHVzZXIucGFzc3dvcmQpKSkgewogICAgICByZXR1cm4gcmVzLnN0YXR1cyg0MDEpLmpzb24oeyBlcnJvcjogJ0ludmFsaWQgY3JlZGVudGlhbHMnIH0pOwogICAgfQogICAgY29uc3QgdG9rZW4gPSBnZW5lcmF0ZVRva2VuKHVzZXIpOwogICAgcmVzLmpzb24oeyB1c2VyLCB0b2tlbiB9KTsKICB9IGNhdGNoIChlcnIpIHsKICAgIHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgZXJyb3I6IGVyci5tZXNzYWdlIH0pOwogIH0KfTsKCm1vZHVsZS5leHBvcnRzID0geyByZWdpc3RlciwgbG9naW4gfTs=","code":""},{"filename":"backend/controllers/dataController.js","language":"javascript","code_b64":"Y29uc3QgeyBEYXRhIH0gPSByZXF1aXJlKCcuLi9tb2RlbHMvZGF0YScpOwpjb25zdCB7IGF1dGggfSA9IHJlcXVpcmUoJy4uL21pZGRsZXdhcmUvYXV0aE1pZGRsZXdhcmUnKTsKCmNvbnN0IGNyZWF0ZURhdGEgPSBhc3luYyAocmVxLCByZXMpID0+IHsKICB0cnkgewogICAgY29uc3QgeyB0aXRsZSwgY29udGVudCB9ID0gcmVxLmJvZHk7CiAgICBjb25zdCBkYXRhID0gYXdhaXQgRGF0YS5jcmVhdGUoeyB0aXRsZSwgY29udGVudCwgdXNlcklkOiByZXEudXNlci5pZCB9KTsKICAgIHJlcy5zdGF0dXMoMjAxKS5qc29uKGRhdGEpOwogIH0gY2F0Y2ggKGVycikgewogICAgcmVzLnN0YXR1cyg0MDApLmpzb24oeyBlcnJvcjogZXJyLm1lc3NhZ2UgfSk7CiAgfQp9OwoKY29uc3QgZ2V0QWxsRGF0YSA9IGFzeW5jIChyZXEsIHJlcykgPT4gewogIHRyeSB7CiAgICBjb25zdCBkYXRhID0gYXdhaXQgRGF0YS5maW5kQWxsKHsgd2hlcmU6IHsgdXNlcklkOiByZXEudXNlci5pZCB9IH0pOwogICAgcmVzLmpzb24oZGF0YSk7CiAgfSBjYXRjaCAoZXJyKSB7CiAgICByZXMuc3RhdHVzKDQwMCkuanNvbih7IGVycm9yOiBlcnIubWVzc2FnZSB9KTsKICB9Cn07Cgptb2R1bGUuZXhwb3J0cyA9IHsgY3JlYXRlRGF0YSwgZ2V0QWxsRGF0YSB9Ow==","code":""},{"filename":"backend/routes/userRoutes.js","language":"javascript","code_b64":"Y29uc3QgZXhwcmVzcyA9IHJlcXVpcmUoJ2V4cHJlc3MnKTsKY29uc3QgeyByZWdpc3RlciwgbG9naW4gfSA9IHJlcXVpcmUoJy4uL2NvbnRyb2xsZXJzL3VzZXJDb250cm9sbGVyJyk7Cgpjb25zdCByb3V0ZXIgPSBleHByZXNzLlJvdXRlcigpOwoKcm91dGVyLnBvc3QoJy9yZWdpc3RlcicsIHJlZ2lzdGVyKTsKcm91dGVyLnBvc3QoJy9sb2dpbicsIGxvZ2luKTsKCm1vZHVsZS5leHBvcnRzID0gcm91dGVyOw==","code":""},{"filename":"backend/routes/dataRoutes.js","language":"javascript","code_b64":"Y29uc3QgZXhwcmVzcyA9IHJlcXVpcmUoJ2V4cHJlc3MnKTsKY29uc3QgeyBjcmVhdGVEYXRhLCBnZXRBbGxEYXRhIH0gPSByZXF1aXJlKCcuLi9jb250cm9sbGVycy9kYXRhQ29udHJvbGxlcicpOwpjb25zdCB7IGF1dGggfSA9IHJlcXVpcmUoJy4uL21pZGRsZXdhcmUvYXV0aE1pZGRsZXdhcmUnKTsKCmNvbnN0IHJvdXRlciA9IGV4cHJlc3MuUm91dGVyKCk7Cgpyb3V0ZXIudXNlKGF1dGgpOwoKcm91dGVyLnBvc3QoJy9kYXRhJywgY3JlYXRlRGF0YSk7CnJvdXRlci5nZXQoJy9kYXRhJywgZ2V0QWxsRGF0YSk7Cgptb2R1bGUuZXhwb3J0cyA9IHJvdXRlcjs=","code":""},{"filename":"backend/app.js","language":"javascript","code_b64":"Y29uc3QgZXhwcmVzcyA9IHJlcXVpcmUoJ2V4cHJlc3MnKTsKY29uc3QgY29ycyA9IHJlcXVpcmUoJ2NvcnMnKTsKY29uc3QgYm9keVBhcnNlciA9IHJlcXVpcmUoJ2JvZHktcGFyc2VyJyk7CmNvbnN0IHVzZXJSb3V0ZXMgPSByZXF1aXJlKCcuL3JvdXRlcy91c2VyUm91dGVzJyk7CmNvbnN0IGRhdGFSb3V0ZXMgPSByZXF1aXJlKCcuL3JvdXRlcy9kYXRhUm91dGVzJyk7Cgpjb25zdCBhcHAgPSBleHByZXNzKCk7CgphcHAudXNlKGNvcnMoKSk7CmFwcC51c2UoYm9keVBhcnNlci5qc29uKCkpOwoKYXBwLnVzZSgnL2FwaS92MScsIHVzZXJSb3V0ZXMpOwphcHAudXNlKCcvYXBpL3YxJywgZGF0YVJvdXRlcyk7Cgptb2R1bGUuZXhwb3J0cyA9IGFwcDs=","code":""},{"filename":"backend/server.js","language":"javascript","code_b64":"Y29uc3QgZXhwcmVzcyA9IHJlcXVpcmUoJ2V4cHJlc3MnKTsKY29uc3QgYXBwID0gcmVxdWlyZSgnLi9hcHAnKTsKY29uc3Qgc2VxdWVsaXplID0gcmVxdWlyZSgnLi9jb25maWcvZGInKTsKY29uc3QgeyBQT1JUIH0gPSByZXF1aXJlKCcuL2NvbmZpZy9kYicpOwoKY29uc3Qgc3RhcnRTZXJ2ZXIgPSBhc3luYyAoKSA9PiB7CiAgdHJ5IHsKICAgIGF3YWl0IHNlcXVlbGl6ZS5hdXRoZW50aWNhdGUoKTsKICAgIGF3YWl0IHNlcXVlbGl6ZS5zeW5jKCk7CiAgICBhcHAubGlzdGVuKFBPUlQsICgpID0+IHsKICAgICAgY29uc29sZS5sb2coYFNlcnZlciBydW5uaW5nIG9uIHBvcnQgJHtQT1JUfWApOwogICAgfSk7CiAgfSBjYXRjaCAoZXJyKSB7CiAgICBjb25zb2xlLmVycm9yKCdVbmFibGUgdG8gY29ubmVjdCB0byB0aGUgZGF0YWJhc2U6JywgZXJyKTsKICAgIHByb2Nlc3MuZXhpdCgxKTsKICB9Cn07CgpzdGFydFNlcnZlcigpOw==","code":""},{"filename":"frontend/public/index.html","language":"html","code_b64":"PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CiAgPG1ldGEgY2hhcnNldD0iVVRGLTgiIC8+CiAgPG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCwgaW5pdGlhbC1zY2FsZT0xLjAiIC8+CiAgPHRpdGxlPkVudGVycHJpc2UgRGF0YSBNYW5hZ2VtZW50IFBsYXRmb3JtPC90aXRsZT4KPC9oZWFkPgo8Ym9keT4KICA8ZGl2IGlkPSJyb290Ij48L2Rpdj4KPC9ib2R5Pgo8L2h0bWw+","code":""},{"filename":"frontend/src/index.js","language":"javascript","code_b64":"aW1wb3J0IFJlYWN0IGZyb20gJ3JlYWN0JzsKaW1wb3J0IFJlYWN0RE9NIGZyb20gJ3JlYWN0LWRvbS9jbGllbnQnOwppbXBvcnQgQXBwIGZyb20gJy4vQXBwJzsKaW1wb3J0IHsgUHJvdmlkZXIgfSBmcm9tICdyZWFjdC1yZWR1eCc7CmltcG9ydCBzdG9yZSBmcm9tICcuL3N0b3JlJzsKCmNvbnN0IHJvb3QgPSBSZWFjdERPTS5jcmVhdGVSb290KGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdyb290JykpOwpyb290LnJlbmRlcigKICA8UHJvdmlkZXIgc3RvcmU9e3N0b3JlfT4KICAgIDxBcHAgLz4KICA8L1Byb3ZpZGVyPgopOw==","code":""},{"filename":"frontend/src/App.js","language":"javascript","code_b64":"aW1wb3J0IFJlYWN0IGZyb20gJ3JlYWN0JzsKaW1wb3J0IHsgQnJvd3NlclJvdXRlciBhcyBSb3V0ZXIsIFJvdXRlcywgUm91dGUgfSBmcm9tICdyZWFjdC1yb3V0ZXItZG9tJzsKaW1wb3J0IERhc2hib2FyZCBmcm9tICcuL2NvbXBvbmVudHMvRGFzaGJvYXJkJzsKaW1wb3J0IExvZ2luIGZyb20gJy4vY29tcG9uZW50cy9Mb2dpbic7CmltcG9ydCBSZWdpc3RlciBmcm9tICcuL2NvbXBvbmVudHMvUmVnaXN0ZXInOwppbXBvcnQgRGF0YUxpc3QgZnJvbSAnLi9jb21wb25lbnRzL0RhdGFMaXN0JzsKCmZ1bmN0aW9uIEFwcCgpIHsKICByZXR1cm4gKAogICAgPFJvdXRlcj4KICAgICAgPFJvdXRlcz4KICAgICAgICA8Um91dGUgcGF0aD0iLyIgZWxlbWVudD17PERhc2hib2FyZCAvPn0gLz4KICAgICAgICA8Um91dGUgcGF0aD0iL2xvZ2luIiBlbGVtZW50PXs8TG9naW4gLz59IC8+CiAgICAgICAgPFJvdXRlIHBhdGg9Ii9yZWdpc3RlciIgZWxlbWVudD17PFJlZ2lzdGVyIC8+fSAvPgogICAgICAgIDxSb3V0ZSBwYXRoPSIvZGF0YSIgZWxlbWVudD17PERhdGFMaXN0IC8+fSAvPgogICAgICA8L1JvdXRlcz4KICAgIDwvUm91dGVyPgogICk7Cn0KCmV4cG9ydCBkZWZhdWx0IEFwcDs=","code":""},{"filename":"frontend/src/components/Login.js","language":"javascript","code_b64":"aW1wb3J0IFJlYWN0LCB7IHVzZVN0YXRlIH0gZnJvbSAncmVhY3QnOwppbXBvcnQgeyB1c2VEaXNwYXRjaCB9IGZyb20gJ3JlYWN0LXJlZHV4JzsKaW1wb3J0IHsgbG9naW4gfSBmcm9tICcuLi9zdG9yZS9hY3Rpb25zJzsKCmNvbnN0IExvZ2luID0gKCkgPT4gewogIGNvbnN0IFtlbWFpbCwgc2V0RW1haWxdID0gdXNlU3RhdGUoJycpOwogIGNvbnN0IFtwYXNzd29yZCwgc2V0UGFzc3dvcmRdID0gdXNlU3RhdGUoJycpOwogIGNvbnN0IGRpc3BhdGNoID0gdXNlRGlzcGF0Y2goKTsKCiAgY29uc3QgaGFuZGxlU3VibWl0ID0gYXN5bmMgKGUpID0+IHsKICAgIGUucHJldmVudERlZmF1bHQoKTsKICAgIGRpc3BhdGNoKGxvZ2luKGVtYWlsLCBwYXNzd29yZCkpOwogIH07CgogIHJldHVybiAoCiAgICA8Zm9ybSBvblN1Ym1pdD17aGFuZGxlU3VibWl0fT4KICAgICAgPGgyPkxvZ2luPC9oMj4KICAgICAgPGlucHV0CiAgICAgICAgdHlwZT0iZW1haWwiCiAgICAgICAgcGxhY2Vob2xkZXI9IkVtYWlsIgogICAgICAgIHZhbHVlPXtlbWFpbH0KICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldEVtYWlsKGUudGFyZ2V0LnZhbHVlKX0KICAgICAgLz4KICAgICAgPGlucHV0CiAgICAgICAgdHlwZT0icGFzc3dvcmQiCiAgICAgICAgcGxhY2Vob2xkZXI9IlBhc3N3b3JkIgogICAgICAgIHZhbHVlPXtwYXNzd29yZH0KICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldFBhc3N3b3JkKGUudGFyZ2V0LnZhbHVlKX0KICAgICAgLz4KICAgICAgPGJ1dHRvbiB0eXBlPSJzdWJtaXQiPkxvZ2luPC9idXR0b24+CiAgICA8L2Zvcm0+CiAgKTsKfTsKCmV4cG9ydCBkZWZhdWx0IExvZ2luOw==","code":""},{"filename":"frontend/src/components/Register.js","language":"javascript","code_b64":"aW1wb3J0IFJlYWN0LCB7IHVzZVN0YXRlIH0gZnJvbSAncmVhY3QnOwppbXBvcnQgeyB1c2VEaXNwYXRjaCB9IGZyb20gJ3JlYWN0LXJlZHV4JzsKaW1wb3J0IHsgcmVnaXN0ZXIgfSBmcm9tICcuLi9zdG9yZS9hY3Rpb25zJzsKCmNvbnN0IFJlZ2lzdGVyID0gKCkgPT4gewogIGNvbnN0IFtlbWFpbCwgc2V0RW1haWxdID0gdXNlU3RhdGUoJycpOwogIGNvbnN0IFtwYXNzd29yZCwgc2V0UGFzc3dvcmRdID0gdXNlU3RhdGUoJycpOwogIGNvbnN0IFtyb2xlLCBzZXRSb2xlXSA9IHVzZVN0YXRlKCd1c2VyJyk7CiAgY29uc3QgZGlzcGF0Y2ggPSB1c2VEaXNwYXRjaCgpOwoKICBjb25zdCBoYW5kbGVTdWJtaXQgPSBhc3luYyAoZSkgPT4gewogICAgZS5wcmV2ZW50RGVmYXVsdCgpOwogICAgZGlzcGF0Y2gocmVnaXN0ZXIoZW1haWwsIHBhc3N3b3JkLCByb2xlKSk7CiAgfTsKCiAgcmV0dXJuICgKICAgIDxmb3JtIG9uU3VibWl0PXtoYW5kbGVTdWJtaXR9PgogICAgICA8aDI+UmVnaXN0ZXI8L2gyPgogICAgICA8aW5wdXQKICAgICAgICB0eXBlPSJlbWFpbCIKICAgICAgICBwbGFjZWhvbGRlcj0iRW1haWwiCiAgICAgICAgdmFsdWU9e2VtYWlsfQogICAgICAgIG9uQ2hhbmdlPXsoZSkgPT4gc2V0RW1haWwoZS50YXJnZXQudmFsdWUpfQogICAgICAvPgogICAgICA8aW5wdXQKICAgICAgICB0eXBlPSJwYXNzd29yZCIKICAgICAgICBwbGFjZWhvbGRlcj0iUGFzc3dvcmQiCiAgICAgICAgdmFsdWU9e3Bhc3N3b3JkfQogICAgICAgIG9uQ2hhbmdlPXsoZSkgPT4gc2V0UGFzc3dvcmQoZS50YXJnZXQudmFsdWUpfQogICAgICAvPgogICAgICA8c2VsZWN0IHZhbHVlPXtyb2xlfSBvbkNoYW5nZT17KGUpID0+IHNldFJvbGUoZS50YXJnZXQudmFsdWUpfT4KICAgICAgICA8b3B0aW9uIHZhbHVlPSJ1c2VyIj5Vc2VyPC9vcHRpb24+CiAgICAgICAgPG9wdGlvbiB2YWx1ZT0iYWRtaW4iPkFkbWluPC9vcHRpb24+CiAgICAgIDwvc2VsZWN0PgogICAgICA8YnV0dG9uIHR5cGU9InN1Ym1pdCI+UmVnaXN0ZXI8L2J1dHRvbj4KICAgIDwvZm9ybT4KICApOwp9OwoKZXhwb3J0IGRlZmF1bHQgUmVnaXN0ZXI7","code":""},{"filename":"frontend/src/components/Dashboard.js","language":"javascript","code_b64":"aW1wb3J0IFJlYWN0IGZyb20gJ3JlYWN0JzsKaW1wb3J0IHsgdXNlU2VsZWN0b3IgfSBmcm9tICdyZWFjdC1yZWR1eCc7Cgpjb25zdCBEYXNoYm9hcmQgPSAoKSA9PiB7CiAgY29uc3QgdXNlciA9IHVzZVNlbGVjdG9yKChzdGF0ZSkgPT4gc3RhdGUudXNlcik7CgogIHJldHVybiAoCiAgICA8ZGl2PgogICAgICA8aDE+V2VsY29tZSwge3VzZXIuZW1haWx9PC9oMT4KICAgICAgPHA+Um9sZToge3VzZXIucm9sZX08L3A+CiAgICA8L2Rpdj4KICApOwp9OwoKZXhwb3J0IGRlZmF1bHQgRGFzaGJvYXJkOw==","code":""},{"filename":"frontend/src/components/DataList.js","language":"javascript","code_b64":"aW1wb3J0IFJlYWN0LCB7IHVzZUVmZmVjdCwgdXNlU3RhdGUgfSBmcm9tICdyZWFjdCc7CmltcG9ydCBheGlvcyBmcm9tICdheGlvcyc7Cgpjb25zdCBEYXRhTGlzdCA9ICgpID0+IHsKICBjb25zdCBbZGF0YSwgc2V0RGF0YV0gPSB1c2VTdGF0ZShbXSk7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICBjb25zdCBmZXRjaERhdGEgPSBhc3luYyAoKSA9PiB7CiAgICAgIGNvbnN0IHJlcyA9IGF3YWl0IGF4aW9zLmdldCgnL2FwaS92MS9kYXRhJyk7CiAgICAgIHNldERhdGEocmVzLmRhdGEpOwogICAgfTsKICAgIGZldGNoRGF0YSgpOwogIH0sIFtdKTsKCiAgcmV0dXJuICgKICAgIDxkaXY+CiAgICAgIDxoMj5EYXRhIExpc3Q8L2gyPgogICAgICA8dWw+CiAgICAgICAge2RhdGEubWFwKChpdGVtKSA9PiAoCiAgICAgICAgICA8bGkga2V5PXtpdGVtLmlkfT4KICAgICAgICAgICAgPGgzPntpdGVtLnRpdGxlfTwvaDM+CiAgICAgICAgICAgIDxwPntpdGVtLmNvbnRlbnR9PC9wPgogICAgICAgICAgPC9saT4KICAgICAgICApKX0KICAgICAgPC91bD4KICAgIDwvZGl2PgogICk7Cn07CgpleHBvcnQgZGVmYXVsdCBEYXRhTGlzdDs=","code":""},{"filename":"frontend/src/store/index.js","language":"javascript","code_b64":"aW1wb3J0IHsgY29uZmlndXJlU3RvcmUgfSBmcm9tICdAcmVkdXhqcy90b29sa2l0JzsKaW1wb3J0IHJvb3RSZWR1Y2VyIGZyb20gJy4vcmVkdWNlcnMnOwoKY29uc3Qgc3RvcmUgPSBjb25maWd1cmVTdG9yZSh7CiAgcmVkdWNlcjogcm9vdFJlZHVjZXIsCn0pOwoKZXhwb3J0IGRlZmF1bHQgc3RvcmU7","code":""},{"filename":"frontend/src/store/actions.js","language":"javascript","code_b64":"aW1wb3J0IGF4aW9zIGZyb20gJ2F4aW9zJzsKCmV4cG9ydCBjb25zdCBsb2dpbiA9IChlbWFpbCwgcGFzc3dvcmQpID0+IGFzeW5jIChkaXNwYXRjaCkgPT4gewogIHRyeSB7CiAgICBjb25zdCByZXMgPSBhd2FpdCBheGlvcy5wb3N0KCcvYXBpL3YxL2xvZ2luJywgeyBlbWFpbCwgcGFzc3dvcmQgfSk7CiAgICBkaXNwYXRjaCh7IHR5cGU6ICdMT0dJTl9TVUNDRVNTJywgcGF5bG9hZDogcmVzLmRhdGEgfSk7CiAgfSBjYXRjaCAoZXJyKSB7CiAgICBkaXNwYXRjaCh7IHR5cGU6ICdMT0dJTl9GQUlMVVJFJywgcGF5bG9hZDogZXJyLm1lc3NhZ2UgfSk7CiAgfQp9OwoKZXhwb3J0IGNvbnN0IHJlZ2lzdGVyID0gKGVtYWlsLCBwYXNzd29yZCwgcm9sZSkgPT4gYXN5bmMgKGRpc3BhdGNoKSA9PiB7CiAgdHJ5IHsKICAgIGNvbnN0IHJlcyA9IGF3YWl0IGF4aW9zLnBvc3QoJy9hcGkvdjEvcmVnaXN0ZXInLCB7IGVtYWlsLCBwYXNzd29yZCwgcm9sZSB9KTsKICAgIGRpc3BhdGNoKHsgdHlwZTogJ1JFR0lTVEVSX1NVQ0NFU1MnLCBwYXlsb2FkOiByZXMuZGF0YSB9KTsKICB9IGNhdGNoIChlcnIpIHsKICAgIGRpc3BhdGNoKHsgdHlwZTogJ1JFR0lTVEVSX0ZBSUxVUkUnLCBwYXlsb2FkOiBlcnIubWVzc2FnZSB9KTsKICB9Cn07","code":""},{"filename":"frontend/src/store/reducers.js","language":"javascript","code_b64":"Y29uc3QgaW5pdGlhbFN0YXRlID0gewogIHVzZXI6IG51bGwsCiAgZXJyb3I6IG51bGwsCn07Cgpjb25zdCB1c2VyUmVkdWNlciA9IChzdGF0ZSA9IGluaXRpYWxTdGF0ZSwgYWN0aW9uKSA9PiB7CiAgc3dpdGNoIChhY3Rpb24udHlwZSkgewogICAgY2FzZSAnTE9HSU5fU1VDQ0VTUyc6CiAgICBjYXNlICdSRUdJU1RFUl9TVUNDRVNTJzoKICAgICAgcmV0dXJuIHsgLi4uc3RhdGUsIHVzZXI6IGFjdGlvbi5wYXlsb2FkLnVzZXIsIGVycm9yOiBudWxsIH07CiAgICBjYXNlICdMT0dJTl9GQUlMVVJFJzoKICAgIGNhc2UgJ1JFR0lTVEVSX0ZBSUxVUkUnOgogICAgICByZXR1cm4geyAuLi5zdGF0ZSwgZXJyb3I6IGFjdGlvbi5wYXlsb2FkIH07CiAgICBkZWZhdWx0OgogICAgICByZXR1cm4gc3RhdGU7CiAgfQp9OwoKZXhwb3J0IGRlZmF1bHQgdXNlclJlZHVjZXI7","code":""},{"filename":"frontend/src/utils/api.js","language":"javascript","code_b64":"aW1wb3J0IGF4aW9zIGZyb20gJ2F4aW9zJzsKCmNvbnN0IGFwaSA9IGF4aW9zLmNyZWF0ZSh7CiAgYmFzZVVSTDogcHJvY2Vzcy5lbnYuUkVBQ1RfQVBQX0FQSV9VUkwsCiAgaGVhZGVyczogewogICAgJ0NvbnRlbnQtVHlwZSc6ICdhcHBsaWNhdGlvbi9qc29uJywKICB9LAp9KTsKCmFwaS5pbnRlcmNlcHRvcnMucmVxdWVzdC51c2UoKGNvbmZpZykgPT4gewogIGNvbnN0IHRva2VuID0gbG9jYWxTdG9yYWdlLmdldEl0ZW0oJ3Rva2VuJyk7CiAgaWYgKHRva2VuKSB7CiAgICBjb25maWcuaGVhZGVycy5BdXRob3JpemF0aW9uID0gYEJlYXJlciAke3Rva2VufWA7CiAgfQogIHJldHVybiBjb25maWc7Cn0pOwoKZXhwb3J0IGRlZmF1bHQgYXBpOw==","code":""},{"filename":"frontend/src/App.css","language":"css","code_b64":"Ym9keSB7CiAgZm9udC1mYW1pbHk6IEFyaWFsLCBzYW5zLXNlcmlmOwogIG1hcmdpbjogMDsKICBwYWRkaW5nOiAwOwp9Cgpmb3JtIHsKICBtYXgtd2lkdGg6IDQwMHB4OwogIG1hcmdpbjogMnJlbSBhdXRvOwogIHBhZGRpbmc6IDFyZW07CiAgYm9yZGVyOiAxcHggc29saWQgI2NjYzsKICBib3JkZXItcmFkaXVzOiA4cHg7Cn0KCmlucHV0LCBzZWxlY3QsIGJ1dHRvbiB7CiAgZGlzcGxheTogYmxvY2s7CiAgd2lkdGg6IDEwMCU7CiAgbWFyZ2luLWJvdHRvbTogMXJlbTsKICBwYWRkaW5nOiAwLjVyZW07CiAgZm9udC1zaXplOiAxcmVtOwp9CgpidXR0b24gewogIGJhY2tncm91bmQtY29sb3I6ICMwMDdiZmY7CiAgY29sb3I6IHdoaXRlOwogIGJvcmRlcjogbm9uZTsKICBjdXJzb3I6IHBvaW50ZXI7Cn0KCmJ1dHRvbjpob3ZlciB7CiAgYmFja2dyb3VuZC1jb2xvcjogIzAwNTZiMzsKfQ==","code":""},{"filename":"frontend/package.json","language":"json","code_b64":"ewogICJuYW1lIjogImVkbXAtZnJvbnRlbmQiLAogICJ2ZXJzaW9uIjogIjEuMC4wIiwKICAiZGVzY3JpcHRpb24iOiAiRW50ZXJwcmlzZSBEYXRhIE1hbmFnZW1lbnQgUGxhdGZvcm0gRnJvbnRlbmQiLAogICJtYWluIjogImluZGV4LmpzIiwKICAic2NyaXB0cyI6IHsKICAgICJzdGFydCI6ICJyZWFjdC1zY3JpcHRzIHN0YXJ0IiwKICAgICJidWlsZCI6ICJyZWFjdC1zY3JpcHRzIGJ1aWxkIiwKICAgICJ0ZXN0IjogInJlYWN0LXNjcmlwdHMgdGVzdCIsCiAgICAiZWplY3QiOiAicmVhY3Qtc2NyaXB0cyBlamVjdCIKICB9LAogICJkZXBlbmRlbmNpZXMiOiB7CiAgICAicmVhY3QiOiAiXjE4LjIuMCIsCiAgICAicmVhY3QtZG9tIjogIl4xOC4yLjAiLAogICAgInJlYWN0LXJvdXRlci1kb20iOiAiXjYuMjEuMSIsCiAgICAicmVhY3QtcmVkdXgiOiAiXjkuMS4xIiwKICAgICJyZWR1eCI6ICJeNC4yLjEiLAogICAgInJlZHV4LXRvb2xraXQiOiAiXjIuMS4wIiwKICAgICJheGlvcyI6ICJeMS40LjAiLAogICAgImRvdGVudiI6ICJeMTYuMC4zIiwKICAgICJjeXByZXNzIjogIl4xMC4zLjAiLAogICAgInJlYWN0LXNjcmlwdHMiOiAiNS4wLjEiCiAgfSwKICAiZGV2RGVwZW5kZW5jaWVzIjogewogICAgImVzbGludCI6ICJeOC41MC4wIiwKICAgICJlc2xpbnQtY29uZmlnLWFpcmJuYiI6ICJeMjAuMC4wIiwKICAgICJlc2xpbnQtcGx1Z2luLXJlYWN0IjogIl43LjMyLjIiCiAgfSwKICAiYnJvd3NlcnNsaXN0IjogewogICAgInByb2R1Y3Rpb24iOiBbCiAgICAgICI+MC4yJSIsCiAgICAgICJub3QgZGVhZCIsCiAgICAgICJub3Qgb3BfbWluaSBhbGwiCiAgICBdLAogICAgImRldmVsb3BtZW50IjogWwogICAgICAibGFzdCAxIGNocm9tZSB2ZXJzaW9uIiwKICAgICAgImxhc3QgMSBmaXJlZm94IHZlcnNpb24iLAogICAgICAibGFzdCAxIHNhZmFyaSB2ZXJzaW9uIgogICAgXQogIH0KfQ==","code":""},{"filename":"docker/Dockerfile","language":"text","code_b64":"IyBVc2UgTm9kZS5qcyAxNiBhcyB0aGUgYmFzZSBpbWFnZQpGUk9NIG5vZGU6MTYKCiMgU2V0IHdvcmtpbmcgZGlyZWN0b3J5CldPUktESVIgL2FwcAoKIyBDb3B5IHBhY2thZ2UuanNvbiBhbmQgaW5zdGFsbCBkZXBlbmRlbmNpZXMKQ09QWSBwYWNrYWdlLmpzb24gLgpSVU4gbnBtIGluc3RhbGwKCiMgQ29weSB0aGUgcmVzdCBvZiB0aGUgYXBwCkNPUFkgLiAuCgojIEJ1aWxkIGZyb250ZW5kClJVTiBjZCBmcm9udGVuZCAmJiBucG0gaW5zdGFsbCAmJiBucG0gcnVuIGJ1aWxkCgojIEV4cG9zZSBwb3J0CkVYUE9TRSAzMDAxCgojIFN0YXJ0IHRoZSBzZXJ2ZXIKQ01EIFsibm9kZSIsICJiYWNrZW5kL3NlcnZlci5qcyJd","code":""},{"filename":"docker/docker-compose.yml","language":"yaml","code_b64":"dmVyc2lvbjogJzMuOCcKCnNlcnZpY2VzOgogIGJhY2tlbmQ6CiAgICBidWlsZDogLgogICAgcG9ydHM6CiAgICAgIC0gIjMwMDE6MzAwMSIKICAgIGVudmlyb25tZW50OgogICAgICAtIERCX0hPU1Q9cG9zdGdyZXMKICAgICAgLSBEQl9VU0VSPXBvc3RncmVzCiAgICAgIC0gREJfUEFTU1dPUkQ9eW91cnBhc3N3b3JkCiAgICAgIC0gREJfTkFNRT1lZG1wCiAgICAgIC0gREJfRElBTEVDVD1wb3N0Z3JlcwogICAgICAtIEpXVF9TRUNSRVQ9eW91cl9qd3Rfc2VjcmV0CiAgICBkZXBlbmRzX29uOgogICAgICAtIHBvc3RncmVzCgogIHBvc3RncmVzOgogICAgaW1hZ2U6IHBvc3RncmVzOjE0CiAgICBlbnZpcm9ubWVudDoKICAgICAgUE9TVEdSRVNfVVNFUjogcG9zdGdyZXMKICAgICAgUE9TVEdSRVNfUEFTU1dPUkQ6IHlvdXJwYXNzd29yZAogICAgICBQT1NUR1JFU19EQjogZWRtcAogICAgcG9ydHM6CiAgICAgIC0gIjU0MzI6NTQzMiI=","code":""},{"filename":".env.example","language":"text","code_b64":"REJfSE9TVD1sb2NhbGhvc3QKREJfVVNFUj1wb3N0Z3JlcwpEQl9QQVNTV09SRD15b3VycGFzc3dvcmQKREJfTkFNRT1lZG1wCkRCX0RJQUxFQ1Q9cG9zdGdyZXMKSldUX1NFQ1JFVD15b3VyX2p3dF9zZWNyZXQKUE9SVD0zMDAxClJFQUNUX0FQUF9BUElfVVJMPWh0dHA6Ly9sb2NhbGhvc3Q6MzAwMQ==","code":""},{"filename":"README.md","language":"markdown","code_b64":"IyBFbnRlcnByaXNlIERhdGEgTWFuYWdlbWVudCBQbGF0Zm9ybQoKQSBjb21wcmVoZW5zaXZlIHNvZnR3YXJlIHNvbHV0aW9uIGRlc2lnbmVkIHRvIGF1dG9tYXRlIGRhdGEgbWFuYWdlbWVudCwgZW5oYW5jZSBvcGVyYXRpb25hbCBlZmZpY2llbmN5LCBhbmQgcHJvdmlkZSBzdHJhdGVnaWMgaW5zaWdodHMgdGhyb3VnaCByZWFsLXRpbWUgcmVwb3J0aW5nIGFuZCBzY2FsYWJsZSBhcmNoaXRlY3R1cmUuCgojIyBGZWF0dXJlcwoKLSBBdXRvbWF0ZWQgRGF0YSBJbnRlZ3JhdGlvbgotIFNjYWxhYmxlIEFyY2hpdGVjdHVyZQotIFJlYWwtVGltZSBSZXBvcnRpbmcKLSBVc2VyIE1hbmFnZW1lbnQgd2l0aCBSb2xlLUJhc2VkIEFjY2VzcyBDb250cm9sCgojIyBUZWNobm9sb2dpZXMgVXNlZAoKLSAqKkZyb250ZW5kKio6IFJlYWN0IDE4LjIsIFJlZHV4LCBNYXRlcmlhbC1VSQotICoqQmFja2VuZCoqOiBOb2RlLmpzIDE2LCBFeHByZXNzLCBQb3N0Z3JlU1FMLCBTZXF1ZWxpemUKLSAqKkF1dGhlbnRpY2F0aW9uKio6IEpXVCwgT0F1dGggMi4wCi0gKipEZXBsb3ltZW50Kio6IERvY2tlciwgS3ViZXJuZXRlcywgQVdTCgojIyBHZXR0aW5nIFN0YXJ0ZWQKCjEuIENsb25lIHRoZSByZXBvc2l0b3J5CjIuIEluc3RhbGwgZGVwZW5kZW5jaWVzCjMuIFNldCB1cCBlbnZpcm9ubWVudCB2YXJpYWJsZXMKNC4gUnVuIHRoZSBiYWNrZW5kIGFuZCBmcm9udGVuZAoKIyMgRG9jdW1lbnRhdGlvbgoKLSBbQVBJIERvY3VtZW50YXRpb25dKCMpCi0gW1VzZXIgR3VpZGVdKCMpCi0gW0RlcGxveW1lbnQgR3VpZGVdKCMpCgojIyBDb250cmlidXRpbmcKClB1bGwgcmVxdWVzdHMgYXJlIHdlbGNvbWUuIEZvciBtYWpvciBjaGFuZ2VzLCBwbGVhc2Ugb3BlbiBhbiBpc3N1ZSBmaXJzdCB0byBkaXNjdXNzIHdoYXQgeW91IHdvdWxkIGxpa2UgdG8gY2hhbmdlLgoKIyMgTGljZW5zZQoKTUlUIExpY2Vuc2U=","code":""}];
+        const projectName = 'Enterprise Data Platform';
+        const sessionId = '28-12-0222';
+        let payloadItems = [];
+        
+        function highlightFunction(xeditId, functionName, lineStart, lineEnd) {
+            console.log(`Highlighting function: ${functionName} (lines ${lineStart}-${lineEnd})`);
+            
+            // Remove previous highlights from function list
+            document.querySelectorAll('.function-item').forEach(item => {
+                item.classList.remove('highlighted');
+            });
+            
+            // Highlight selected function
+            const selectedItem = document.querySelector(`[data-id="${xeditId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('highlighted');
+            }
+            
+            // Clear previous code highlights
+            document.querySelectorAll('.code-line').forEach(line => {
+                line.classList.remove('highlight');
+            });
+            
+            // Highlight code lines
+            for (let i = lineStart; i <= lineEnd; i++) {
+                const lineElement = document.querySelector(`.code-line[data-line="${i}"]`);
+                if (lineElement) {
+                    lineElement.classList.add('highlight');
+                    
+                    // Scroll to first highlighted line
+                    if (i === lineStart) {
+                        lineElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            }
+        }
+        
+        function addToPayload(functionName, functionType, xeditId) {
+            console.log(`Adding to payload: ${functionName} (${functionType})`);
+            
+            // Check if already in payload
+            if (payloadItems.find(item => item.id === xeditId)) {
+                alert('Function already in payload!');
+                return;
+            }
+            
+            // Add to payload
+            const payloadItem = {
+                id: xeditId,
+                name: functionName,
+                type: functionType,
+                timestamp: new Date().toLocaleTimeString()
+            };
+            
+            payloadItems.push(payloadItem);
+            updatePayloadDisplay();
+        }
+        
+        function removeFromPayload(xeditId) {
+            payloadItems = payloadItems.filter(item => item.id !== xeditId);
+            updatePayloadDisplay();
+        }
+        
+        function updatePayloadDisplay() {
+            const payloadList = document.getElementById('payload-list');
+            const sendButton = document.getElementById('send-button');
+            
+            if (payloadItems.length === 0) {
+                payloadList.innerHTML = '<div class="payload-empty">Click functions to add XEdit-Paths</div>';
+                sendButton.textContent = '🚀 Send 0 to Optimized Pipeline';
+                sendButton.disabled = true;
+                return;
+            }
+            
+            let html = '';
+            payloadItems.forEach(item => {
+                html += `
+                    <div class="payload-item">
+                        <div class="payload-item-info">
+                            <div class="xedit-id">${item.id}</div>
+                            <div class="payload-model">${item.name} (${item.type})</div>
+                        </div>
+                        <button class="remove-btn" onclick="removeFromPayload('${item.id}')" title="Remove from payload">×</button>
+                    </div>
+                `;
+            });
+            
+            payloadList.innerHTML = html;
+            sendButton.textContent = `🚀 Send ${payloadItems.length} to Optimized Pipeline`;
+            sendButton.disabled = false;
+        }
+        
+        function deployToPcock() {
+            console.log('deployToPcock() called');
+            const deployBtn = document.querySelector('.peacock-deploy-btn');
+            const deployStatus = document.getElementById('deploy-status');
+            const customNameInput = document.getElementById('custom-package-name');
+            
+            // Get custom name or use default
+            const customName = customNameInput.value.trim();
+            const finalProjectName = customName || projectName;
+            
+            // Show loading state
+            deployBtn.disabled = true;
+            deployBtn.textContent = '🔄 Building...'
+            deployStatus.innerHTML = '<div style="color: #ffff00;">🔧 Preparing build...</div>';
+            
+            // Prepare deployment data
+            const deploymentData = {
+                project_name: finalProjectName,
+                session_id: sessionId,
+                project_files: projectFiles,
+                payload_items: payloadItems,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Call deployment API
+            fetch('http://127.0.0.1:8000/deploy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(deploymentData)
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Deploy response:', data);
+                if (data.success) {
+                    deployBtn.textContent = '✅ Built!';
+                    deployBtn.style.background = 'linear-gradient(45deg, #00ff00, #00cc00)';
+                    deployStatus.innerHTML = `
+                        <div style="color: #00ff00;">
+                            ✅ Build successful!<br>
+                            📦 Project created<br>
+                            🚀 Ready to run
+                        </div>
+                    `;
+                } else {
+                    throw new Error(data.error || 'Deployment failed');
+                }
+            })
+            .catch(error => {
+                console.error('Deploy error:', error);
+                deployBtn.textContent = '❌ Build Failed';
+                deployBtn.style.background = 'linear-gradient(45deg, #ff0000, #cc0000)';
+                deployStatus.innerHTML = `
+                    <div style="color: #ff0000;">
+                        ❌ Build failed:<br>
+                        ${error.message}
+                    </div>
+                `;
+            })
+            .finally(() => {
+                deployBtn.disabled = false;
+                setTimeout(() => {
+                    deployBtn.textContent = '🦚 Generate Python Project';
+                    deployBtn.style.background = 'linear-gradient(45deg, #00ff00, #00cc00)';
+                }, 4000);
+            });
+        }
+        
+        // Decode base64 project files
+        projectFiles.forEach(file => {
+            if (file.code_b64) {
+                file.code = atob(file.code_b64);
+                delete file.code_b64;
+            }
+        });
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🦚 XEdit Enhanced Interface Loaded');
+            console.log('Project:', projectName);
+            console.log('Session:', sessionId);
+            console.log('Functions found:', Object.keys(xeditPaths).length);
+            console.log('Project files:', projectFiles.length);
+        });
+    </script>
+</body>
+</html>

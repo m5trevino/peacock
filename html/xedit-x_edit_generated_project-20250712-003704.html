@@ -1,0 +1,1916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦚 Peacock XEdit Interface - X Edit Generated Project</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            background: #0d1117; 
+            color: #e6edf3; 
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #161b22; 
+            border-bottom: 1px solid #30363d; 
+            padding: 12px 16px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+        }
+        
+        .peacock-logo { 
+            font-size: 18px; 
+            font-weight: 700; 
+            color: #ff6b35; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+        }
+        
+        .project-info { 
+            font-size: 13px; 
+            color: #8b949e; 
+        }
+        
+        .session-info { 
+            color: #ff6b35; 
+            font-weight: 600;
+        }
+        
+        .main-container { 
+            display: flex; 
+            height: calc(100vh - 60px);
+        }
+        
+        .left-panel { 
+            width: 350px; 
+            background: #161b22; 
+            border-right: 1px solid #30363d; 
+            display: flex; 
+            flex-direction: column;
+        }
+        
+        .panel-header { 
+            background: #21262d; 
+            padding: 12px 16px; 
+            border-bottom: 1px solid #30363d; 
+            font-weight: 600; 
+            font-size: 13px; 
+            color: #f0883e;
+        }
+        
+        .functions-list { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 8px;
+        }
+        
+        .function-item { 
+            background: #21262d; 
+            border: 1px solid #30363d; 
+            border-radius: 6px; 
+            margin-bottom: 8px; 
+            padding: 12px; 
+            cursor: pointer; 
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .function-item:hover { 
+            background: #2d333b; 
+            border-color: #ff6b35;
+        }
+        
+        .function-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 6px;
+        }
+        
+        .function-name { 
+            font-weight: 600; 
+            color: #e6edf3; 
+            font-size: 14px;
+        }
+        
+        .function-type { 
+            background: #ff6b35; 
+            color: #0d1117; 
+            padding: 2px 6px; 
+            border-radius: 3px; 
+            font-size: 10px; 
+            font-weight: 600;
+        }
+        
+        .function-details { 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 11px; 
+            color: #8b949e;
+        }
+        
+        .add-button { 
+            position: absolute; 
+            top: 8px; 
+            right: 8px; 
+            background: #238636; 
+            color: white; 
+            border: none; 
+            padding: 4px 8px; 
+            border-radius: 4px; 
+            font-size: 10px; 
+            cursor: pointer; 
+            opacity: 0; 
+            transition: opacity 0.2s ease;
+        }
+        
+        .function-item:hover .add-button { 
+            opacity: 1;
+        }
+        
+        .add-button:hover { 
+            background: #2ea043;
+        }
+        
+        .middle-panel { 
+            width: 400px; 
+            background: #0d1117; 
+            border-right: 1px solid #30363d; 
+            display: flex; 
+            flex-direction: column;
+        }
+        
+        .payload-header { 
+            background: #21262d; 
+            padding: 12px 16px; 
+            border-bottom: 1px solid #30363d; 
+            font-weight: 600; 
+            font-size: 13px; 
+            color: #f0883e;
+        }
+        
+        .payload-container { 
+            display: flex; 
+            flex-direction: column; 
+            height: 100%;
+        }
+        
+        .payload-list { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 16px;
+        }
+        
+        .payload-empty { 
+            text-align: center; 
+            color: #8b949e; 
+            font-style: italic; 
+            margin-top: 60px;
+        }
+        
+        .payload-item { 
+            background: #161b22; 
+            border: 1px solid #30363d; 
+            border-radius: 6px; 
+            padding: 12px; 
+            margin-bottom: 8px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+        }
+        
+        .payload-item-info { 
+            flex: 1;
+        }
+        
+        .payload-item-name { 
+            font-weight: 600; 
+            color: #e6edf3; 
+            font-size: 13px;
+        }
+        
+        .payload-item-details { 
+            font-size: 11px; 
+            color: #8b949e;
+        }
+        
+        .remove-button { 
+            background: #da3633; 
+            color: white; 
+            border: none; 
+            padding: 4px 8px; 
+            border-radius: 4px; 
+            font-size: 10px; 
+            cursor: pointer;
+        }
+        
+        .remove-button:hover { 
+            background: #f85149;
+        }
+        
+        .send-button { 
+            background: #ff6b35; 
+            color: #0d1117; 
+            border: none; 
+            padding: 12px 16px; 
+            font-weight: 600; 
+            font-size: 14px; 
+            cursor: pointer; 
+            transition: all 0.2s ease;
+        }
+        
+        .send-button:hover { 
+            background: #ff8c42;
+        }
+        
+        .send-button:disabled { 
+            background: #30363d; 
+            color: #8b949e; 
+            cursor: not-allowed;
+        }
+        
+        .right-panel { 
+            flex: 1; 
+            background: #0d1117; 
+            display: flex; 
+            flex-direction: column;
+        }
+        
+        .code-header { 
+            background: #21262d; 
+            padding: 12px 16px; 
+            border-bottom: 1px solid #30363d; 
+            font-weight: 600; 
+            font-size: 13px; 
+            color: #f0883e;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .code-stats {
+            font-size: 11px;
+            color: #8b949e;
+        }
+        
+        .code-container { 
+            flex: 1; 
+            overflow: auto; 
+            padding: 16px;
+        }
+        
+        .file-section { 
+            margin-bottom: 24px;
+        }
+        
+        .file-header { 
+            background: #161b22; 
+            padding: 8px 12px; 
+            border: 1px solid #30363d; 
+            border-radius: 6px 6px 0 0; 
+            font-weight: 600; 
+            color: #ff6b35; 
+            font-size: 13px;
+        }
+        
+        .code-block { 
+            background: #161b22; 
+            border: 1px solid #30363d; 
+            border-top: none; 
+            border-radius: 0 0 6px 6px; 
+            padding: 16px; 
+            font-family: 'SF Mono', monospace; 
+            font-size: 13px; 
+            line-height: 1.6;
+        }
+        
+        .code-line { 
+            display: flex; 
+            min-height: 20px;
+            position: relative;
+        }
+        
+        .code-line.highlighted { 
+            background: #2d333b; 
+            border-left: 3px solid #ff6b35; 
+            padding-left: 13px;
+        }
+        
+        .highlightable-line { 
+            cursor: pointer;
+        }
+        
+        .highlightable-line:hover { 
+            background: #21262d;
+        }
+        
+        .line-number { 
+            color: #6e7681; 
+            user-select: none; 
+            margin-right: 16px; 
+            min-width: 30px; 
+            text-align: right;
+        }
+        
+        .line-content { 
+            color: #e6edf3; 
+            flex: 1;
+            word-break: break-all;
+        }
+        
+        .deploy-section { 
+            padding: 16px; 
+            background: #161b22; 
+            border-top: 1px solid #30363d;
+            display: flex;
+            gap: 12px;
+        }
+        
+        .deploy-button { 
+            background: #238636; 
+            color: white; 
+            border: none; 
+            padding: 12px 24px; 
+            border-radius: 6px; 
+            font-weight: 600; 
+            font-size: 14px; 
+            cursor: pointer; 
+            flex: 1;
+        }
+        
+        .deploy-button:hover { 
+            background: #2ea043;
+        }
+        
+        .export-button {
+            background: #1f6feb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        .export-button:hover {
+            background: #388bfd;
+        }
+        
+        .project-overview {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 16px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        
+        .overview-header {
+            color: #ff6b35;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="peacock-logo">🦚 Peacock XEdit Interface</div>
+        <div class="project-info">
+            Project: X Edit Generated Project • Session: <span class="session-info">20250712-003704</span>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <div class="panel-header">📋 Functions & Classes (5 items)</div>
+            <div class="functions-list">
+                <div class="project-overview">
+                    <div class="overview-header">📄 Project Overview</div>
+                    <div><think>
+Okay, I need to generate the complete code for the project based on the provided ProjectBlueprint and BuildAndTestPlan. Let me start by understanding the requirements.</div>
+                </div>
+                
+                <div class="function-item" onclick="addToPayload('7x001')">
+                    <div class="function-header">
+                        <span class="function-name">display_permissions (function)</span>
+                        <span class="function-type">function</span>
+                    </div>
+                    <div class="function-details">
+                        <span class="file-name">main.py</span>
+                        <span class="line-range">Lines 11-22</span>
+                    </div>
+                    <button class="add-button" onclick="event.stopPropagation(); addToPayload('7x001')">Add</button>
+                </div>
+            
+                <div class="function-item" onclick="addToPayload('7x002')">
+                    <div class="function-header">
+                        <span class="function-name">change_permissions (function)</span>
+                        <span class="function-type">function</span>
+                    </div>
+                    <div class="function-details">
+                        <span class="file-name">main.py</span>
+                        <span class="line-range">Lines 23-30</span>
+                    </div>
+                    <button class="add-button" onclick="event.stopPropagation(); addToPayload('7x002')">Add</button>
+                </div>
+            
+                <div class="function-item" onclick="addToPayload('7x003')">
+                    <div class="function-header">
+                        <span class="function-name">change_ownership (function)</span>
+                        <span class="function-type">function</span>
+                    </div>
+                    <div class="function-details">
+                        <span class="file-name">main.py</span>
+                        <span class="line-range">Lines 31-38</span>
+                    </div>
+                    <button class="add-button" onclick="event.stopPropagation(); addToPayload('7x003')">Add</button>
+                </div>
+            
+                <div class="function-item" onclick="addToPayload('7x004')">
+                    <div class="function-header">
+                        <span class="function-name">interactive_menu (function)</span>
+                        <span class="function-type">function</span>
+                    </div>
+                    <div class="function-details">
+                        <span class="file-name">main.py</span>
+                        <span class="line-range">Lines 39-66</span>
+                    </div>
+                    <button class="add-button" onclick="event.stopPropagation(); addToPayload('7x004')">Add</button>
+                </div>
+            
+                <div class="function-item" onclick="addToPayload('7x005')">
+                    <div class="function-header">
+                        <span class="function-name">main (function)</span>
+                        <span class="function-type">function</span>
+                    </div>
+                    <div class="function-details">
+                        <span class="file-name">main.py</span>
+                        <span class="line-range">Lines 67-93</span>
+                    </div>
+                    <button class="add-button" onclick="event.stopPropagation(); addToPayload('7x005')">Add</button>
+                </div>
+            
+            </div>
+        </div>
+
+        <div class="middle-panel">
+            <div class="payload-header">🎯 XEdit Payload</div>
+            <div class="payload-container">
+                <div class="payload-list" id="payload-list">
+                    <div class="payload-empty">Click functions to add XEdit-Paths</div>
+                </div>
+                <button class="send-button" id="send-button" onclick="sendToMCP()" disabled>
+                    🚀 Send 0 to MCP for Fixes
+                </button>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="code-header">
+                <span>📁 X Edit Generated Project: Generated Code</span>
+                <span class="code-stats">5 files • 186 lines</span>
+            </div>
+            <div class="code-container">
+                
+                <div class="file-section">
+                    <div class="file-header">
+                        📁 src/index.js (javascript) - 38 lines
+                    </div>
+                    <div class="code-block" data-filename="src/index.js">
+            
+                    <div class="code-line" data-global-line="1" data-local-line="1" >
+                        <span class="line-number">1</span>
+                        <span class="line-content">const express = require(&#39;express&#39;);</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="2" data-local-line="2" >
+                        <span class="line-number">2</span>
+                        <span class="line-content">const mongoose = require(&#39;mongoose&#39;);</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="3" data-local-line="3" >
+                        <span class="line-number">3</span>
+                        <span class="line-content">const cors = require(&#39;cors&#39;);</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="4" data-local-line="4" >
+                        <span class="line-number">4</span>
+                        <span class="line-content">const dotenv = require(&#39;dotenv&#39;);</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="5" data-local-line="5" >
+                        <span class="line-number">5</span>
+                        <span class="line-content">const authRoutes = require(&#39;./routes/auth&#39;);</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="6" data-local-line="6" >
+                        <span class="line-number">6</span>
+                        <span class="line-content">const userRoutes = require(&#39;./routes/users&#39;);</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="7" data-local-line="7" >
+                        <span class="line-number">7</span>
+                        <span class="line-content">const errorMiddleware = require(&#39;./middleware/error&#39;);</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="8" data-local-line="8" >
+                        <span class="line-number">8</span>
+                        <span class="line-content">const { validateUser } = require(&#39;./middleware/validation&#39;);</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="9" data-local-line="9" >
+                        <span class="line-number">9</span>
+                        <span class="line-content">const { authenticateToken } = require(&#39;./middleware/auth&#39;);</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="10" data-local-line="10" >
+                        <span class="line-number">10</span>
+                        <span class="line-content"></span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="11" data-local-line="11" >
+                        <span class="line-number">11</span>
+                        <span class="line-content">dotenv.config();</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="12" data-local-line="12" >
+                        <span class="line-number">12</span>
+                        <span class="line-content"></span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="13" data-local-line="13" >
+                        <span class="line-number">13</span>
+                        <span class="line-content">const app = express();</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="14" data-local-line="14" >
+                        <span class="line-number">14</span>
+                        <span class="line-content">const PORT = process.env.PORT || 3000;</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="15" data-local-line="15" >
+                        <span class="line-number">15</span>
+                        <span class="line-content"></span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="16" data-local-line="16" >
+                        <span class="line-number">16</span>
+                        <span class="line-content">// Connect to MongoDB</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="17" data-local-line="17" >
+                        <span class="line-number">17</span>
+                        <span class="line-content">mongoose.connect(process.env.MONGO_URI, {</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="18" data-local-line="18" >
+                        <span class="line-number">18</span>
+                        <span class="line-content">  useNewUrlParser: true,</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="19" data-local-line="19" >
+                        <span class="line-number">19</span>
+                        <span class="line-content">  useUnifiedTopology: true,</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="20" data-local-line="20" >
+                        <span class="line-number">20</span>
+                        <span class="line-content">})</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="21" data-local-line="21" >
+                        <span class="line-number">21</span>
+                        <span class="line-content">  .then(() =&gt; console.log(&#39;MongoDB connected&#39;))</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="22" data-local-line="22" >
+                        <span class="line-number">22</span>
+                        <span class="line-content">  .catch(err =&gt; console.error(&#39;MongoDB connection error:&#39;, err));</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="23" data-local-line="23" >
+                        <span class="line-number">23</span>
+                        <span class="line-content"></span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="24" data-local-line="24" >
+                        <span class="line-number">24</span>
+                        <span class="line-content">// Middleware</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="25" data-local-line="25" >
+                        <span class="line-number">25</span>
+                        <span class="line-content">app.use(cors());</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="26" data-local-line="26" >
+                        <span class="line-number">26</span>
+                        <span class="line-content">app.use(express.json());</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="27" data-local-line="27" >
+                        <span class="line-number">27</span>
+                        <span class="line-content"></span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="28" data-local-line="28" >
+                        <span class="line-number">28</span>
+                        <span class="line-content">// Routes</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="29" data-local-line="29" >
+                        <span class="line-number">29</span>
+                        <span class="line-content">app.use(&#39;/api/auth&#39;, authRoutes);</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="30" data-local-line="30" >
+                        <span class="line-number">30</span>
+                        <span class="line-content">app.use(&#39;/api/users&#39;, authenticateToken, userRoutes);</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="31" data-local-line="31" >
+                        <span class="line-number">31</span>
+                        <span class="line-content"></span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="32" data-local-line="32" >
+                        <span class="line-number">32</span>
+                        <span class="line-content">// Error handling middleware</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="33" data-local-line="33" >
+                        <span class="line-number">33</span>
+                        <span class="line-content">app.use(errorMiddleware);</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="34" data-local-line="34" >
+                        <span class="line-number">34</span>
+                        <span class="line-content"></span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="35" data-local-line="35" >
+                        <span class="line-number">35</span>
+                        <span class="line-content">// Start server</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="36" data-local-line="36" >
+                        <span class="line-number">36</span>
+                        <span class="line-content">app.listen(PORT, () =&gt; {</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="37" data-local-line="37" >
+                        <span class="line-number">37</span>
+                        <span class="line-content">  console.log(`Server running on port ${PORT}`);</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="38" data-local-line="38" >
+                        <span class="line-number">38</span>
+                        <span class="line-content">});</span>
+                    </div>
+                
+                    </div>
+                </div>
+            
+                <div class="file-section">
+                    <div class="file-header">
+                        📁 src/script.js (javascript) - 23 lines
+                    </div>
+                    <div class="code-block" data-filename="src/script.js">
+            
+                    <div class="code-line" data-global-line="39" data-local-line="1" >
+                        <span class="line-number">1</span>
+                        <span class="line-content">const mongoose = require(&#39;mongoose&#39;);</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="40" data-local-line="2" >
+                        <span class="line-number">2</span>
+                        <span class="line-content">const bcrypt = require(&#39;bcrypt&#39;);</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="41" data-local-line="3" >
+                        <span class="line-number">3</span>
+                        <span class="line-content"></span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="42" data-local-line="4" >
+                        <span class="line-number">4</span>
+                        <span class="line-content">const userSchema = new mongoose.Schema({</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="43" data-local-line="5" >
+                        <span class="line-number">5</span>
+                        <span class="line-content">  username: { type: String, required: true, unique: true },</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="44" data-local-line="6" >
+                        <span class="line-number">6</span>
+                        <span class="line-content">  email: { type: String, required: true, unique: true },</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="45" data-local-line="7" >
+                        <span class="line-number">7</span>
+                        <span class="line-content">  password: { type: String, required: true },</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="46" data-local-line="8" >
+                        <span class="line-number">8</span>
+                        <span class="line-content">  role: { type: String, enum: [&#39;user&#39;, &#39;admin&#39;], default: &#39;user&#39; },</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="47" data-local-line="9" >
+                        <span class="line-number">9</span>
+                        <span class="line-content">}, { timestamps: true });</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="48" data-local-line="10" >
+                        <span class="line-number">10</span>
+                        <span class="line-content"></span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="49" data-local-line="11" >
+                        <span class="line-number">11</span>
+                        <span class="line-content">// Hash password before saving</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="50" data-local-line="12" >
+                        <span class="line-number">12</span>
+                        <span class="line-content">userSchema.pre(&#39;save&#39;, async function (next) {</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="51" data-local-line="13" >
+                        <span class="line-number">13</span>
+                        <span class="line-content">  if (!this.isModified(&#39;password&#39;)) return next();</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="52" data-local-line="14" >
+                        <span class="line-number">14</span>
+                        <span class="line-content">  this.password = await bcrypt.hash(this.password, 10);</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="53" data-local-line="15" >
+                        <span class="line-number">15</span>
+                        <span class="line-content">  next();</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="54" data-local-line="16" >
+                        <span class="line-number">16</span>
+                        <span class="line-content">});</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="55" data-local-line="17" >
+                        <span class="line-number">17</span>
+                        <span class="line-content"></span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="56" data-local-line="18" >
+                        <span class="line-number">18</span>
+                        <span class="line-content">// Compare password</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="57" data-local-line="19" >
+                        <span class="line-number">19</span>
+                        <span class="line-content">userSchema.methods.comparePassword = async function (candidatePassword) {</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="58" data-local-line="20" >
+                        <span class="line-number">20</span>
+                        <span class="line-content">  return await bcrypt.compare(candidatePassword, this.password);</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="59" data-local-line="21" >
+                        <span class="line-number">21</span>
+                        <span class="line-content">};</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="60" data-local-line="22" >
+                        <span class="line-number">22</span>
+                        <span class="line-content"></span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="61" data-local-line="23" >
+                        <span class="line-number">23</span>
+                        <span class="line-content">module.exports = mongoose.model(&#39;User&#39;, userSchema);</span>
+                    </div>
+                
+                    </div>
+                </div>
+            
+                <div class="file-section">
+                    <div class="file-header">
+                        📁 package.json (json) - 26 lines
+                    </div>
+                    <div class="code-block" data-filename="package.json">
+            
+                    <div class="code-line" data-global-line="62" data-local-line="1" >
+                        <span class="line-number">1</span>
+                        <span class="line-content">{</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="63" data-local-line="2" >
+                        <span class="line-number">2</span>
+                        <span class="line-content">  &quot;name&quot;: &quot;restful-api&quot;,</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="64" data-local-line="3" >
+                        <span class="line-number">3</span>
+                        <span class="line-content">  &quot;version&quot;: &quot;1.0.0&quot;,</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="65" data-local-line="4" >
+                        <span class="line-number">4</span>
+                        <span class="line-content">  &quot;description&quot;: &quot;RESTful API with Node.js, Express, and MongoDB&quot;,</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="66" data-local-line="5" >
+                        <span class="line-number">5</span>
+                        <span class="line-content">  &quot;main&quot;: &quot;server.js&quot;,</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="67" data-local-line="6" >
+                        <span class="line-number">6</span>
+                        <span class="line-content">  &quot;scripts&quot;: {</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="68" data-local-line="7" >
+                        <span class="line-number">7</span>
+                        <span class="line-content">    &quot;start&quot;: &quot;node server.js&quot;,</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="69" data-local-line="8" >
+                        <span class="line-number">8</span>
+                        <span class="line-content">    &quot;dev&quot;: &quot;nodemon server.js&quot;,</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="70" data-local-line="9" >
+                        <span class="line-number">9</span>
+                        <span class="line-content">    &quot;test&quot;: &quot;jest&quot;,</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="71" data-local-line="10" >
+                        <span class="line-number">10</span>
+                        <span class="line-content">    &quot;db:migrate&quot;: &quot;mongoDB-migrate&quot;</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="72" data-local-line="11" >
+                        <span class="line-number">11</span>
+                        <span class="line-content">  },</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="73" data-local-line="12" >
+                        <span class="line-number">12</span>
+                        <span class="line-content">  &quot;dependencies&quot;: {</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="74" data-local-line="13" >
+                        <span class="line-number">13</span>
+                        <span class="line-content">    &quot;bcrypt&quot;: &quot;^5.1.0&quot;,</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="75" data-local-line="14" >
+                        <span class="line-number">14</span>
+                        <span class="line-content">    &quot;cors&quot;: &quot;^2.8.5&quot;,</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="76" data-local-line="15" >
+                        <span class="line-number">15</span>
+                        <span class="line-content">    &quot;dotenv&quot;: &quot;^16.0.3&quot;,</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="77" data-local-line="16" >
+                        <span class="line-number">16</span>
+                        <span class="line-content">    &quot;express&quot;: &quot;^4.18.2&quot;,</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="78" data-local-line="17" >
+                        <span class="line-number">17</span>
+                        <span class="line-content">    &quot;express-validator&quot;: &quot;^6.18.1&quot;,</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="79" data-local-line="18" >
+                        <span class="line-number">18</span>
+                        <span class="line-content">    &quot;jsonwebtoken&quot;: &quot;^9.0.0&quot;,</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="80" data-local-line="19" >
+                        <span class="line-number">19</span>
+                        <span class="line-content">    &quot;mongoose&quot;: &quot;^6.10.2&quot;,</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="81" data-local-line="20" >
+                        <span class="line-number">20</span>
+                        <span class="line-content">    &quot;nodemon&quot;: &quot;^3.0.2&quot;</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="82" data-local-line="21" >
+                        <span class="line-number">21</span>
+                        <span class="line-content">  },</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="83" data-local-line="22" >
+                        <span class="line-number">22</span>
+                        <span class="line-content">  &quot;devDependencies&quot;: {</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="84" data-local-line="23" >
+                        <span class="line-number">23</span>
+                        <span class="line-content">    &quot;jest&quot;: &quot;^29.7.0&quot;,</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="85" data-local-line="24" >
+                        <span class="line-number">24</span>
+                        <span class="line-content">    &quot;supertest&quot;: &quot;^6.3.3&quot;</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="86" data-local-line="25" >
+                        <span class="line-number">25</span>
+                        <span class="line-content">  }</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="87" data-local-line="26" >
+                        <span class="line-number">26</span>
+                        <span class="line-content">}</span>
+                    </div>
+                
+                    </div>
+                </div>
+            
+                <div class="file-section">
+                    <div class="file-header">
+                        📁 src/file.txt (text) - 4 lines
+                    </div>
+                    <div class="code-block" data-filename="src/file.txt">
+            
+                    <div class="code-line" data-global-line="88" data-local-line="1" >
+                        <span class="line-number">1</span>
+                        <span class="line-content">PORT=3000</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="89" data-local-line="2" >
+                        <span class="line-number">2</span>
+                        <span class="line-content">MONGO_URI=mongodb://localhost:27017/restful-api</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="90" data-local-line="3" >
+                        <span class="line-number">3</span>
+                        <span class="line-content">JWT_SECRET=your-secret-key</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="91" data-local-line="4" >
+                        <span class="line-number">4</span>
+                        <span class="line-content">NODE_ENV=development</span>
+                    </div>
+                
+                    </div>
+                </div>
+            
+                <div class="file-section">
+                    <div class="file-header">
+                        📁 main.py (python) - 95 lines
+                    </div>
+                    <div class="code-block" data-filename="main.py">
+            
+                    <div class="code-line" data-global-line="92" data-local-line="1" >
+                        <span class="line-number">1</span>
+                        <span class="line-content">#!/usr/bin/env python3</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="93" data-local-line="2" >
+                        <span class="line-number">2</span>
+                        <span class="line-content">import os</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="94" data-local-line="3" >
+                        <span class="line-number">3</span>
+                        <span class="line-content">import argparse</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="95" data-local-line="4" >
+                        <span class="line-number">4</span>
+                        <span class="line-content">import colorama</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="96" data-local-line="5" >
+                        <span class="line-number">5</span>
+                        <span class="line-content">from colorama import Fore, Style</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="97" data-local-line="6" >
+                        <span class="line-number">6</span>
+                        <span class="line-content">import subprocess</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="98" data-local-line="7" >
+                        <span class="line-number">7</span>
+                        <span class="line-content">import sys</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="99" data-local-line="8" >
+                        <span class="line-number">8</span>
+                        <span class="line-content"></span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="100" data-local-line="9" >
+                        <span class="line-number">9</span>
+                        <span class="line-content">colorama.init(autoreset=True)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="101" data-local-line="10" >
+                        <span class="line-number">10</span>
+                        <span class="line-content"></span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="102" data-local-line="11" data-xedit-id="7x001" class="highlightable-line">
+                        <span class="line-number">11</span>
+                        <span class="line-content">def display_permissions(path):</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="103" data-local-line="12" data-xedit-id="7x001" class="highlightable-line">
+                        <span class="line-number">12</span>
+                        <span class="line-content">    &quot;&quot;&quot;Display current permissions, ownership, and metadata.&quot;&quot;&quot;</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="104" data-local-line="13" data-xedit-id="7x001" class="highlightable-line">
+                        <span class="line-number">13</span>
+                        <span class="line-content">    try:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="105" data-local-line="14" data-xedit-id="7x001" class="highlightable-line">
+                        <span class="line-number">14</span>
+                        <span class="line-content">        stat = os.stat(path)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="106" data-local-line="15" data-xedit-id="7x001" class="highlightable-line">
+                        <span class="line-number">15</span>
+                        <span class="line-content">        print(f&quot;{Fore.CYAN}Permissions for {path}:{Style.RESET_ALL}&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="107" data-local-line="16" data-xedit-id="7x001" class="highlightable-line">
+                        <span class="line-number">16</span>
+                        <span class="line-content">        print(f&quot;  Owner: {stat.st_uid}&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="108" data-local-line="17" data-xedit-id="7x001" class="highlightable-line">
+                        <span class="line-number">17</span>
+                        <span class="line-content">        print(f&quot;  Group: {stat.st_gid}&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="109" data-local-line="18" data-xedit-id="7x001" class="highlightable-line">
+                        <span class="line-number">18</span>
+                        <span class="line-content">        print(f&quot;  Permissions: {oct(stat.st_mode)[-3:]}&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="110" data-local-line="19" data-xedit-id="7x001" class="highlightable-line">
+                        <span class="line-number">19</span>
+                        <span class="line-content">        print(f&quot;  Last Modified: {stat.st_mtime}&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="111" data-local-line="20" data-xedit-id="7x001" class="highlightable-line">
+                        <span class="line-number">20</span>
+                        <span class="line-content">    except Exception as e:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="112" data-local-line="21" data-xedit-id="7x001" class="highlightable-line">
+                        <span class="line-number">21</span>
+                        <span class="line-content">        print(f&quot;{Fore.RED}Error: {e}{Style.RESET_ALL}&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="113" data-local-line="22" data-xedit-id="7x001" class="highlightable-line">
+                        <span class="line-number">22</span>
+                        <span class="line-content"></span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="114" data-local-line="23" data-xedit-id="7x002" class="highlightable-line">
+                        <span class="line-number">23</span>
+                        <span class="line-content">def change_permissions(path, mode):</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="115" data-local-line="24" data-xedit-id="7x002" class="highlightable-line">
+                        <span class="line-number">24</span>
+                        <span class="line-content">    &quot;&quot;&quot;Change file/directory permissions using octal or symbolic notation.&quot;&quot;&quot;</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="116" data-local-line="25" data-xedit-id="7x002" class="highlightable-line">
+                        <span class="line-number">25</span>
+                        <span class="line-content">    try:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="117" data-local-line="26" data-xedit-id="7x002" class="highlightable-line">
+                        <span class="line-number">26</span>
+                        <span class="line-content">        os.chmod(path, int(mode, 8))</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="118" data-local-line="27" data-xedit-id="7x002" class="highlightable-line">
+                        <span class="line-number">27</span>
+                        <span class="line-content">        print(f&quot;{Fore.GREEN}Permissions updated to {mode}{Style.RESET_ALL}&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="119" data-local-line="28" data-xedit-id="7x002" class="highlightable-line">
+                        <span class="line-number">28</span>
+                        <span class="line-content">    except Exception as e:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="120" data-local-line="29" data-xedit-id="7x002" class="highlightable-line">
+                        <span class="line-number">29</span>
+                        <span class="line-content">        print(f&quot;{Fore.RED}Error changing permissions: {e}{Style.RESET_ALL}&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="121" data-local-line="30" data-xedit-id="7x002" class="highlightable-line">
+                        <span class="line-number">30</span>
+                        <span class="line-content"></span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="122" data-local-line="31" data-xedit-id="7x003" class="highlightable-line">
+                        <span class="line-number">31</span>
+                        <span class="line-content">def change_ownership(path, user, group):</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="123" data-local-line="32" data-xedit-id="7x003" class="highlightable-line">
+                        <span class="line-number">32</span>
+                        <span class="line-content">    &quot;&quot;&quot;Change ownership using sudo (requires root privileges).&quot;&quot;&quot;</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="124" data-local-line="33" data-xedit-id="7x003" class="highlightable-line">
+                        <span class="line-number">33</span>
+                        <span class="line-content">    try:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="125" data-local-line="34" data-xedit-id="7x003" class="highlightable-line">
+                        <span class="line-number">34</span>
+                        <span class="line-content">        subprocess.run([&quot;sudo&quot;, &quot;chown&quot;, f&quot;{user}:{group}&quot;, path], check=True)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="126" data-local-line="35" data-xedit-id="7x003" class="highlightable-line">
+                        <span class="line-number">35</span>
+                        <span class="line-content">        print(f&quot;{Fore.GREEN}Ownership changed to {user}:{group}{Style.RESET_ALL}&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="127" data-local-line="36" data-xedit-id="7x003" class="highlightable-line">
+                        <span class="line-number">36</span>
+                        <span class="line-content">    except subprocess.CalledProcessError as e:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="128" data-local-line="37" data-xedit-id="7x003" class="highlightable-line">
+                        <span class="line-number">37</span>
+                        <span class="line-content">        print(f&quot;{Fore.RED}Error changing ownership: {e}{Style.RESET_ALL}&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="129" data-local-line="38" data-xedit-id="7x003" class="highlightable-line">
+                        <span class="line-number">38</span>
+                        <span class="line-content"></span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="130" data-local-line="39" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">39</span>
+                        <span class="line-content">def interactive_menu():</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="131" data-local-line="40" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">40</span>
+                        <span class="line-content">    &quot;&quot;&quot;Interactive menu for permission management.&quot;&quot;&quot;</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="132" data-local-line="41" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">41</span>
+                        <span class="line-content">    print(f&quot;{Fore.YELLOW}Welcome to permis - Linux Permissions Manager{Style.RESET_ALL}&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="133" data-local-line="42" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">42</span>
+                        <span class="line-content">    while True:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="134" data-local-line="43" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">43</span>
+                        <span class="line-content">        print(&quot;\nOptions:&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="135" data-local-line="44" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">44</span>
+                        <span class="line-content">        print(&quot;1. Display Permissions&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="136" data-local-line="45" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">45</span>
+                        <span class="line-content">        print(&quot;2. Change Permissions&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="137" data-local-line="46" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">46</span>
+                        <span class="line-content">        print(&quot;3. Change Ownership&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="138" data-local-line="47" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">47</span>
+                        <span class="line-content">        print(&quot;4. Exit&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="139" data-local-line="48" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">48</span>
+                        <span class="line-content">        choice = input(&quot;Select an option: &quot;).strip()</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="140" data-local-line="49" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">49</span>
+                        <span class="line-content">        if choice == &quot;1&quot;:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="141" data-local-line="50" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">50</span>
+                        <span class="line-content">            path = input(&quot;Enter file/directory path: &quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="142" data-local-line="51" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">51</span>
+                        <span class="line-content">            display_permissions(path)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="143" data-local-line="52" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">52</span>
+                        <span class="line-content">        elif choice == &quot;2&quot;:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="144" data-local-line="53" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">53</span>
+                        <span class="line-content">            path = input(&quot;Enter file/directory path: &quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="145" data-local-line="54" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">54</span>
+                        <span class="line-content">            mode = input(&quot;Enter octal permission (e.g., 755): &quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="146" data-local-line="55" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">55</span>
+                        <span class="line-content">            change_permissions(path, mode)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="147" data-local-line="56" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">56</span>
+                        <span class="line-content">        elif choice == &quot;3&quot;:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="148" data-local-line="57" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">57</span>
+                        <span class="line-content">            path = input(&quot;Enter file/directory path: &quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="149" data-local-line="58" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">58</span>
+                        <span class="line-content">            user = input(&quot;Enter new owner: &quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="150" data-local-line="59" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">59</span>
+                        <span class="line-content">            group = input(&quot;Enter new group: &quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="151" data-local-line="60" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">60</span>
+                        <span class="line-content">            change_ownership(path, user, group)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="152" data-local-line="61" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">61</span>
+                        <span class="line-content">        elif choice == &quot;4&quot;:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="153" data-local-line="62" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">62</span>
+                        <span class="line-content">            print(f&quot;{Fore.CYAN}Exiting permis. Have a great day!{Style.RESET_ALL}&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="154" data-local-line="63" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">63</span>
+                        <span class="line-content">            break</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="155" data-local-line="64" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">64</span>
+                        <span class="line-content">        else:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="156" data-local-line="65" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">65</span>
+                        <span class="line-content">            print(f&quot;{Fore.RED}Invalid option. Try again.{Style.RESET_ALL}&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="157" data-local-line="66" data-xedit-id="7x004" class="highlightable-line">
+                        <span class="line-number">66</span>
+                        <span class="line-content"></span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="158" data-local-line="67" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">67</span>
+                        <span class="line-content">def main():</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="159" data-local-line="68" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">68</span>
+                        <span class="line-content">    parser = argparse.ArgumentParser(description=&quot;Linux Permissions Management CLI&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="160" data-local-line="69" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">69</span>
+                        <span class="line-content">    parser.add_argument(&quot;command&quot;, nargs=&quot;?&quot;, help=&quot;Command to execute (display, change-perm, change-owner)&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="161" data-local-line="70" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">70</span>
+                        <span class="line-content">    parser.add_argument(&quot;path&quot;, nargs=&quot;?&quot;, help=&quot;File/directory path&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="162" data-local-line="71" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">71</span>
+                        <span class="line-content">    parser.add_argument(&quot;--mode&quot;, help=&quot;Octal permission mode (e.g., 755)&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="163" data-local-line="72" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">72</span>
+                        <span class="line-content">    parser.add_argument(&quot;--user&quot;, help=&quot;New owner username&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="164" data-local-line="73" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">73</span>
+                        <span class="line-content">    parser.add_argument(&quot;--group&quot;, help=&quot;New group name&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="165" data-local-line="74" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">74</span>
+                        <span class="line-content">    args = parser.parse_args()</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="166" data-local-line="75" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">75</span>
+                        <span class="line-content"></span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="167" data-local-line="76" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">76</span>
+                        <span class="line-content">    if args.command:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="168" data-local-line="77" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">77</span>
+                        <span class="line-content">        if args.command == &quot;display&quot;:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="169" data-local-line="78" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">78</span>
+                        <span class="line-content">            display_permissions(args.path)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="170" data-local-line="79" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">79</span>
+                        <span class="line-content">        elif args.command == &quot;change-perm&quot;:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="171" data-local-line="80" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">80</span>
+                        <span class="line-content">            if not args.mode:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="172" data-local-line="81" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">81</span>
+                        <span class="line-content">                print(f&quot;{Fore.RED}Error: --mode is required for change-perm{Style.RESET_ALL}&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="173" data-local-line="82" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">82</span>
+                        <span class="line-content">                return</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="174" data-local-line="83" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">83</span>
+                        <span class="line-content">            change_permissions(args.path, args.mode)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="175" data-local-line="84" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">84</span>
+                        <span class="line-content">        elif args.command == &quot;change-owner&quot;:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="176" data-local-line="85" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">85</span>
+                        <span class="line-content">            if not args.user or not args.group:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="177" data-local-line="86" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">86</span>
+                        <span class="line-content">                print(f&quot;{Fore.RED}Error: --user and --group are required for change-owner{Style.RESET_ALL}&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="178" data-local-line="87" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">87</span>
+                        <span class="line-content">                return</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="179" data-local-line="88" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">88</span>
+                        <span class="line-content">            change_ownership(args.path, args.user, args.group)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="180" data-local-line="89" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">89</span>
+                        <span class="line-content">        else:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="181" data-local-line="90" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">90</span>
+                        <span class="line-content">            print(f&quot;{Fore.RED}Invalid command. Use: display, change-perm, change-owner{Style.RESET_ALL}&quot;)</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="182" data-local-line="91" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">91</span>
+                        <span class="line-content">    else:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="183" data-local-line="92" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">92</span>
+                        <span class="line-content">        interactive_menu()</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="184" data-local-line="93" data-xedit-id="7x005" class="highlightable-line">
+                        <span class="line-number">93</span>
+                        <span class="line-content"></span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="185" data-local-line="94" >
+                        <span class="line-number">94</span>
+                        <span class="line-content">if __name__ == &quot;__main__&quot;:</span>
+                    </div>
+                
+                    <div class="code-line" data-global-line="186" data-local-line="95" >
+                        <span class="line-number">95</span>
+                        <span class="line-content">    main()</span>
+                    </div>
+                
+                    </div>
+                </div>
+            
+            </div>
+            <div class="deploy-section">
+                <button class="deploy-button" onclick="deployPcock()">🦚 PCOCK Deploy</button>
+                <button class="export-button" onclick="exportCode()">📦 Export ZIP</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global data
+        const xeditPaths = [
+  {
+    "xedit_id": "7x001",
+    "display_name": "display_permissions (function)",
+    "element_type": "function",
+    "filename": "main.py",
+    "language": "python",
+    "line_start": 11,
+    "line_end": 22,
+    "code_snippet": "def display_permissions(path):",
+    "technical_path": "main.py::function.display_permissions"
+  },
+  {
+    "xedit_id": "7x002",
+    "display_name": "change_permissions (function)",
+    "element_type": "function",
+    "filename": "main.py",
+    "language": "python",
+    "line_start": 23,
+    "line_end": 30,
+    "code_snippet": "def change_permissions(path, mode):",
+    "technical_path": "main.py::function.change_permissions"
+  },
+  {
+    "xedit_id": "7x003",
+    "display_name": "change_ownership (function)",
+    "element_type": "function",
+    "filename": "main.py",
+    "language": "python",
+    "line_start": 31,
+    "line_end": 38,
+    "code_snippet": "def change_ownership(path, user, group):",
+    "technical_path": "main.py::function.change_ownership"
+  },
+  {
+    "xedit_id": "7x004",
+    "display_name": "interactive_menu (function)",
+    "element_type": "function",
+    "filename": "main.py",
+    "language": "python",
+    "line_start": 39,
+    "line_end": 66,
+    "code_snippet": "def interactive_menu():",
+    "technical_path": "main.py::function.interactive_menu"
+  },
+  {
+    "xedit_id": "7x005",
+    "display_name": "main (function)",
+    "element_type": "function",
+    "filename": "main.py",
+    "language": "python",
+    "line_start": 67,
+    "line_end": 93,
+    "code_snippet": "def main():",
+    "technical_path": "main.py::function.main"
+  }
+];
+        const sessionTimestamp = '20250712-003704';
+        const projectName = 'X Edit Generated Project';
+        const codeFiles = [
+  {
+    "filename": "src/index.js",
+    "language": "javascript",
+    "content": "const express = require('express');\nconst mongoose = require('mongoose');\nconst cors = require('cors');\nconst dotenv = require('dotenv');\nconst authRoutes = require('./routes/auth');\nconst userRoutes = require('./routes/users');\nconst errorMiddleware = require('./middleware/error');\nconst { validateUser } = require('./middleware/validation');\nconst { authenticateToken } = require('./middleware/auth');\n\ndotenv.config();\n\nconst app = express();\nconst PORT = process.env.PORT || 3000;\n\n// Connect to MongoDB\nmongoose.connect(process.env.MONGO_URI, {\n  useNewUrlParser: true,\n  useUnifiedTopology: true,\n})\n  .then(() => console.log('MongoDB connected'))\n  .catch(err => console.error('MongoDB connection error:', err));\n\n// Middleware\napp.use(cors());\napp.use(express.json());\n\n// Routes\napp.use('/api/auth', authRoutes);\napp.use('/api/users', authenticateToken, userRoutes);\n\n// Error handling middleware\napp.use(errorMiddleware);\n\n// Start server\napp.listen(PORT, () => {\n  console.log(`Server running on port ${PORT}`);\n});",
+    "line_count": 38,
+    "functions_classes": []
+  },
+  {
+    "filename": "src/script.js",
+    "language": "javascript",
+    "content": "const mongoose = require('mongoose');\nconst bcrypt = require('bcrypt');\n\nconst userSchema = new mongoose.Schema({\n  username: { type: String, required: true, unique: true },\n  email: { type: String, required: true, unique: true },\n  password: { type: String, required: true },\n  role: { type: String, enum: ['user', 'admin'], default: 'user' },\n}, { timestamps: true });\n\n// Hash password before saving\nuserSchema.pre('save', async function (next) {\n  if (!this.isModified('password')) return next();\n  this.password = await bcrypt.hash(this.password, 10);\n  next();\n});\n\n// Compare password\nuserSchema.methods.comparePassword = async function (candidatePassword) {\n  return await bcrypt.compare(candidatePassword, this.password);\n};\n\nmodule.exports = mongoose.model('User', userSchema);",
+    "line_count": 23,
+    "functions_classes": []
+  },
+  {
+    "filename": "package.json",
+    "language": "json",
+    "content": "{\n  \"name\": \"restful-api\",\n  \"version\": \"1.0.0\",\n  \"description\": \"RESTful API with Node.js, Express, and MongoDB\",\n  \"main\": \"server.js\",\n  \"scripts\": {\n    \"start\": \"node server.js\",\n    \"dev\": \"nodemon server.js\",\n    \"test\": \"jest\",\n    \"db:migrate\": \"mongoDB-migrate\"\n  },\n  \"dependencies\": {\n    \"bcrypt\": \"^5.1.0\",\n    \"cors\": \"^2.8.5\",\n    \"dotenv\": \"^16.0.3\",\n    \"express\": \"^4.18.2\",\n    \"express-validator\": \"^6.18.1\",\n    \"jsonwebtoken\": \"^9.0.0\",\n    \"mongoose\": \"^6.10.2\",\n    \"nodemon\": \"^3.0.2\"\n  },\n  \"devDependencies\": {\n    \"jest\": \"^29.7.0\",\n    \"supertest\": \"^6.3.3\"\n  }\n}",
+    "line_count": 26,
+    "functions_classes": []
+  },
+  {
+    "filename": "src/file.txt",
+    "language": "text",
+    "content": "PORT=3000\nMONGO_URI=mongodb://localhost:27017/restful-api\nJWT_SECRET=your-secret-key\nNODE_ENV=development",
+    "line_count": 4,
+    "functions_classes": []
+  },
+  {
+    "filename": "main.py",
+    "language": "python",
+    "content": "#!/usr/bin/env python3\nimport os\nimport argparse\nimport colorama\nfrom colorama import Fore, Style\nimport subprocess\nimport sys\n\ncolorama.init(autoreset=True)\n\ndef display_permissions(path):\n    \"\"\"Display current permissions, ownership, and metadata.\"\"\"\n    try:\n        stat = os.stat(path)\n        print(f\"{Fore.CYAN}Permissions for {path}:{Style.RESET_ALL}\")\n        print(f\"  Owner: {stat.st_uid}\")\n        print(f\"  Group: {stat.st_gid}\")\n        print(f\"  Permissions: {oct(stat.st_mode)[-3:]}\")\n        print(f\"  Last Modified: {stat.st_mtime}\")\n    except Exception as e:\n        print(f\"{Fore.RED}Error: {e}{Style.RESET_ALL}\")\n\ndef change_permissions(path, mode):\n    \"\"\"Change file/directory permissions using octal or symbolic notation.\"\"\"\n    try:\n        os.chmod(path, int(mode, 8))\n        print(f\"{Fore.GREEN}Permissions updated to {mode}{Style.RESET_ALL}\")\n    except Exception as e:\n        print(f\"{Fore.RED}Error changing permissions: {e}{Style.RESET_ALL}\")\n\ndef change_ownership(path, user, group):\n    \"\"\"Change ownership using sudo (requires root privileges).\"\"\"\n    try:\n        subprocess.run([\"sudo\", \"chown\", f\"{user}:{group}\", path], check=True)\n        print(f\"{Fore.GREEN}Ownership changed to {user}:{group}{Style.RESET_ALL}\")\n    except subprocess.CalledProcessError as e:\n        print(f\"{Fore.RED}Error changing ownership: {e}{Style.RESET_ALL}\")\n\ndef interactive_menu():\n    \"\"\"Interactive menu for permission management.\"\"\"\n    print(f\"{Fore.YELLOW}Welcome to permis - Linux Permissions Manager{Style.RESET_ALL}\")\n    while True:\n        print(\"\\nOptions:\")\n        print(\"1. Display Permissions\")\n        print(\"2. Change Permissions\")\n        print(\"3. Change Ownership\")\n        print(\"4. Exit\")\n        choice = input(\"Select an option: \").strip()\n        if choice == \"1\":\n            path = input(\"Enter file/directory path: \")\n            display_permissions(path)\n        elif choice == \"2\":\n            path = input(\"Enter file/directory path: \")\n            mode = input(\"Enter octal permission (e.g., 755): \")\n            change_permissions(path, mode)\n        elif choice == \"3\":\n            path = input(\"Enter file/directory path: \")\n            user = input(\"Enter new owner: \")\n            group = input(\"Enter new group: \")\n            change_ownership(path, user, group)\n        elif choice == \"4\":\n            print(f\"{Fore.CYAN}Exiting permis. Have a great day!{Style.RESET_ALL}\")\n            break\n        else:\n            print(f\"{Fore.RED}Invalid option. Try again.{Style.RESET_ALL}\")\n\ndef main():\n    parser = argparse.ArgumentParser(description=\"Linux Permissions Management CLI\")\n    parser.add_argument(\"command\", nargs=\"?\", help=\"Command to execute (display, change-perm, change-owner)\")\n    parser.add_argument(\"path\", nargs=\"?\", help=\"File/directory path\")\n    parser.add_argument(\"--mode\", help=\"Octal permission mode (e.g., 755)\")\n    parser.add_argument(\"--user\", help=\"New owner username\")\n    parser.add_argument(\"--group\", help=\"New group name\")\n    args = parser.parse_args()\n\n    if args.command:\n        if args.command == \"display\":\n            display_permissions(args.path)\n        elif args.command == \"change-perm\":\n            if not args.mode:\n                print(f\"{Fore.RED}Error: --mode is required for change-perm{Style.RESET_ALL}\")\n                return\n            change_permissions(args.path, args.mode)\n        elif args.command == \"change-owner\":\n            if not args.user or not args.group:\n                print(f\"{Fore.RED}Error: --user and --group are required for change-owner{Style.RESET_ALL}\")\n                return\n            change_ownership(args.path, args.user, args.group)\n        else:\n            print(f\"{Fore.RED}Invalid command. Use: display, change-perm, change-owner{Style.RESET_ALL}\")\n    else:\n        interactive_menu()\n\nif __name__ == \"__main__\":\n    main()",
+    "line_count": 95,
+    "functions_classes": [
+      {
+        "name": "display_permissions",
+        "type": "function",
+        "line_start": 11,
+        "line_end": 22,
+        "code_snippet": "def display_permissions(path):"
+      },
+      {
+        "name": "change_permissions",
+        "type": "function",
+        "line_start": 23,
+        "line_end": 30,
+        "code_snippet": "def change_permissions(path, mode):"
+      },
+      {
+        "name": "change_ownership",
+        "type": "function",
+        "line_start": 31,
+        "line_end": 38,
+        "code_snippet": "def change_ownership(path, user, group):"
+      },
+      {
+        "name": "interactive_menu",
+        "type": "function",
+        "line_start": 39,
+        "line_end": 66,
+        "code_snippet": "def interactive_menu():"
+      },
+      {
+        "name": "main",
+        "type": "function",
+        "line_start": 67,
+        "line_end": 93,
+        "code_snippet": "def main():"
+      }
+    ]
+  }
+];
+        const projectImplementation = {
+  "project_overview": "<think>\nOkay, I need to generate the complete code for the project based on the provided ProjectBlueprint and BuildAndTestPlan. Let me start by understanding the requirements.",
+  "implementation_notes": "No implementation notes",
+  "setup_instructions": "5.",
+  "code_blocks": [
+    {
+      "filename": "src/index.js",
+      "language": "javascript",
+      "content": "const express = require('express');\nconst mongoose = require('mongoose');\nconst cors = require('cors');\nconst dotenv = require('dotenv');\nconst authRoutes = require('./routes/auth');\nconst userRoutes = require('./routes/users');\nconst errorMiddleware = require('./middleware/error');\nconst { validateUser } = require('./middleware/validation');\nconst { authenticateToken } = require('./middleware/auth');\n\ndotenv.config();\n\nconst app = express();\nconst PORT = process.env.PORT || 3000;\n\n// Connect to MongoDB\nmongoose.connect(process.env.MONGO_URI, {\n  useNewUrlParser: true,\n  useUnifiedTopology: true,\n})\n  .then(() => console.log('MongoDB connected'))\n  .catch(err => console.error('MongoDB connection error:', err));\n\n// Middleware\napp.use(cors());\napp.use(express.json());\n\n// Routes\napp.use('/api/auth', authRoutes);\napp.use('/api/users', authenticateToken, userRoutes);\n\n// Error handling middleware\napp.use(errorMiddleware);\n\n// Start server\napp.listen(PORT, () => {\n  console.log(`Server running on port ${PORT}`);\n});",
+      "line_count": 38,
+      "functions_classes": []
+    },
+    {
+      "filename": "src/script.js",
+      "language": "javascript",
+      "content": "const mongoose = require('mongoose');\nconst bcrypt = require('bcrypt');\n\nconst userSchema = new mongoose.Schema({\n  username: { type: String, required: true, unique: true },\n  email: { type: String, required: true, unique: true },\n  password: { type: String, required: true },\n  role: { type: String, enum: ['user', 'admin'], default: 'user' },\n}, { timestamps: true });\n\n// Hash password before saving\nuserSchema.pre('save', async function (next) {\n  if (!this.isModified('password')) return next();\n  this.password = await bcrypt.hash(this.password, 10);\n  next();\n});\n\n// Compare password\nuserSchema.methods.comparePassword = async function (candidatePassword) {\n  return await bcrypt.compare(candidatePassword, this.password);\n};\n\nmodule.exports = mongoose.model('User', userSchema);",
+      "line_count": 23,
+      "functions_classes": []
+    },
+    {
+      "filename": "package.json",
+      "language": "json",
+      "content": "{\n  \"name\": \"restful-api\",\n  \"version\": \"1.0.0\",\n  \"description\": \"RESTful API with Node.js, Express, and MongoDB\",\n  \"main\": \"server.js\",\n  \"scripts\": {\n    \"start\": \"node server.js\",\n    \"dev\": \"nodemon server.js\",\n    \"test\": \"jest\",\n    \"db:migrate\": \"mongoDB-migrate\"\n  },\n  \"dependencies\": {\n    \"bcrypt\": \"^5.1.0\",\n    \"cors\": \"^2.8.5\",\n    \"dotenv\": \"^16.0.3\",\n    \"express\": \"^4.18.2\",\n    \"express-validator\": \"^6.18.1\",\n    \"jsonwebtoken\": \"^9.0.0\",\n    \"mongoose\": \"^6.10.2\",\n    \"nodemon\": \"^3.0.2\"\n  },\n  \"devDependencies\": {\n    \"jest\": \"^29.7.0\",\n    \"supertest\": \"^6.3.3\"\n  }\n}",
+      "line_count": 26,
+      "functions_classes": []
+    },
+    {
+      "filename": "src/file.txt",
+      "language": "text",
+      "content": "PORT=3000\nMONGO_URI=mongodb://localhost:27017/restful-api\nJWT_SECRET=your-secret-key\nNODE_ENV=development",
+      "line_count": 4,
+      "functions_classes": []
+    },
+    {
+      "filename": "main.py",
+      "language": "python",
+      "content": "#!/usr/bin/env python3\nimport os\nimport argparse\nimport colorama\nfrom colorama import Fore, Style\nimport subprocess\nimport sys\n\ncolorama.init(autoreset=True)\n\ndef display_permissions(path):\n    \"\"\"Display current permissions, ownership, and metadata.\"\"\"\n    try:\n        stat = os.stat(path)\n        print(f\"{Fore.CYAN}Permissions for {path}:{Style.RESET_ALL}\")\n        print(f\"  Owner: {stat.st_uid}\")\n        print(f\"  Group: {stat.st_gid}\")\n        print(f\"  Permissions: {oct(stat.st_mode)[-3:]}\")\n        print(f\"  Last Modified: {stat.st_mtime}\")\n    except Exception as e:\n        print(f\"{Fore.RED}Error: {e}{Style.RESET_ALL}\")\n\ndef change_permissions(path, mode):\n    \"\"\"Change file/directory permissions using octal or symbolic notation.\"\"\"\n    try:\n        os.chmod(path, int(mode, 8))\n        print(f\"{Fore.GREEN}Permissions updated to {mode}{Style.RESET_ALL}\")\n    except Exception as e:\n        print(f\"{Fore.RED}Error changing permissions: {e}{Style.RESET_ALL}\")\n\ndef change_ownership(path, user, group):\n    \"\"\"Change ownership using sudo (requires root privileges).\"\"\"\n    try:\n        subprocess.run([\"sudo\", \"chown\", f\"{user}:{group}\", path], check=True)\n        print(f\"{Fore.GREEN}Ownership changed to {user}:{group}{Style.RESET_ALL}\")\n    except subprocess.CalledProcessError as e:\n        print(f\"{Fore.RED}Error changing ownership: {e}{Style.RESET_ALL}\")\n\ndef interactive_menu():\n    \"\"\"Interactive menu for permission management.\"\"\"\n    print(f\"{Fore.YELLOW}Welcome to permis - Linux Permissions Manager{Style.RESET_ALL}\")\n    while True:\n        print(\"\\nOptions:\")\n        print(\"1. Display Permissions\")\n        print(\"2. Change Permissions\")\n        print(\"3. Change Ownership\")\n        print(\"4. Exit\")\n        choice = input(\"Select an option: \").strip()\n        if choice == \"1\":\n            path = input(\"Enter file/directory path: \")\n            display_permissions(path)\n        elif choice == \"2\":\n            path = input(\"Enter file/directory path: \")\n            mode = input(\"Enter octal permission (e.g., 755): \")\n            change_permissions(path, mode)\n        elif choice == \"3\":\n            path = input(\"Enter file/directory path: \")\n            user = input(\"Enter new owner: \")\n            group = input(\"Enter new group: \")\n            change_ownership(path, user, group)\n        elif choice == \"4\":\n            print(f\"{Fore.CYAN}Exiting permis. Have a great day!{Style.RESET_ALL}\")\n            break\n        else:\n            print(f\"{Fore.RED}Invalid option. Try again.{Style.RESET_ALL}\")\n\ndef main():\n    parser = argparse.ArgumentParser(description=\"Linux Permissions Management CLI\")\n    parser.add_argument(\"command\", nargs=\"?\", help=\"Command to execute (display, change-perm, change-owner)\")\n    parser.add_argument(\"path\", nargs=\"?\", help=\"File/directory path\")\n    parser.add_argument(\"--mode\", help=\"Octal permission mode (e.g., 755)\")\n    parser.add_argument(\"--user\", help=\"New owner username\")\n    parser.add_argument(\"--group\", help=\"New group name\")\n    args = parser.parse_args()\n\n    if args.command:\n        if args.command == \"display\":\n            display_permissions(args.path)\n        elif args.command == \"change-perm\":\n            if not args.mode:\n                print(f\"{Fore.RED}Error: --mode is required for change-perm{Style.RESET_ALL}\")\n                return\n            change_permissions(args.path, args.mode)\n        elif args.command == \"change-owner\":\n            if not args.user or not args.group:\n                print(f\"{Fore.RED}Error: --user and --group are required for change-owner{Style.RESET_ALL}\")\n                return\n            change_ownership(args.path, args.user, args.group)\n        else:\n            print(f\"{Fore.RED}Invalid command. Use: display, change-perm, change-owner{Style.RESET_ALL}\")\n    else:\n        interactive_menu()\n\nif __name__ == \"__main__\":\n    main()",
+      "line_count": 95,
+      "functions_classes": [
+        {
+          "name": "display_permissions",
+          "type": "function",
+          "line_start": 11,
+          "line_end": 22,
+          "code_snippet": "def display_permissions(path):"
+        },
+        {
+          "name": "change_permissions",
+          "type": "function",
+          "line_start": 23,
+          "line_end": 30,
+          "code_snippet": "def change_permissions(path, mode):"
+        },
+        {
+          "name": "change_ownership",
+          "type": "function",
+          "line_start": 31,
+          "line_end": 38,
+          "code_snippet": "def change_ownership(path, user, group):"
+        },
+        {
+          "name": "interactive_menu",
+          "type": "function",
+          "line_start": 39,
+          "line_end": 66,
+          "code_snippet": "def interactive_menu():"
+        },
+        {
+          "name": "main",
+          "type": "function",
+          "line_start": 67,
+          "line_end": 93,
+          "code_snippet": "def main():"
+        }
+      ]
+    }
+  ],
+  "total_files": 5,
+  "total_lines": 186
+};
+        
+        let payloadItems = [];
+        
+        // Initialize interface
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🦚 Peacock XEdit Interface loaded');
+            console.log(`📊 Project stats: ${codeFiles.length} files, 186 lines`);
+            console.log(`🎯 XEdit paths available: ${xeditPaths.length}`);
+            
+            // Set up line click handlers
+            setupLineClickHandlers();
+        });
+        
+        function setupLineClickHandlers() {
+            const highlightableLines = document.querySelectorAll('.highlightable-line');
+            highlightableLines.forEach(line => {
+                line.addEventListener('click', function() {
+                    const xeditId = this.getAttribute('data-xedit-id');
+                    if (xeditId) {
+                        addToPayload(xeditId);
+                    }
+                });
+            });
+        }
+        
+        function addToPayload(xeditId) {
+            // Check if already in payload
+            if (payloadItems.includes(xeditId)) {
+                console.log(`XEdit path ${xeditId} already in payload`);
+                return;
+            }
+            
+            const pathData = xeditPaths.find(p => p.xedit_id === xeditId);
+            if (!pathData) {
+                console.error(`XEdit path ${xeditId} not found`);
+                return;
+            }
+            
+            payloadItems.push(xeditId);
+            updatePayloadDisplay();
+            updateSendButton();
+            highlightCodeLines(xeditId);
+            
+            console.log(`Added ${pathData.display_name} to payload`);
+        }
+        
+        function removeFromPayload(xeditId) {
+            payloadItems = payloadItems.filter(id => id !== xeditId);
+            updatePayloadDisplay();
+            updateSendButton();
+            unhighlightCodeLines(xeditId);
+            
+            const pathData = xeditPaths.find(p => p.xedit_id === xeditId);
+            console.log(`Removed ${pathData?.display_name || xeditId} from payload`);
+        }
+        
+        function updatePayloadDisplay() {
+            const payloadList = document.getElementById('payload-list');
+            
+            if (payloadItems.length === 0) {
+                payloadList.innerHTML = '<div class="payload-empty">Click functions to add XEdit-Paths</div>';
+                return;
+            }
+            
+            let html = '';
+            payloadItems.forEach(xeditId => {
+                const pathData = xeditPaths.find(p => p.xedit_id === xeditId);
+                if (pathData) {
+                    html += `
+                        <div class="payload-item">
+                            <div class="payload-item-info">
+                                <div class="payload-item-name">${pathData.display_name}</div>
+                                <div class="payload-item-details">${pathData.filename} • Lines ${pathData.line_start}-${pathData.line_end}</div>
+                            </div>
+                            <button class="remove-button" onclick="removeFromPayload('${xeditId}')">Remove</button>
+                        </div>
+                    `;
+                }
+            });
+            
+            payloadList.innerHTML = html;
+        }
+        
+        function updateSendButton() {
+            const sendButton = document.getElementById('send-button');
+            sendButton.textContent = `🚀 Send ${payloadItems.length} to MCP for Fixes`;
+            sendButton.disabled = payloadItems.length === 0;
+        }
+        
+        function highlightCodeLines(xeditId) {
+            const pathData = xeditPaths.find(p => p.xedit_id === xeditId);
+            if (!pathData) return;
+            
+            // Find and highlight lines in the code display
+            const codeLines = document.querySelectorAll(`[data-xedit-id="${xeditId}"]`);
+            codeLines.forEach(line => {
+                line.classList.add('highlighted');
+            });
+        }
+        
+        function unhighlightCodeLines(xeditId) {
+            const codeLines = document.querySelectorAll(`[data-xedit-id="${xeditId}"]`);
+            codeLines.forEach(line => {
+                line.classList.remove('highlighted');
+            });
+        }
+        
+        function sendToMCP() {
+            if (payloadItems.length === 0) return;
+            
+            const selectedPaths = payloadItems.map(id => xeditPaths.find(p => p.xedit_id === id)).filter(Boolean);
+            
+            const payload = {
+                command: 'xedit_fix',
+                project_name: projectName,
+                session_timestamp: sessionTimestamp,
+                xedit_paths: selectedPaths,
+                code_files: codeFiles
+            };
+            
+            console.log('Sending XEdit fix request:', payload);
+            
+            fetch('http://127.0.0.1:8000/process', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('XEdit fix response:', data);
+                if (data.status === 'success') {
+                    alert(`✅ Successfully applied fixes to ${selectedPaths.length} code sections!`);
+                    // Clear payload after successful fix
+                    payloadItems = [];
+                    updatePayloadDisplay();
+                    updateSendButton();
+                    document.querySelectorAll('.highlighted').forEach(el => el.classList.remove('highlighted'));
+                } else {
+                    alert(`❌ XEdit fix failed: ${data.message || 'Unknown error'}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error sending XEdit fix:', error);
+                alert('❌ Error sending XEdit fix to MCP');
+            });
+        }
+        
+        function deployPcock() {
+            const deployPayload = {
+                command: 'deploy_pcock',
+                project_name: projectName,
+                session_timestamp: sessionTimestamp,
+                code_files: codeFiles
+            };
+            
+            console.log('Deploying PCOCK package:', deployPayload);
+            
+            fetch('http://127.0.0.1:8000/process', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(deployPayload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('PCOCK deploy response:', data);
+                if (data.status === 'success') {
+                    alert(`🦚 PCOCK package created successfully!\n\nLocation: ${data.package_info?.package_dir || 'Package directory'}`);
+                } else {
+                    alert(`❌ PCOCK deployment failed: ${data.message || 'Unknown error'}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error deploying PCOCK:', error);
+                alert('❌ Error creating PCOCK package');
+            });
+        }
+        
+        function exportCode() {
+            // Create ZIP export functionality
+            const files = codeFiles.map(file => ({
+                name: file.filename,
+                content: file.content
+            }));
+            
+            // Simple download as JSON for now - could be enhanced with JSZip
+            const exportData = {
+                project: projectName,
+                session: sessionTimestamp,
+                exported: new Date().toISOString(),
+                files: files,
+                implementation: projectImplementation
+            };
+            
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${projectName}-${sessionTimestamp}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            URL.revokeObjectURL(url);
+            
+            console.log(`Exported ${files.length} files as JSON`);
+            alert(`📦 Project exported as JSON file!\n\nFiles: ${files.length}\nLines: 186`);
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+Enter to send payload
+            if (e.ctrlKey && e.key === 'Enter' && payloadItems.length > 0) {
+                sendToMCP();
+            }
+            // Ctrl+D to deploy PCOCK
+            else if (e.ctrlKey && e.key === 'd') {
+                e.preventDefault();
+                deployPcock();
+            }
+            // Ctrl+E to export
+            else if (e.ctrlKey && e.key === 'e') {
+                e.preventDefault();
+                exportCode();
+            }
+        });
+        
+        // Status logging
+        console.log('🦚 Peacock XEdit Interface Ready');
+        console.log('⌨️ Keyboard shortcuts:');
+        console.log('  Ctrl+Enter: Send XEdit fixes');
+        console.log('  Ctrl+D: Deploy PCOCK package');
+        console.log('  Ctrl+E: Export project');
+    </script>
+</body>
+</html>

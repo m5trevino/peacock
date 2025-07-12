@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦚 Peacock XEdit Interface (Optimized)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'SF Mono', monospace; background: #0d1117; color: #e6edf3; height: 100vh; overflow: hidden; }
+        .header { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .peacock-logo { font-size: 18px; font-weight: bold; color: #ff6b35; }
+        .nav-links { display: flex; gap: 16px; align-items: center; }
+        .nav-link { background: #21262d; border: 1px solid #30363d; color: #e6edf3; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .nav-link.active { background: #ff6b35; color: #0d1117; }
+        .project-info { color: #8b949e; font-size: 14px; }
+        .session-info { background: rgba(0, 255, 136, 0.1); border: 1px solid #00ff88; border-radius: 6px; padding: 4px 8px; font-size: 12px; color: #00ff88; }
+        .optimization-badge { background: rgba(255, 107, 53, 0.1); border: 1px solid #ff6b35; border-radius: 6px; padding: 4px 8px; font-size: 12px; color: #ff6b35; margin-left: 8px; }
+        .main-container { display: flex; height: calc(100vh - 60px); }
+        .left-panel { width: 320px; background: #161b22; border-right: 1px solid #30363d; display: flex; flex-direction: column; }
+        .panel-header { background: #21262d; padding: 12px 16px; border-bottom: 1px solid #30363d; font-weight: 600; font-size: 13px; color: #7c3aed; display: flex; justify-content: space-between; align-items: center; }
+        .optimization-info { font-size: 11px; color: #ff6b35; }
+        .functions-list { flex: 1; overflow-y: auto; padding: 8px; }
+        .function-item { background: #21262d; border: 1px solid #30363d; border-radius: 6px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; position: relative; }
+        .function-item:hover { border-color: #ff6b35; background: #2d333b; transform: translateX(3px); }
+        .function-item.selected { border-color: #ff6b35; background: #2d333b; box-shadow: 0 0 0 1px #ff6b35; }
+        .function-info { display: flex; align-items: center; gap: 8px; }
+        .function-name { font-weight: 600; color: #79c0ff; }
+        .function-type { background: #30363d; color: #8b949e; padding: 2px 6px; border-radius: 3px; font-size: 10px; text-transform: uppercase; }
+        .model-indicator { background: #ff6b35; color: #0d1117; padding: 2px 4px; border-radius: 3px; font-size: 10px; margin-left: auto; }
+        .add-btn { position: absolute; top: 8px; right: 8px; background: #238636; border: none; color: white; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 14px; opacity: 0; transition: opacity 0.2s; }
+        .function-item:hover .add-btn { opacity: 1; }
+        .middle-panel { width: 340px; background: #161b22; border-right: 1px solid #30363d; display: flex; flex-direction: column; }
+        .payload-header { background: #238636; color: white; padding: 12px 16px; font-weight: 600; font-size: 14px; text-align: center; }
+        .payload-container { flex: 1; padding: 16px; display: flex; flex-direction: column; }
+        .payload-list { flex: 1; background: #21262d; border: 1px solid #30363d; border-radius: 8px; padding: 16px; margin-bottom: 16px; overflow-y: auto; min-height: 200px; }
+        .payload-empty { color: #6e7681; text-align: center; font-style: italic; margin-top: 50px; }
+        .payload-item { background: #2d333b; border: 1px solid #30363d; border-radius: 6px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .payload-item-info { display: flex; flex-direction: column; gap: 4px; }
+        .xedit-id { font-family: 'SF Mono', monospace; background: #30363d; color: #ff6b35; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .payload-model { font-size: 10px; color: #8b949e; }
+        .remove-btn { background: #da3633; border: none; color: white; width: 20px; height: 20px; border-radius: 3px; cursor: pointer; font-size: 12px; }
+        .strategy-overview { background: rgba(255, 107, 53, 0.1); border: 1px solid #ff6b35; border-radius: 8px; padding: 12px; margin-bottom: 16px; }
+        .strategy-title { color: #ff6b35; font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+        .strategy-models { font-size: 10px; color: #8b949e; line-height: 1.4; }
+        .send-button { width: 100%; background: #238636; border: none; color: white; padding: 15px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-bottom: 15px; }
+        .send-button:disabled { background: #30363d; color: #8b949e; cursor: not-allowed; }
+        .deploy-section { padding: 15px; background: rgba(46, 204, 113, 0.1); border: 1px solid #2ecc71; border-radius: 8px; }
+        .deploy-title { color: #2ecc71; margin-bottom: 10px; font-weight: 600; }
+        .deploy-info { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 12px; color: #8b949e; }
+        .deploy-button { width: 100%; padding: 12px; background: linear-gradient(45deg, #2ecc71, #27ae60); border: none; border-radius: 6px; color: white; font-weight: 600; cursor: pointer; }
+        .right-panel { flex: 1; background: #0d1117; display: flex; flex-direction: column; }
+        .code-header { background: #21262d; padding: 12px 16px; border-bottom: 1px solid #30363d; font-weight: 600; font-size: 13px; color: #f0883e; display: flex; justify-content: space-between; align-items: center; }
+        .model-status { font-size: 11px; color: #ff6b35; }
+        .code-container { flex: 1; overflow: auto; padding: 16px; }
+        .code-content { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 16px; font-family: 'SF Mono', monospace; font-size: 13px; line-height: 1.6; }
+        .code-line { display: flex; min-height: 20px; }
+        .code-line.highlighted { background: #2d333b; border-left: 3px solid #ff6b35; padding-left: 13px; }
+        .line-number { color: #6e7681; user-select: none; margin-right: 16px; min-width: 30px; text-align: right; }
+        .line-content { color: #e6edf3; flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="peacock-logo">🦚 Peacock XEdit Interface</div>
+        <div class="nav-links">
+            <div class="nav-link active">📝 XEdit</div>
+            <div class="nav-link">🤖 Models</div>
+            <div class="nav-link">💬 Senior Dev</div>
+        </div>
+        <div class="project-info">
+            Project: Untitled Peacock Project • Session: <span class="session-info">deepseek-range2-20250712-011107</span>
+            <span class="optimization-badge">Multi-Model</span>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <div class="panel-header">
+                📋 Functions & Classes
+                <span class="optimization-info">Optimized</span>
+            </div>
+            <div class="functions-list">
+                
+            <div class="function-item" onclick="highlightFunction('7x001', 'if', 11, 21)" data-id="7x001">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x001')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x002', 'switch', 10, 20)" data-id="7x002">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">switch</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('switch', 'function', '7x002')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x003', 'if', 32, 42)" data-id="7x003">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x003')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x004', 'if', 20, 30)" data-id="7x004">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x004')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x005', 'catch', 12, 22)" data-id="7x005">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">catch</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('catch', 'function', '7x005')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x006', 'if', 21, 29)" data-id="7x006">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">if</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('if', 'function', '7x006')" title="Add to payload">+</button>
+            </div>
+            
+            <div class="function-item" onclick="highlightFunction('7x007', 'catch', 26, 29)" data-id="7x007">
+                <div class="function-info">
+                    <span class="function-icon">⚡</span>
+                    <span class="function-name">catch</span>
+                    <span class="function-type">function</span>
+                    <span class="model-indicator">⚡</span>
+                </div>
+                <button class="add-btn" onclick="event.stopPropagation(); addToPayload('catch', 'function', '7x007')" title="Add to payload">+</button>
+            </div>
+            
+            </div>
+        </div>
+
+        <div class="middle-panel">
+            <div class="payload-header">Optimized Payload</div>
+            <div class="payload-container">
+                <div class="strategy-overview">
+                    <div class="strategy-title">🧠 Model Strategy</div>
+                    <div class="strategy-models">
+                        <strong>Code Analysis:</strong> llama3-8b-8192<br>
+                        <strong>Structure:</strong> gemma2-9b-it<br>
+                        <strong>Speed:</strong> llama3-8b-8192
+                    </div>
+                </div>
+                
+                <div class="payload-list" id="payload-list">
+                    <div class="payload-empty">Click functions to add XEdit-Paths</div>
+                </div>
+                <button class="send-button" id="send-button" disabled>
+                    🚀 Send 0 to Optimized Pipeline
+                </button>
+                
+                <div class="deploy-section">
+                    <div class="deploy-title">🚀 Deploy & Download</div>
+                    <div class="deploy-info">
+                        <strong>Project:</strong> Untitled Peacock Project<br>
+                        <strong>Session:</strong> deepseek-range2-20250712-011107<br>
+                        <strong>Strategy:</strong> Multi-Model Optimized
+                    </div>
+                    <button class="deploy-button" onclick="deployToPcock()">📦 Download Optimized Setup</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="code-header">
+                📁 Untitled Peacock Project: Generated Code
+                <span class="model-status">Multi-Model Ready</span>
+            </div>
+            <div class="code-container">
+                <div class="code-content">
+<div class="code-line" data-line="1"><span class="line-number">  1</span><span class="line-content">import React, { useState, useEffect } from 'react';</span></div>
+<div class="code-line" data-line="2"><span class="line-number">  2</span><span class="line-content">import { Box, Typography, Button } from '@mui/material';</span></div>
+<div class="code-line" data-line="3"><span class="line-number">  3</span><span class="line-content">import GameBoard from './components/GameBoard';</span></div>
+<div class="code-line" data-line="4"><span class="line-number">  4</span><span class="line-content">import { useAuth } from './context/AuthContext';</span></div>
+<div class="code-line" data-line="5"><span class="line-number">  5</span><span class="line-content"></span></div>
+<div class="code-line" data-line="6"><span class="line-number">  6</span><span class="line-content">const App: React.FC = () =&gt; {</span></div>
+<div class="code-line" data-line="7"><span class="line-number">  7</span><span class="line-content">  const { user, login } = useAuth();</span></div>
+<div class="code-line" data-line="8"><span class="line-number">  8</span><span class="line-content">  const [gameStarted, setGameStarted] = useState(false);</span></div>
+<div class="code-line" data-line="9"><span class="line-number">  9</span><span class="line-content"></span></div>
+<div class="code-line" data-line="10"><span class="line-number"> 10</span><span class="line-content">  useEffect(() =&gt; {</span></div>
+<div class="code-line" data-line="11"><span class="line-number"> 11</span><span class="line-content">    if (!user) {</span></div>
+<div class="code-line" data-line="12"><span class="line-number"> 12</span><span class="line-content">      login(); // Auto-login for demo purposes</span></div>
+<div class="code-line" data-line="13"><span class="line-number"> 13</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="14"><span class="line-number"> 14</span><span class="line-content">  }, [user, login]);</span></div>
+<div class="code-line" data-line="15"><span class="line-number"> 15</span><span class="line-content"></span></div>
+<div class="code-line" data-line="16"><span class="line-number"> 16</span><span class="line-content">  return (</span></div>
+<div class="code-line" data-line="17"><span class="line-number"> 17</span><span class="line-content">    &lt;Box sx={{ textAlign: 'center', p: 2 }}&gt;</span></div>
+<div class="code-line" data-line="18"><span class="line-number"> 18</span><span class="line-content">      &lt;Typography variant="h3" gutterBottom&gt;Snake Game&lt;/Typography&gt;</span></div>
+<div class="code-line" data-line="19"><span class="line-number"> 19</span><span class="line-content">      {user ? (</span></div>
+<div class="code-line" data-line="20"><span class="line-number"> 20</span><span class="line-content">        &lt;&gt;</span></div>
+<div class="code-line" data-line="21"><span class="line-number"> 21</span><span class="line-content">          &lt;Typography&gt;Welcome, {user.username}&lt;/Typography&gt;</span></div>
+<div class="code-line" data-line="22"><span class="line-number"> 22</span><span class="line-content">          &lt;Button </span></div>
+<div class="code-line" data-line="23"><span class="line-number"> 23</span><span class="line-content">            variant="contained" </span></div>
+<div class="code-line" data-line="24"><span class="line-number"> 24</span><span class="line-content">            onClick={() =&gt; setGameStarted(true)}</span></div>
+<div class="code-line" data-line="25"><span class="line-number"> 25</span><span class="line-content">            sx={{ mt: 2 }}</span></div>
+<div class="code-line" data-line="26"><span class="line-number"> 26</span><span class="line-content">          &gt;</span></div>
+<div class="code-line" data-line="27"><span class="line-number"> 27</span><span class="line-content">            Start Game</span></div>
+<div class="code-line" data-line="28"><span class="line-number"> 28</span><span class="line-content">          &lt;/Button&gt;</span></div>
+<div class="code-line" data-line="29"><span class="line-number"> 29</span><span class="line-content">          {gameStarted &amp;&amp; &lt;GameBoard /&gt;}</span></div>
+<div class="code-line" data-line="30"><span class="line-number"> 30</span><span class="line-content">        &lt;/&gt;</span></div>
+<div class="code-line" data-line="31"><span class="line-number"> 31</span><span class="line-content">      ) : (</span></div>
+<div class="code-line" data-line="32"><span class="line-number"> 32</span><span class="line-content">        &lt;Typography&gt;Loading...&lt;/Typography&gt;</span></div>
+<div class="code-line" data-line="33"><span class="line-number"> 33</span><span class="line-content">      )}</span></div>
+<div class="code-line" data-line="34"><span class="line-number"> 34</span><span class="line-content">    &lt;/Box&gt;</span></div>
+<div class="code-line" data-line="35"><span class="line-number"> 35</span><span class="line-content">  );</span></div>
+<div class="code-line" data-line="36"><span class="line-number"> 36</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="37"><span class="line-number"> 37</span><span class="line-content"></span></div>
+<div class="code-line" data-line="38"><span class="line-number"> 38</span><span class="line-content">export default App;</span></div>
+<div class="code-line" data-line="39"><span class="line-number"> 39</span><span class="line-content">import React, { useState, useEffect, useCallback } from 'react';</span></div>
+<div class="code-line" data-line="40"><span class="line-number"> 40</span><span class="line-content">import { Box } from '@mui/material';</span></div>
+<div class="code-line" data-line="41"><span class="line-number"> 41</span><span class="line-content">import { useGame } from '../context/GameContext';</span></div>
+<div class="code-line" data-line="42"><span class="line-number"> 42</span><span class="line-content"></span></div>
+<div class="code-line" data-line="43"><span class="line-number"> 43</span><span class="line-content">const GameBoard: React.FC = () =&gt; {</span></div>
+<div class="code-line" data-line="44"><span class="line-number"> 44</span><span class="line-content">  const { game, moveSnake, resetGame } = useGame();</span></div>
+<div class="code-line" data-line="45"><span class="line-number"> 45</span><span class="line-content">  const [score, setScore] = useState(0);</span></div>
+<div class="code-line" data-line="46"><span class="line-number"> 46</span><span class="line-content"></span></div>
+<div class="code-line" data-line="47"><span class="line-number"> 47</span><span class="line-content">  const handleKeyPress = useCallback((e: KeyboardEvent) =&gt; {</span></div>
+<div class="code-line" data-line="48"><span class="line-number"> 48</span><span class="line-content">    switch (e.key) {</span></div>
+<div class="code-line" data-line="49"><span class="line-number"> 49</span><span class="line-content">      case 'ArrowUp':</span></div>
+<div class="code-line" data-line="50"><span class="line-number"> 50</span><span class="line-content">        moveSnake('UP');</span></div>
+<div class="code-line" data-line="51"><span class="line-number"> 51</span><span class="line-content">        break;</span></div>
+<div class="code-line" data-line="52"><span class="line-number"> 52</span><span class="line-content">      case 'ArrowDown':</span></div>
+<div class="code-line" data-line="53"><span class="line-number"> 53</span><span class="line-content">        moveSnake('DOWN');</span></div>
+<div class="code-line" data-line="54"><span class="line-number"> 54</span><span class="line-content">        break;</span></div>
+<div class="code-line" data-line="55"><span class="line-number"> 55</span><span class="line-content">      case 'ArrowLeft':</span></div>
+<div class="code-line" data-line="56"><span class="line-number"> 56</span><span class="line-content">        moveSnake('LEFT');</span></div>
+<div class="code-line" data-line="57"><span class="line-number"> 57</span><span class="line-content">        break;</span></div>
+<div class="code-line" data-line="58"><span class="line-number"> 58</span><span class="line-content">      case 'ArrowRight':</span></div>
+<div class="code-line" data-line="59"><span class="line-number"> 59</span><span class="line-content">        moveSnake('RIGHT');</span></div>
+<div class="code-line" data-line="60"><span class="line-number"> 60</span><span class="line-content">        break;</span></div>
+<div class="code-line" data-line="61"><span class="line-number"> 61</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="62"><span class="line-number"> 62</span><span class="line-content">  }, [moveSnake]);</span></div>
+<div class="code-line" data-line="63"><span class="line-number"> 63</span><span class="line-content"></span></div>
+<div class="code-line" data-line="64"><span class="line-number"> 64</span><span class="line-content">  useEffect(() =&gt; {</span></div>
+<div class="code-line" data-line="65"><span class="line-number"> 65</span><span class="line-content">    window.addEventListener('keydown', handleKeyPress);</span></div>
+<div class="code-line" data-line="66"><span class="line-number"> 66</span><span class="line-content">    return () =&gt; window.removeEventListener('keydown', handleKeyPress);</span></div>
+<div class="code-line" data-line="67"><span class="line-number"> 67</span><span class="line-content">  }, [handleKeyPress]);</span></div>
+<div class="code-line" data-line="68"><span class="line-number"> 68</span><span class="line-content"></span></div>
+<div class="code-line" data-line="69"><span class="line-number"> 69</span><span class="line-content">  useEffect(() =&gt; {</span></div>
+<div class="code-line" data-line="70"><span class="line-number"> 70</span><span class="line-content">    if (game.isGameOver) {</span></div>
+<div class="code-line" data-line="71"><span class="line-number"> 71</span><span class="line-content">      setScore(0);</span></div>
+<div class="code-line" data-line="72"><span class="line-number"> 72</span><span class="line-content">      resetGame();</span></div>
+<div class="code-line" data-line="73"><span class="line-number"> 73</span><span class="line-content">    } else {</span></div>
+<div class="code-line" data-line="74"><span class="line-number"> 74</span><span class="line-content">      setScore(game.score);</span></div>
+<div class="code-line" data-line="75"><span class="line-number"> 75</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="76"><span class="line-number"> 76</span><span class="line-content">  }, [game.isGameOver, game.score, resetGame]);</span></div>
+<div class="code-line" data-line="77"><span class="line-number"> 77</span><span class="line-content"></span></div>
+<div class="code-line" data-line="78"><span class="line-number"> 78</span><span class="line-content">  return (</span></div>
+<div class="code-line" data-line="79"><span class="line-number"> 79</span><span class="line-content">    &lt;Box sx={{ </span></div>
+<div class="code-line" data-line="80"><span class="line-number"> 80</span><span class="line-content">      width: 400, </span></div>
+<div class="code-line" data-line="81"><span class="line-number"> 81</span><span class="line-content">      height: 400, </span></div>
+<div class="code-line" data-line="82"><span class="line-number"> 82</span><span class="line-content">      border: '1px solid #000', </span></div>
+<div class="code-line" data-line="83"><span class="line-number"> 83</span><span class="line-content">      display: 'grid', </span></div>
+<div class="code-line" data-line="84"><span class="line-number"> 84</span><span class="line-content">      gridTemplateColumns: `repeat(${game.boardSize}, 1fr)`,</span></div>
+<div class="code-line" data-line="85"><span class="line-number"> 85</span><span class="line-content">      gridTemplateRows: `repeat(${game.boardSize}, 1fr)`,</span></div>
+<div class="code-line" data-line="86"><span class="line-number"> 86</span><span class="line-content">      gap: '1px',</span></div>
+<div class="code-line" data-line="87"><span class="line-number"> 87</span><span class="line-content">      margin: '0 auto',</span></div>
+<div class="code-line" data-line="88"><span class="line-number"> 88</span><span class="line-content">      mt: 2</span></div>
+<div class="code-line" data-line="89"><span class="line-number"> 89</span><span class="line-content">    }}&gt;</span></div>
+<div class="code-line" data-line="90"><span class="line-number"> 90</span><span class="line-content">      {game.board.map((row, y) =&gt; </span></div>
+<div class="code-line" data-line="91"><span class="line-number"> 91</span><span class="line-content">        row.map((cell, x) =&gt; (</span></div>
+<div class="code-line" data-line="92"><span class="line-number"> 92</span><span class="line-content">          &lt;Box </span></div>
+<div class="code-line" data-line="93"><span class="line-number"> 93</span><span class="line-content">            key={`${x}-${y}`} </span></div>
+<div class="code-line" data-line="94"><span class="line-number"> 94</span><span class="line-content">            sx={{ </span></div>
+<div class="code-line" data-line="95"><span class="line-number"> 95</span><span class="line-content">              width: '100%', </span></div>
+<div class="code-line" data-line="96"><span class="line-number"> 96</span><span class="line-content">              height: '100%', </span></div>
+<div class="code-line" data-line="97"><span class="line-number"> 97</span><span class="line-content">              backgroundColor: </span></div>
+<div class="code-line" data-line="98"><span class="line-number"> 98</span><span class="line-content">                cell === 'snake' ? 'green' : </span></div>
+<div class="code-line" data-line="99"><span class="line-number"> 99</span><span class="line-content">                cell === 'food' ? 'red' : </span></div>
+<div class="code-line" data-line="100"><span class="line-number">100</span><span class="line-content">                cell === 'wall' ? 'gray' : </span></div>
+<div class="code-line" data-line="101"><span class="line-number">101</span><span class="line-content">                'white'</span></div>
+<div class="code-line" data-line="102"><span class="line-number">102</span><span class="line-content">            }}</span></div>
+<div class="code-line" data-line="103"><span class="line-number">103</span><span class="line-content">          /&gt;</span></div>
+<div class="code-line" data-line="104"><span class="line-number">104</span><span class="line-content">        ))</span></div>
+<div class="code-line" data-line="105"><span class="line-number">105</span><span class="line-content">      )}</span></div>
+<div class="code-line" data-line="106"><span class="line-number">106</span><span class="line-content">      &lt;Typography variant="h6" sx={{ mt: 1 }}&gt;Score: {score}&lt;/Typography&gt;</span></div>
+<div class="code-line" data-line="107"><span class="line-number">107</span><span class="line-content">    &lt;/Box&gt;</span></div>
+<div class="code-line" data-line="108"><span class="line-number">108</span><span class="line-content">  );</span></div>
+<div class="code-line" data-line="109"><span class="line-number">109</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="110"><span class="line-number">110</span><span class="line-content"></span></div>
+<div class="code-line" data-line="111"><span class="line-number">111</span><span class="line-content">export default GameBoard;</span></div>
+<div class="code-line" data-line="112"><span class="line-number">112</span><span class="line-content">import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';</span></div>
+<div class="code-line" data-line="113"><span class="line-number">113</span><span class="line-content"></span></div>
+<div class="code-line" data-line="114"><span class="line-number">114</span><span class="line-content">interface GameContextType {</span></div>
+<div class="code-line" data-line="115"><span class="line-number">115</span><span class="line-content">  game: Game;</span></div>
+<div class="code-line" data-line="116"><span class="line-number">116</span><span class="line-content">  moveSnake: (direction: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT') =&gt; void;</span></div>
+<div class="code-line" data-line="117"><span class="line-number">117</span><span class="line-content">  resetGame: () =&gt; void;</span></div>
+<div class="code-line" data-line="118"><span class="line-number">118</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="119"><span class="line-number">119</span><span class="line-content"></span></div>
+<div class="code-line" data-line="120"><span class="line-number">120</span><span class="line-content">const GameContext = createContext&lt;GameContextType | undefined&gt;(undefined);</span></div>
+<div class="code-line" data-line="121"><span class="line-number">121</span><span class="line-content"></span></div>
+<div class="code-line" data-line="122"><span class="line-number">122</span><span class="line-content">interface Game {</span></div>
+<div class="code-line" data-line="123"><span class="line-number">123</span><span class="line-content">  board: string[][];</span></div>
+<div class="code-line" data-line="124"><span class="line-number">124</span><span class="line-content">  boardSize: number;</span></div>
+<div class="code-line" data-line="125"><span class="line-number">125</span><span class="line-content">  isGameOver: boolean;</span></div>
+<div class="code-line" data-line="126"><span class="line-number">126</span><span class="line-content">  score: number;</span></div>
+<div class="code-line" data-line="127"><span class="line-number">127</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="128"><span class="line-number">128</span><span class="line-content"></span></div>
+<div class="code-line" data-line="129"><span class="line-number">129</span><span class="line-content">const useGame = (): GameContextType =&gt; {</span></div>
+<div class="code-line" data-line="130"><span class="line-number">130</span><span class="line-content">  const context = useContext(GameContext);</span></div>
+<div class="code-line" data-line="131"><span class="line-number">131</span><span class="line-content">  if (!context) {</span></div>
+<div class="code-line" data-line="132"><span class="line-number">132</span><span class="line-content">    throw new Error('useGame must be used within a GameProvider');</span></div>
+<div class="code-line" data-line="133"><span class="line-number">133</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="134"><span class="line-number">134</span><span class="line-content">  return context;</span></div>
+<div class="code-line" data-line="135"><span class="line-number">135</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="136"><span class="line-number">136</span><span class="line-content"></span></div>
+<div class="code-line" data-line="137"><span class="line-number">137</span><span class="line-content">const GameProvider: React.FC&lt;{ children: React.ReactNode }&gt; = ({ children }) =&gt; {</span></div>
+<div class="code-line" data-line="138"><span class="line-number">138</span><span class="line-content">  const [game, setGame] = useState&lt;Game&gt;({</span></div>
+<div class="code-line" data-line="139"><span class="line-number">139</span><span class="line-content">    board: [],</span></div>
+<div class="code-line" data-line="140"><span class="line-number">140</span><span class="line-content">    boardSize: 20,</span></div>
+<div class="code-line" data-line="141"><span class="line-number">141</span><span class="line-content">    isGameOver: false,</span></div>
+<div class="code-line" data-line="142"><span class="line-number">142</span><span class="line-content">    score: 0,</span></div>
+<div class="code-line" data-line="143"><span class="line-number">143</span><span class="line-content">  });</span></div>
+<div class="code-line" data-line="144"><span class="line-number">144</span><span class="line-content"></span></div>
+<div class="code-line" data-line="145"><span class="line-number">145</span><span class="line-content">  const initializeGame = useCallback(() =&gt; {</span></div>
+<div class="code-line" data-line="146"><span class="line-number">146</span><span class="line-content">    const board = Array.from({ length: game.boardSize }, () =&gt; </span></div>
+<div class="code-line" data-line="147"><span class="line-number">147</span><span class="line-content">      Array(game.boardSize).fill('empty')</span></div>
+<div class="code-line" data-line="148"><span class="line-number">148</span><span class="line-content">    );</span></div>
+<div class="code-line" data-line="149"><span class="line-number">149</span><span class="line-content">    board[10][10] = 'food';</span></div>
+<div class="code-line" data-line="150"><span class="line-number">150</span><span class="line-content">    setGame({</span></div>
+<div class="code-line" data-line="151"><span class="line-number">151</span><span class="line-content">      board,</span></div>
+<div class="code-line" data-line="152"><span class="line-number">152</span><span class="line-content">      boardSize: game.boardSize,</span></div>
+<div class="code-line" data-line="153"><span class="line-number">153</span><span class="line-content">      isGameOver: false,</span></div>
+<div class="code-line" data-line="154"><span class="line-number">154</span><span class="line-content">      score: 0,</span></div>
+<div class="code-line" data-line="155"><span class="line-number">155</span><span class="line-content">    });</span></div>
+<div class="code-line" data-line="156"><span class="line-number">156</span><span class="line-content">  }, [game.boardSize]);</span></div>
+<div class="code-line" data-line="157"><span class="line-number">157</span><span class="line-content"></span></div>
+<div class="code-line" data-line="158"><span class="line-number">158</span><span class="line-content">  useEffect(() =&gt; {</span></div>
+<div class="code-line" data-line="159"><span class="line-number">159</span><span class="line-content">    initializeGame();</span></div>
+<div class="code-line" data-line="160"><span class="line-number">160</span><span class="line-content">  }, [initializeGame]);</span></div>
+<div class="code-line" data-line="161"><span class="line-number">161</span><span class="line-content"></span></div>
+<div class="code-line" data-line="162"><span class="line-number">162</span><span class="line-content">  const moveSnake = useCallback((direction: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT') =&gt; {</span></div>
+<div class="code-line" data-line="163"><span class="line-number">163</span><span class="line-content">    // Game logic implementation</span></div>
+<div class="code-line" data-line="164"><span class="line-number">164</span><span class="line-content">    // This would include snake movement, collision detection, and food generation</span></div>
+<div class="code-line" data-line="165"><span class="line-number">165</span><span class="line-content">    // For brevity, actual implementation is omitted</span></div>
+<div class="code-line" data-line="166"><span class="line-number">166</span><span class="line-content">  }, []);</span></div>
+<div class="code-line" data-line="167"><span class="line-number">167</span><span class="line-content"></span></div>
+<div class="code-line" data-line="168"><span class="line-number">168</span><span class="line-content">  const resetGame = useCallback(() =&gt; {</span></div>
+<div class="code-line" data-line="169"><span class="line-number">169</span><span class="line-content">    initializeGame();</span></div>
+<div class="code-line" data-line="170"><span class="line-number">170</span><span class="line-content">  }, [initializeGame]);</span></div>
+<div class="code-line" data-line="171"><span class="line-number">171</span><span class="line-content"></span></div>
+<div class="code-line" data-line="172"><span class="line-number">172</span><span class="line-content">  return (</span></div>
+<div class="code-line" data-line="173"><span class="line-number">173</span><span class="line-content">    &lt;GameContext.Provider value={{ game, moveSnake, resetGame }}&gt;</span></div>
+<div class="code-line" data-line="174"><span class="line-number">174</span><span class="line-content">      {children}</span></div>
+<div class="code-line" data-line="175"><span class="line-number">175</span><span class="line-content">    &lt;/GameContext.Provider&gt;</span></div>
+<div class="code-line" data-line="176"><span class="line-number">176</span><span class="line-content">  );</span></div>
+<div class="code-line" data-line="177"><span class="line-number">177</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="178"><span class="line-number">178</span><span class="line-content"></span></div>
+<div class="code-line" data-line="179"><span class="line-number">179</span><span class="line-content">export { GameProvider, useGame };</span></div>
+<div class="code-line" data-line="180"><span class="line-number">180</span><span class="line-content">import express from 'express';</span></div>
+<div class="code-line" data-line="181"><span class="line-number">181</span><span class="line-content">import mongoose from 'mongoose';</span></div>
+<div class="code-line" data-line="182"><span class="line-number">182</span><span class="line-content">import cors from 'cors';</span></div>
+<div class="code-line" data-line="183"><span class="line-number">183</span><span class="line-content">import authRoutes from './routes/auth';</span></div>
+<div class="code-line" data-line="184"><span class="line-number">184</span><span class="line-content">import gameRoutes from './routes/game';</span></div>
+<div class="code-line" data-line="185"><span class="line-number">185</span><span class="line-content">import { errorHandler } from './middleware/errorHandler';</span></div>
+<div class="code-line" data-line="186"><span class="line-number">186</span><span class="line-content"></span></div>
+<div class="code-line" data-line="187"><span class="line-number">187</span><span class="line-content">const app = express();</span></div>
+<div class="code-line" data-line="188"><span class="line-number">188</span><span class="line-content">const PORT = process.env.PORT || 3000;</span></div>
+<div class="code-line" data-line="189"><span class="line-number">189</span><span class="line-content"></span></div>
+<div class="code-line" data-line="190"><span class="line-number">190</span><span class="line-content">// Middleware</span></div>
+<div class="code-line" data-line="191"><span class="line-number">191</span><span class="line-content">app.use(cors());</span></div>
+<div class="code-line" data-line="192"><span class="line-number">192</span><span class="line-content">app.use(express.json());</span></div>
+<div class="code-line" data-line="193"><span class="line-number">193</span><span class="line-content"></span></div>
+<div class="code-line" data-line="194"><span class="line-number">194</span><span class="line-content">// Routes</span></div>
+<div class="code-line" data-line="195"><span class="line-number">195</span><span class="line-content">app.use('/api/auth', authRoutes);</span></div>
+<div class="code-line" data-line="196"><span class="line-number">196</span><span class="line-content">app.use('/api/game', gameRoutes);</span></div>
+<div class="code-line" data-line="197"><span class="line-number">197</span><span class="line-content"></span></div>
+<div class="code-line" data-line="198"><span class="line-number">198</span><span class="line-content">// Error handling</span></div>
+<div class="code-line" data-line="199"><span class="line-number">199</span><span class="line-content">app.use(errorHandler);</span></div>
+<div class="code-line" data-line="200"><span class="line-number">200</span><span class="line-content"></span></div>
+<div class="code-line" data-line="201"><span class="line-number">201</span><span class="line-content">// Database connection</span></div>
+<div class="code-line" data-line="202"><span class="line-number">202</span><span class="line-content">mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/snake_game')</span></div>
+<div class="code-line" data-line="203"><span class="line-number">203</span><span class="line-content">  .then(() =&gt; console.log('Connected to MongoDB'))</span></div>
+<div class="code-line" data-line="204"><span class="line-number">204</span><span class="line-content">  .catch(err =&gt; console.error('MongoDB connection error:', err));</span></div>
+<div class="code-line" data-line="205"><span class="line-number">205</span><span class="line-content"></span></div>
+<div class="code-line" data-line="206"><span class="line-number">206</span><span class="line-content">// Start server</span></div>
+<div class="code-line" data-line="207"><span class="line-number">207</span><span class="line-content">app.listen(PORT, () =&gt; {</span></div>
+<div class="code-line" data-line="208"><span class="line-number">208</span><span class="line-content">  console.log(`Server running on port ${PORT}`);</span></div>
+<div class="code-line" data-line="209"><span class="line-number">209</span><span class="line-content">});</span></div>
+<div class="code-line" data-line="210"><span class="line-number">210</span><span class="line-content">import mongoose, { Document, Schema } from 'mongoose';</span></div>
+<div class="code-line" data-line="211"><span class="line-number">211</span><span class="line-content"></span></div>
+<div class="code-line" data-line="212"><span class="line-number">212</span><span class="line-content">export interface IUser extends Document {</span></div>
+<div class="code-line" data-line="213"><span class="line-number">213</span><span class="line-content">  username: string;</span></div>
+<div class="code-line" data-line="214"><span class="line-number">214</span><span class="line-content">  email: string;</span></div>
+<div class="code-line" data-line="215"><span class="line-number">215</span><span class="line-content">  password: string;</span></div>
+<div class="code-line" data-line="216"><span class="line-number">216</span><span class="line-content">  highScore: number;</span></div>
+<div class="code-line" data-line="217"><span class="line-number">217</span><span class="line-content">  createdAt: Date;</span></div>
+<div class="code-line" data-line="218"><span class="line-number">218</span><span class="line-content">}</span></div>
+<div class="code-line" data-line="219"><span class="line-number">219</span><span class="line-content"></span></div>
+<div class="code-line" data-line="220"><span class="line-number">220</span><span class="line-content">const UserSchema: Schema = new Schema({</span></div>
+<div class="code-line" data-line="221"><span class="line-number">221</span><span class="line-content">  username: { type: String, required: true, unique: true },</span></div>
+<div class="code-line" data-line="222"><span class="line-number">222</span><span class="line-content">  email: { type: String, required: true, unique: true },</span></div>
+<div class="code-line" data-line="223"><span class="line-number">223</span><span class="line-content">  password: { type: String, required: true },</span></div>
+<div class="code-line" data-line="224"><span class="line-number">224</span><span class="line-content">  highScore: { type: Number, default: 0 },</span></div>
+<div class="code-line" data-line="225"><span class="line-number">225</span><span class="line-content">  createdAt: { type: Date, default: Date.now }</span></div>
+<div class="code-line" data-line="226"><span class="line-number">226</span><span class="line-content">});</span></div>
+<div class="code-line" data-line="227"><span class="line-number">227</span><span class="line-content"></span></div>
+<div class="code-line" data-line="228"><span class="line-number">228</span><span class="line-content">export default mongoose.model&lt;IUser&gt;('User', UserSchema);</span></div>
+<div class="code-line" data-line="229"><span class="line-number">229</span><span class="line-content">import express from 'express';</span></div>
+<div class="code-line" data-line="230"><span class="line-number">230</span><span class="line-content">import { registerUser, loginUser } from '../controllers/auth';</span></div>
+<div class="code-line" data-line="231"><span class="line-number">231</span><span class="line-content"></span></div>
+<div class="code-line" data-line="232"><span class="line-number">232</span><span class="line-content">const router = express.Router();</span></div>
+<div class="code-line" data-line="233"><span class="line-number">233</span><span class="line-content"></span></div>
+<div class="code-line" data-line="234"><span class="line-number">234</span><span class="line-content">router.post('/register', registerUser);</span></div>
+<div class="code-line" data-line="235"><span class="line-number">235</span><span class="line-content">router.post('/login', loginUser);</span></div>
+<div class="code-line" data-line="236"><span class="line-number">236</span><span class="line-content"></span></div>
+<div class="code-line" data-line="237"><span class="line-number">237</span><span class="line-content">export default router;</span></div>
+<div class="code-line" data-line="238"><span class="line-number">238</span><span class="line-content">import { Request, Response } from 'express';</span></div>
+<div class="code-line" data-line="239"><span class="line-number">239</span><span class="line-content">import bcrypt from 'bcryptjs';</span></div>
+<div class="code-line" data-line="240"><span class="line-number">240</span><span class="line-content">import jwt from 'jsonwebtoken';</span></div>
+<div class="code-line" data-line="241"><span class="line-number">241</span><span class="line-content">import User from '../models/User';</span></div>
+<div class="code-line" data-line="242"><span class="line-number">242</span><span class="line-content"></span></div>
+<div class="code-line" data-line="243"><span class="line-number">243</span><span class="line-content">export const registerUser = async (req: Request, res: Response) =&gt; {</span></div>
+<div class="code-line" data-line="244"><span class="line-number">244</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="245"><span class="line-number">245</span><span class="line-content">    const { username, email, password } = req.body;</span></div>
+<div class="code-line" data-line="246"><span class="line-number">246</span><span class="line-content">    const user = new User({ username, email, password });</span></div>
+<div class="code-line" data-line="247"><span class="line-number">247</span><span class="line-content">    await user.save();</span></div>
+<div class="code-line" data-line="248"><span class="line-number">248</span><span class="line-content">    res.status(201).json({ message: 'User registered successfully' });</span></div>
+<div class="code-line" data-line="249"><span class="line-number">249</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="250"><span class="line-number">250</span><span class="line-content">    res.status(500).json({ error: 'Registration failed' });</span></div>
+<div class="code-line" data-line="251"><span class="line-number">251</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="252"><span class="line-number">252</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="253"><span class="line-number">253</span><span class="line-content"></span></div>
+<div class="code-line" data-line="254"><span class="line-number">254</span><span class="line-content">export const loginUser = async (req: Request, res: Response) =&gt; {</span></div>
+<div class="code-line" data-line="255"><span class="line-number">255</span><span class="line-content">  try {</span></div>
+<div class="code-line" data-line="256"><span class="line-number">256</span><span class="line-content">    const { email, password } = req.body;</span></div>
+<div class="code-line" data-line="257"><span class="line-number">257</span><span class="line-content">    const user = await User.findOne({ email });</span></div>
+<div class="code-line" data-line="258"><span class="line-number">258</span><span class="line-content">    if (!user || !(await bcrypt.compare(password, user.password))) {</span></div>
+<div class="code-line" data-line="259"><span class="line-number">259</span><span class="line-content">      return res.status(401).json({ error: 'Invalid credentials' });</span></div>
+<div class="code-line" data-line="260"><span class="line-number">260</span><span class="line-content">    }</span></div>
+<div class="code-line" data-line="261"><span class="line-number">261</span><span class="line-content">    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, { expiresIn: '1h' });</span></div>
+<div class="code-line" data-line="262"><span class="line-number">262</span><span class="line-content">    res.json({ token, user: { id: user._id, username: user.username } });</span></div>
+<div class="code-line" data-line="263"><span class="line-number">263</span><span class="line-content">  } catch (error) {</span></div>
+<div class="code-line" data-line="264"><span class="line-number">264</span><span class="line-content">    res.status(500).json({ error: 'Login failed' });</span></div>
+<div class="code-line" data-line="265"><span class="line-number">265</span><span class="line-content">  }</span></div>
+<div class="code-line" data-line="266"><span class="line-number">266</span><span class="line-content">};</span></div>
+<div class="code-line" data-line="267"><span class="line-number">267</span><span class="line-content"># Frontend Dockerfile</span></div>
+<div class="code-line" data-line="268"><span class="line-number">268</span><span class="line-content">FROM node:18 as frontend</span></div>
+<div class="code-line" data-line="269"><span class="line-number">269</span><span class="line-content">WORKDIR /app</span></div>
+<div class="code-line" data-line="270"><span class="line-number">270</span><span class="line-content">COPY frontend/package*.json ./</span></div>
+<div class="code-line" data-line="271"><span class="line-number">271</span><span class="line-content">RUN npm install</span></div>
+<div class="code-line" data-line="272"><span class="line-number">272</span><span class="line-content">COPY frontend/ .</span></div>
+<div class="code-line" data-line="273"><span class="line-number">273</span><span class="line-content">RUN npm run build</span></div>
+<div class="code-line" data-line="274"><span class="line-number">274</span><span class="line-content"></span></div>
+<div class="code-line" data-line="275"><span class="line-number">275</span><span class="line-content"># Backend Dockerfile</span></div>
+<div class="code-line" data-line="276"><span class="line-number">276</span><span class="line-content">FROM node:18 as backend</span></div>
+<div class="code-line" data-line="277"><span class="line-number">277</span><span class="line-content">WORKDIR /app</span></div>
+<div class="code-line" data-line="278"><span class="line-number">278</span><span class="line-content">COPY backend/package*.json ./</span></div>
+<div class="code-line" data-line="279"><span class="line-number">279</span><span class="line-content">RUN npm install</span></div>
+<div class="code-line" data-line="280"><span class="line-number">280</span><span class="line-content">COPY backend/ .</span></div>
+<div class="code-line" data-line="281"><span class="line-number">281</span><span class="line-content"></span></div>
+<div class="code-line" data-line="282"><span class="line-number">282</span><span class="line-content"># Final stage</span></div>
+<div class="code-line" data-line="283"><span class="line-number">283</span><span class="line-content">FROM nginx:alpine</span></div>
+<div class="code-line" data-line="284"><span class="line-number">284</span><span class="line-content">COPY --from=frontend /app/build /usr/share/nginx/html</span></div>
+<div class="code-line" data-line="285"><span class="line-number">285</span><span class="line-content">COPY --from=backend /app /app</span></div>
+<div class="code-line" data-line="286"><span class="line-number">286</span><span class="line-content">EXPOSE 80</span></div>
+<div class="code-line" data-line="287"><span class="line-number">287</span><span class="line-content">CMD ["nginx", "-g", "daemon off;"]</span></div>
+<div class="code-line" data-line="288"><span class="line-number">288</span><span class="line-content">version: '3.8'</span></div>
+<div class="code-line" data-line="289"><span class="line-number">289</span><span class="line-content"></span></div>
+<div class="code-line" data-line="290"><span class="line-number">290</span><span class="line-content">services:</span></div>
+<div class="code-line" data-line="291"><span class="line-number">291</span><span class="line-content">  frontend:</span></div>
+<div class="code-line" data-line="292"><span class="line-number">292</span><span class="line-content">    build: .</span></div>
+<div class="code-line" data-line="293"><span class="line-number">293</span><span class="line-content">    ports:</span></div>
+<div class="code-line" data-line="294"><span class="line-number">294</span><span class="line-content">      - "80:80"</span></div>
+<div class="code-line" data-line="295"><span class="line-number">295</span><span class="line-content">    depends_on:</span></div>
+<div class="code-line" data-line="296"><span class="line-number">296</span><span class="line-content">      - backend</span></div>
+<div class="code-line" data-line="297"><span class="line-number">297</span><span class="line-content"></span></div>
+<div class="code-line" data-line="298"><span class="line-number">298</span><span class="line-content">  backend:</span></div>
+<div class="code-line" data-line="299"><span class="line-number">299</span><span class="line-content">    build: .</span></div>
+<div class="code-line" data-line="300"><span class="line-number">300</span><span class="line-content">    ports:</span></div>
+<div class="code-line" data-line="301"><span class="line-number">301</span><span class="line-content">      - "3000:3000"</span></div>
+<div class="code-line" data-line="302"><span class="line-number">302</span><span class="line-content">    environment:</span></div>
+<div class="code-line" data-line="303"><span class="line-number">303</span><span class="line-content">      - MONGO_URI=mongodb://db:27017/snake_game</span></div>
+<div class="code-line" data-line="304"><span class="line-number">304</span><span class="line-content">      - JWT_SECRET=your-secret-key</span></div>
+<div class="code-line" data-line="305"><span class="line-number">305</span><span class="line-content">    volumes:</span></div>
+<div class="code-line" data-line="306"><span class="line-number">306</span><span class="line-content">      - ./backend:/app</span></div>
+<div class="code-line" data-line="307"><span class="line-number">307</span><span class="line-content"></span></div>
+<div class="code-line" data-line="308"><span class="line-number">308</span><span class="line-content">  db:</span></div>
+<div class="code-line" data-line="309"><span class="line-number">309</span><span class="line-content">    image: mongo:5.0</span></div>
+<div class="code-line" data-line="310"><span class="line-number">310</span><span class="line-content">    ports:</span></div>
+<div class="code-line" data-line="311"><span class="line-number">311</span><span class="line-content">      - "27017:27017"</span></div>
+<div class="code-line" data-line="312"><span class="line-number">312</span><span class="line-content">    volumes:</span></div>
+<div class="code-line" data-line="313"><span class="line-number">313</span><span class="line-content">      - db-data:/data/db</span></div>
+<div class="code-line" data-line="314"><span class="line-number">314</span><span class="line-content"></span></div>
+<div class="code-line" data-line="315"><span class="line-number">315</span><span class="line-content">volumes:</span></div>
+<div class="code-line" data-line="316"><span class="line-number">316</span><span class="line-content">  db-data:</span></div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // XEdit data and state
+        const xeditPaths = {"7x001": {"display_name": "if", "type": "function", "filename": "** `frontend/src/App.tsx`", "language": "text", "line_start": 11, "line_end": 21, "lines_display": "11-21", "technical_path": "** `frontend/src/App.tsx`::function.if/lines[11-21]", "optimal_model": "llama-3.1-70b-versatile"}, "7x002": {"display_name": "switch", "type": "function", "filename": "** `frontend/src/components/GameBoard.tsx`", "language": "text", "line_start": 10, "line_end": 20, "lines_display": "10-20", "technical_path": "** `frontend/src/components/GameBoard.tsx`::function.switch/lines[10-20]", "optimal_model": "llama-3.1-70b-versatile"}, "7x003": {"display_name": "if", "type": "function", "filename": "** `frontend/src/components/GameBoard.tsx`", "language": "text", "line_start": 32, "line_end": 42, "lines_display": "32-42", "technical_path": "** `frontend/src/components/GameBoard.tsx`::function.if/lines[32-42]", "optimal_model": "llama-3.1-70b-versatile"}, "7x004": {"display_name": "if", "type": "function", "filename": "** `frontend/src/context/GameContext.ts`", "language": "text", "line_start": 20, "line_end": 30, "lines_display": "20-30", "technical_path": "** `frontend/src/context/GameContext.ts`::function.if/lines[20-30]", "optimal_model": "llama-3.1-70b-versatile"}, "7x005": {"display_name": "catch", "type": "function", "filename": "** `backend/src/controllers/auth.ts`", "language": "text", "line_start": 12, "line_end": 22, "lines_display": "12-22", "technical_path": "** `backend/src/controllers/auth.ts`::function.catch/lines[12-22]", "optimal_model": "llama-3.1-70b-versatile"}, "7x006": {"display_name": "if", "type": "function", "filename": "** `backend/src/controllers/auth.ts`", "language": "text", "line_start": 21, "line_end": 29, "lines_display": "21-29", "technical_path": "** `backend/src/controllers/auth.ts`::function.if/lines[21-29]", "optimal_model": "llama-3.1-70b-versatile"}, "7x007": {"display_name": "catch", "type": "function", "filename": "** `backend/src/controllers/auth.ts`", "language": "text", "line_start": 26, "line_end": 29, "lines_display": "26-29", "technical_path": "** `backend/src/controllers/auth.ts`::function.catch/lines[26-29]", "optimal_model": "llama-3.1-70b-versatile"}};
+        const projectFiles = [{"filename":"** `frontend/src/App.tsx`","language":"text","code_b64":"aW1wb3J0IFJlYWN0LCB7IHVzZVN0YXRlLCB1c2VFZmZlY3QgfSBmcm9tICdyZWFjdCc7CmltcG9ydCB7IEJveCwgVHlwb2dyYXBoeSwgQnV0dG9uIH0gZnJvbSAnQG11aS9tYXRlcmlhbCc7CmltcG9ydCBHYW1lQm9hcmQgZnJvbSAnLi9jb21wb25lbnRzL0dhbWVCb2FyZCc7CmltcG9ydCB7IHVzZUF1dGggfSBmcm9tICcuL2NvbnRleHQvQXV0aENvbnRleHQnOwoKY29uc3QgQXBwOiBSZWFjdC5GQyA9ICgpID0+IHsKICBjb25zdCB7IHVzZXIsIGxvZ2luIH0gPSB1c2VBdXRoKCk7CiAgY29uc3QgW2dhbWVTdGFydGVkLCBzZXRHYW1lU3RhcnRlZF0gPSB1c2VTdGF0ZShmYWxzZSk7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICBpZiAoIXVzZXIpIHsKICAgICAgbG9naW4oKTsgLy8gQXV0by1sb2dpbiBmb3IgZGVtbyBwdXJwb3NlcwogICAgfQogIH0sIFt1c2VyLCBsb2dpbl0pOwoKICByZXR1cm4gKAogICAgPEJveCBzeD17eyB0ZXh0QWxpZ246ICdjZW50ZXInLCBwOiAyIH19PgogICAgICA8VHlwb2dyYXBoeSB2YXJpYW50PSJoMyIgZ3V0dGVyQm90dG9tPlNuYWtlIEdhbWU8L1R5cG9ncmFwaHk+CiAgICAgIHt1c2VyID8gKAogICAgICAgIDw+CiAgICAgICAgICA8VHlwb2dyYXBoeT5XZWxjb21lLCB7dXNlci51c2VybmFtZX08L1R5cG9ncmFwaHk+CiAgICAgICAgICA8QnV0dG9uIAogICAgICAgICAgICB2YXJpYW50PSJjb250YWluZWQiIAogICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRHYW1lU3RhcnRlZCh0cnVlKX0KICAgICAgICAgICAgc3g9e3sgbXQ6IDIgfX0KICAgICAgICAgID4KICAgICAgICAgICAgU3RhcnQgR2FtZQogICAgICAgICAgPC9CdXR0b24+CiAgICAgICAgICB7Z2FtZVN0YXJ0ZWQgJiYgPEdhbWVCb2FyZCAvPn0KICAgICAgICA8Lz4KICAgICAgKSA6ICgKICAgICAgICA8VHlwb2dyYXBoeT5Mb2FkaW5nLi4uPC9UeXBvZ3JhcGh5PgogICAgICApfQogICAgPC9Cb3g+CiAgKTsKfTsKCmV4cG9ydCBkZWZhdWx0IEFwcDs=","code":""},{"filename":"** `frontend/src/components/GameBoard.tsx`","language":"text","code_b64":"aW1wb3J0IFJlYWN0LCB7IHVzZVN0YXRlLCB1c2VFZmZlY3QsIHVzZUNhbGxiYWNrIH0gZnJvbSAncmVhY3QnOwppbXBvcnQgeyBCb3ggfSBmcm9tICdAbXVpL21hdGVyaWFsJzsKaW1wb3J0IHsgdXNlR2FtZSB9IGZyb20gJy4uL2NvbnRleHQvR2FtZUNvbnRleHQnOwoKY29uc3QgR2FtZUJvYXJkOiBSZWFjdC5GQyA9ICgpID0+IHsKICBjb25zdCB7IGdhbWUsIG1vdmVTbmFrZSwgcmVzZXRHYW1lIH0gPSB1c2VHYW1lKCk7CiAgY29uc3QgW3Njb3JlLCBzZXRTY29yZV0gPSB1c2VTdGF0ZSgwKTsKCiAgY29uc3QgaGFuZGxlS2V5UHJlc3MgPSB1c2VDYWxsYmFjaygoZTogS2V5Ym9hcmRFdmVudCkgPT4gewogICAgc3dpdGNoIChlLmtleSkgewogICAgICBjYXNlICdBcnJvd1VwJzoKICAgICAgICBtb3ZlU25ha2UoJ1VQJyk7CiAgICAgICAgYnJlYWs7CiAgICAgIGNhc2UgJ0Fycm93RG93bic6CiAgICAgICAgbW92ZVNuYWtlKCdET1dOJyk7CiAgICAgICAgYnJlYWs7CiAgICAgIGNhc2UgJ0Fycm93TGVmdCc6CiAgICAgICAgbW92ZVNuYWtlKCdMRUZUJyk7CiAgICAgICAgYnJlYWs7CiAgICAgIGNhc2UgJ0Fycm93UmlnaHQnOgogICAgICAgIG1vdmVTbmFrZSgnUklHSFQnKTsKICAgICAgICBicmVhazsKICAgIH0KICB9LCBbbW92ZVNuYWtlXSk7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICB3aW5kb3cuYWRkRXZlbnRMaXN0ZW5lcigna2V5ZG93bicsIGhhbmRsZUtleVByZXNzKTsKICAgIHJldHVybiAoKSA9PiB3aW5kb3cucmVtb3ZlRXZlbnRMaXN0ZW5lcigna2V5ZG93bicsIGhhbmRsZUtleVByZXNzKTsKICB9LCBbaGFuZGxlS2V5UHJlc3NdKTsKCiAgdXNlRWZmZWN0KCgpID0+IHsKICAgIGlmIChnYW1lLmlzR2FtZU92ZXIpIHsKICAgICAgc2V0U2NvcmUoMCk7CiAgICAgIHJlc2V0R2FtZSgpOwogICAgfSBlbHNlIHsKICAgICAgc2V0U2NvcmUoZ2FtZS5zY29yZSk7CiAgICB9CiAgfSwgW2dhbWUuaXNHYW1lT3ZlciwgZ2FtZS5zY29yZSwgcmVzZXRHYW1lXSk7CgogIHJldHVybiAoCiAgICA8Qm94IHN4PXt7IAogICAgICB3aWR0aDogNDAwLCAKICAgICAgaGVpZ2h0OiA0MDAsIAogICAgICBib3JkZXI6ICcxcHggc29saWQgIzAwMCcsIAogICAgICBkaXNwbGF5OiAnZ3JpZCcsIAogICAgICBncmlkVGVtcGxhdGVDb2x1bW5zOiBgcmVwZWF0KCR7Z2FtZS5ib2FyZFNpemV9LCAxZnIpYCwKICAgICAgZ3JpZFRlbXBsYXRlUm93czogYHJlcGVhdCgke2dhbWUuYm9hcmRTaXplfSwgMWZyKWAsCiAgICAgIGdhcDogJzFweCcsCiAgICAgIG1hcmdpbjogJzAgYXV0bycsCiAgICAgIG10OiAyCiAgICB9fT4KICAgICAge2dhbWUuYm9hcmQubWFwKChyb3csIHkpID0+IAogICAgICAgIHJvdy5tYXAoKGNlbGwsIHgpID0+ICgKICAgICAgICAgIDxCb3ggCiAgICAgICAgICAgIGtleT17YCR7eH0tJHt5fWB9IAogICAgICAgICAgICBzeD17eyAKICAgICAgICAgICAgICB3aWR0aDogJzEwMCUnLCAKICAgICAgICAgICAgICBoZWlnaHQ6ICcxMDAlJywgCiAgICAgICAgICAgICAgYmFja2dyb3VuZENvbG9yOiAKICAgICAgICAgICAgICAgIGNlbGwgPT09ICdzbmFrZScgPyAnZ3JlZW4nIDogCiAgICAgICAgICAgICAgICBjZWxsID09PSAnZm9vZCcgPyAncmVkJyA6IAogICAgICAgICAgICAgICAgY2VsbCA9PT0gJ3dhbGwnID8gJ2dyYXknIDogCiAgICAgICAgICAgICAgICAnd2hpdGUnCiAgICAgICAgICAgIH19CiAgICAgICAgICAvPgogICAgICAgICkpCiAgICAgICl9CiAgICAgIDxUeXBvZ3JhcGh5IHZhcmlhbnQ9Img2IiBzeD17eyBtdDogMSB9fT5TY29yZToge3Njb3JlfTwvVHlwb2dyYXBoeT4KICAgIDwvQm94PgogICk7Cn07CgpleHBvcnQgZGVmYXVsdCBHYW1lQm9hcmQ7","code":""},{"filename":"** `frontend/src/context/GameContext.ts`","language":"text","code_b64":"aW1wb3J0IFJlYWN0LCB7IGNyZWF0ZUNvbnRleHQsIHVzZUNvbnRleHQsIHVzZVN0YXRlLCB1c2VFZmZlY3QsIHVzZUNhbGxiYWNrIH0gZnJvbSAncmVhY3QnOwoKaW50ZXJmYWNlIEdhbWVDb250ZXh0VHlwZSB7CiAgZ2FtZTogR2FtZTsKICBtb3ZlU25ha2U6IChkaXJlY3Rpb246ICdVUCcgfCAnRE9XTicgfCAnTEVGVCcgfCAnUklHSFQnKSA9PiB2b2lkOwogIHJlc2V0R2FtZTogKCkgPT4gdm9pZDsKfQoKY29uc3QgR2FtZUNvbnRleHQgPSBjcmVhdGVDb250ZXh0PEdhbWVDb250ZXh0VHlwZSB8IHVuZGVmaW5lZD4odW5kZWZpbmVkKTsKCmludGVyZmFjZSBHYW1lIHsKICBib2FyZDogc3RyaW5nW11bXTsKICBib2FyZFNpemU6IG51bWJlcjsKICBpc0dhbWVPdmVyOiBib29sZWFuOwogIHNjb3JlOiBudW1iZXI7Cn0KCmNvbnN0IHVzZUdhbWUgPSAoKTogR2FtZUNvbnRleHRUeXBlID0+IHsKICBjb25zdCBjb250ZXh0ID0gdXNlQ29udGV4dChHYW1lQ29udGV4dCk7CiAgaWYgKCFjb250ZXh0KSB7CiAgICB0aHJvdyBuZXcgRXJyb3IoJ3VzZUdhbWUgbXVzdCBiZSB1c2VkIHdpdGhpbiBhIEdhbWVQcm92aWRlcicpOwogIH0KICByZXR1cm4gY29udGV4dDsKfTsKCmNvbnN0IEdhbWVQcm92aWRlcjogUmVhY3QuRkM8eyBjaGlsZHJlbjogUmVhY3QuUmVhY3ROb2RlIH0+ID0gKHsgY2hpbGRyZW4gfSkgPT4gewogIGNvbnN0IFtnYW1lLCBzZXRHYW1lXSA9IHVzZVN0YXRlPEdhbWU+KHsKICAgIGJvYXJkOiBbXSwKICAgIGJvYXJkU2l6ZTogMjAsCiAgICBpc0dhbWVPdmVyOiBmYWxzZSwKICAgIHNjb3JlOiAwLAogIH0pOwoKICBjb25zdCBpbml0aWFsaXplR2FtZSA9IHVzZUNhbGxiYWNrKCgpID0+IHsKICAgIGNvbnN0IGJvYXJkID0gQXJyYXkuZnJvbSh7IGxlbmd0aDogZ2FtZS5ib2FyZFNpemUgfSwgKCkgPT4gCiAgICAgIEFycmF5KGdhbWUuYm9hcmRTaXplKS5maWxsKCdlbXB0eScpCiAgICApOwogICAgYm9hcmRbMTBdWzEwXSA9ICdmb29kJzsKICAgIHNldEdhbWUoewogICAgICBib2FyZCwKICAgICAgYm9hcmRTaXplOiBnYW1lLmJvYXJkU2l6ZSwKICAgICAgaXNHYW1lT3ZlcjogZmFsc2UsCiAgICAgIHNjb3JlOiAwLAogICAgfSk7CiAgfSwgW2dhbWUuYm9hcmRTaXplXSk7CgogIHVzZUVmZmVjdCgoKSA9PiB7CiAgICBpbml0aWFsaXplR2FtZSgpOwogIH0sIFtpbml0aWFsaXplR2FtZV0pOwoKICBjb25zdCBtb3ZlU25ha2UgPSB1c2VDYWxsYmFjaygoZGlyZWN0aW9uOiAnVVAnIHwgJ0RPV04nIHwgJ0xFRlQnIHwgJ1JJR0hUJykgPT4gewogICAgLy8gR2FtZSBsb2dpYyBpbXBsZW1lbnRhdGlvbgogICAgLy8gVGhpcyB3b3VsZCBpbmNsdWRlIHNuYWtlIG1vdmVtZW50LCBjb2xsaXNpb24gZGV0ZWN0aW9uLCBhbmQgZm9vZCBnZW5lcmF0aW9uCiAgICAvLyBGb3IgYnJldml0eSwgYWN0dWFsIGltcGxlbWVudGF0aW9uIGlzIG9taXR0ZWQKICB9LCBbXSk7CgogIGNvbnN0IHJlc2V0R2FtZSA9IHVzZUNhbGxiYWNrKCgpID0+IHsKICAgIGluaXRpYWxpemVHYW1lKCk7CiAgfSwgW2luaXRpYWxpemVHYW1lXSk7CgogIHJldHVybiAoCiAgICA8R2FtZUNvbnRleHQuUHJvdmlkZXIgdmFsdWU9e3sgZ2FtZSwgbW92ZVNuYWtlLCByZXNldEdhbWUgfX0+CiAgICAgIHtjaGlsZHJlbn0KICAgIDwvR2FtZUNvbnRleHQuUHJvdmlkZXI+CiAgKTsKfTsKCmV4cG9ydCB7IEdhbWVQcm92aWRlciwgdXNlR2FtZSB9Ow==","code":""},{"filename":"** `backend/src/index.ts`","language":"text","code_b64":"aW1wb3J0IGV4cHJlc3MgZnJvbSAnZXhwcmVzcyc7CmltcG9ydCBtb25nb29zZSBmcm9tICdtb25nb29zZSc7CmltcG9ydCBjb3JzIGZyb20gJ2NvcnMnOwppbXBvcnQgYXV0aFJvdXRlcyBmcm9tICcuL3JvdXRlcy9hdXRoJzsKaW1wb3J0IGdhbWVSb3V0ZXMgZnJvbSAnLi9yb3V0ZXMvZ2FtZSc7CmltcG9ydCB7IGVycm9ySGFuZGxlciB9IGZyb20gJy4vbWlkZGxld2FyZS9lcnJvckhhbmRsZXInOwoKY29uc3QgYXBwID0gZXhwcmVzcygpOwpjb25zdCBQT1JUID0gcHJvY2Vzcy5lbnYuUE9SVCB8fCAzMDAwOwoKLy8gTWlkZGxld2FyZQphcHAudXNlKGNvcnMoKSk7CmFwcC51c2UoZXhwcmVzcy5qc29uKCkpOwoKLy8gUm91dGVzCmFwcC51c2UoJy9hcGkvYXV0aCcsIGF1dGhSb3V0ZXMpOwphcHAudXNlKCcvYXBpL2dhbWUnLCBnYW1lUm91dGVzKTsKCi8vIEVycm9yIGhhbmRsaW5nCmFwcC51c2UoZXJyb3JIYW5kbGVyKTsKCi8vIERhdGFiYXNlIGNvbm5lY3Rpb24KbW9uZ29vc2UuY29ubmVjdChwcm9jZXNzLmVudi5NT05HT19VUkkgfHwgJ21vbmdvZGI6Ly9sb2NhbGhvc3Q6MjcwMTcvc25ha2VfZ2FtZScpCiAgLnRoZW4oKCkgPT4gY29uc29sZS5sb2coJ0Nvbm5lY3RlZCB0byBNb25nb0RCJykpCiAgLmNhdGNoKGVyciA9PiBjb25zb2xlLmVycm9yKCdNb25nb0RCIGNvbm5lY3Rpb24gZXJyb3I6JywgZXJyKSk7CgovLyBTdGFydCBzZXJ2ZXIKYXBwLmxpc3RlbihQT1JULCAoKSA9PiB7CiAgY29uc29sZS5sb2coYFNlcnZlciBydW5uaW5nIG9uIHBvcnQgJHtQT1JUfWApOwp9KTs=","code":""},{"filename":"** `backend/src/models/User.ts`","language":"text","code_b64":"aW1wb3J0IG1vbmdvb3NlLCB7IERvY3VtZW50LCBTY2hlbWEgfSBmcm9tICdtb25nb29zZSc7CgpleHBvcnQgaW50ZXJmYWNlIElVc2VyIGV4dGVuZHMgRG9jdW1lbnQgewogIHVzZXJuYW1lOiBzdHJpbmc7CiAgZW1haWw6IHN0cmluZzsKICBwYXNzd29yZDogc3RyaW5nOwogIGhpZ2hTY29yZTogbnVtYmVyOwogIGNyZWF0ZWRBdDogRGF0ZTsKfQoKY29uc3QgVXNlclNjaGVtYTogU2NoZW1hID0gbmV3IFNjaGVtYSh7CiAgdXNlcm5hbWU6IHsgdHlwZTogU3RyaW5nLCByZXF1aXJlZDogdHJ1ZSwgdW5pcXVlOiB0cnVlIH0sCiAgZW1haWw6IHsgdHlwZTogU3RyaW5nLCByZXF1aXJlZDogdHJ1ZSwgdW5pcXVlOiB0cnVlIH0sCiAgcGFzc3dvcmQ6IHsgdHlwZTogU3RyaW5nLCByZXF1aXJlZDogdHJ1ZSB9LAogIGhpZ2hTY29yZTogeyB0eXBlOiBOdW1iZXIsIGRlZmF1bHQ6IDAgfSwKICBjcmVhdGVkQXQ6IHsgdHlwZTogRGF0ZSwgZGVmYXVsdDogRGF0ZS5ub3cgfQp9KTsKCmV4cG9ydCBkZWZhdWx0IG1vbmdvb3NlLm1vZGVsPElVc2VyPignVXNlcicsIFVzZXJTY2hlbWEpOw==","code":""},{"filename":"** `backend/src/routes/auth.ts`","language":"text","code_b64":"aW1wb3J0IGV4cHJlc3MgZnJvbSAnZXhwcmVzcyc7CmltcG9ydCB7IHJlZ2lzdGVyVXNlciwgbG9naW5Vc2VyIH0gZnJvbSAnLi4vY29udHJvbGxlcnMvYXV0aCc7Cgpjb25zdCByb3V0ZXIgPSBleHByZXNzLlJvdXRlcigpOwoKcm91dGVyLnBvc3QoJy9yZWdpc3RlcicsIHJlZ2lzdGVyVXNlcik7CnJvdXRlci5wb3N0KCcvbG9naW4nLCBsb2dpblVzZXIpOwoKZXhwb3J0IGRlZmF1bHQgcm91dGVyOw==","code":""},{"filename":"** `backend/src/controllers/auth.ts`","language":"text","code_b64":"aW1wb3J0IHsgUmVxdWVzdCwgUmVzcG9uc2UgfSBmcm9tICdleHByZXNzJzsKaW1wb3J0IGJjcnlwdCBmcm9tICdiY3J5cHRqcyc7CmltcG9ydCBqd3QgZnJvbSAnanNvbndlYnRva2VuJzsKaW1wb3J0IFVzZXIgZnJvbSAnLi4vbW9kZWxzL1VzZXInOwoKZXhwb3J0IGNvbnN0IHJlZ2lzdGVyVXNlciA9IGFzeW5jIChyZXE6IFJlcXVlc3QsIHJlczogUmVzcG9uc2UpID0+IHsKICB0cnkgewogICAgY29uc3QgeyB1c2VybmFtZSwgZW1haWwsIHBhc3N3b3JkIH0gPSByZXEuYm9keTsKICAgIGNvbnN0IHVzZXIgPSBuZXcgVXNlcih7IHVzZXJuYW1lLCBlbWFpbCwgcGFzc3dvcmQgfSk7CiAgICBhd2FpdCB1c2VyLnNhdmUoKTsKICAgIHJlcy5zdGF0dXMoMjAxKS5qc29uKHsgbWVzc2FnZTogJ1VzZXIgcmVnaXN0ZXJlZCBzdWNjZXNzZnVsbHknIH0pOwogIH0gY2F0Y2ggKGVycm9yKSB7CiAgICByZXMuc3RhdHVzKDUwMCkuanNvbih7IGVycm9yOiAnUmVnaXN0cmF0aW9uIGZhaWxlZCcgfSk7CiAgfQp9OwoKZXhwb3J0IGNvbnN0IGxvZ2luVXNlciA9IGFzeW5jIChyZXE6IFJlcXVlc3QsIHJlczogUmVzcG9uc2UpID0+IHsKICB0cnkgewogICAgY29uc3QgeyBlbWFpbCwgcGFzc3dvcmQgfSA9IHJlcS5ib2R5OwogICAgY29uc3QgdXNlciA9IGF3YWl0IFVzZXIuZmluZE9uZSh7IGVtYWlsIH0pOwogICAgaWYgKCF1c2VyIHx8ICEoYXdhaXQgYmNyeXB0LmNvbXBhcmUocGFzc3dvcmQsIHVzZXIucGFzc3dvcmQpKSkgewogICAgICByZXR1cm4gcmVzLnN0YXR1cyg0MDEpLmpzb24oeyBlcnJvcjogJ0ludmFsaWQgY3JlZGVudGlhbHMnIH0pOwogICAgfQogICAgY29uc3QgdG9rZW4gPSBqd3Quc2lnbih7IHVzZXJJZDogdXNlci5faWQgfSwgcHJvY2Vzcy5lbnYuSldUX1NFQ1JFVCEsIHsgZXhwaXJlc0luOiAnMWgnIH0pOwogICAgcmVzLmpzb24oeyB0b2tlbiwgdXNlcjogeyBpZDogdXNlci5faWQsIHVzZXJuYW1lOiB1c2VyLnVzZXJuYW1lIH0gfSk7CiAgfSBjYXRjaCAoZXJyb3IpIHsKICAgIHJlcy5zdGF0dXMoNTAwKS5qc29uKHsgZXJyb3I6ICdMb2dpbiBmYWlsZWQnIH0pOwogIH0KfTs=","code":""},{"filename":"** `Dockerfile`","language":"text","code_b64":"IyBGcm9udGVuZCBEb2NrZXJmaWxlCkZST00gbm9kZToxOCBhcyBmcm9udGVuZApXT1JLRElSIC9hcHAKQ09QWSBmcm9udGVuZC9wYWNrYWdlKi5qc29uIC4vClJVTiBucG0gaW5zdGFsbApDT1BZIGZyb250ZW5kLyAuClJVTiBucG0gcnVuIGJ1aWxkCgojIEJhY2tlbmQgRG9ja2VyZmlsZQpGUk9NIG5vZGU6MTggYXMgYmFja2VuZApXT1JLRElSIC9hcHAKQ09QWSBiYWNrZW5kL3BhY2thZ2UqLmpzb24gLi8KUlVOIG5wbSBpbnN0YWxsCkNPUFkgYmFja2VuZC8gLgoKIyBGaW5hbCBzdGFnZQpGUk9NIG5naW54OmFscGluZQpDT1BZIC0tZnJvbT1mcm9udGVuZCAvYXBwL2J1aWxkIC91c3Ivc2hhcmUvbmdpbngvaHRtbApDT1BZIC0tZnJvbT1iYWNrZW5kIC9hcHAgL2FwcApFWFBPU0UgODAKQ01EIFsibmdpbngiLCAiLWciLCAiZGFlbW9uIG9mZjsiXQ==","code":""},{"filename":"** `docker-compose.yml`","language":"text","code_b64":"dmVyc2lvbjogJzMuOCcKCnNlcnZpY2VzOgogIGZyb250ZW5kOgogICAgYnVpbGQ6IC4KICAgIHBvcnRzOgogICAgICAtICI4MDo4MCIKICAgIGRlcGVuZHNfb246CiAgICAgIC0gYmFja2VuZAoKICBiYWNrZW5kOgogICAgYnVpbGQ6IC4KICAgIHBvcnRzOgogICAgICAtICIzMDAwOjMwMDAiCiAgICBlbnZpcm9ubWVudDoKICAgICAgLSBNT05HT19VUkk9bW9uZ29kYjovL2RiOjI3MDE3L3NuYWtlX2dhbWUKICAgICAgLSBKV1RfU0VDUkVUPXlvdXItc2VjcmV0LWtleQogICAgdm9sdW1lczoKICAgICAgLSAuL2JhY2tlbmQ6L2FwcAoKICBkYjoKICAgIGltYWdlOiBtb25nbzo1LjAKICAgIHBvcnRzOgogICAgICAtICIyNzAxNzoyNzAxNyIKICAgIHZvbHVtZXM6CiAgICAgIC0gZGItZGF0YTovZGF0YS9kYgoKdm9sdW1lczoKICBkYi1kYXRhOg==","code":""}];
+        const projectName = 'Untitled Peacock Project';
+        const sessionId = 'deepseek-range2-20250712-011107';
+        let payloadItems = [];
+        
+        function highlightFunction(xeditId, functionName, lineStart, lineEnd) {
+            console.log(`Highlighting function: ${functionName} (lines ${lineStart}-${lineEnd})`);
+            
+            // Remove previous highlights from function list
+            document.querySelectorAll('.function-item').forEach(item => {
+                item.classList.remove('highlighted');
+            });
+            
+            // Highlight selected function
+            const selectedItem = document.querySelector(`[data-id="${xeditId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('highlighted');
+            }
+            
+            // Clear previous code highlights
+            document.querySelectorAll('.code-line').forEach(line => {
+                line.classList.remove('highlight');
+            });
+            
+            // Highlight code lines
+            for (let i = lineStart; i <= lineEnd; i++) {
+                const lineElement = document.querySelector(`.code-line[data-line="${i}"]`);
+                if (lineElement) {
+                    lineElement.classList.add('highlight');
+                    
+                    // Scroll to first highlighted line
+                    if (i === lineStart) {
+                        lineElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            }
+        }
+        
+        function addToPayload(functionName, functionType, xeditId) {
+            console.log(`Adding to payload: ${functionName} (${functionType})`);
+            
+            // Check if already in payload
+            if (payloadItems.find(item => item.id === xeditId)) {
+                alert('Function already in payload!');
+                return;
+            }
+            
+            // Add to payload
+            const payloadItem = {
+                id: xeditId,
+                name: functionName,
+                type: functionType,
+                timestamp: new Date().toLocaleTimeString()
+            };
+            
+            payloadItems.push(payloadItem);
+            updatePayloadDisplay();
+        }
+        
+        function removeFromPayload(xeditId) {
+            payloadItems = payloadItems.filter(item => item.id !== xeditId);
+            updatePayloadDisplay();
+        }
+        
+        function updatePayloadDisplay() {
+            const payloadList = document.getElementById('payload-list');
+            const sendButton = document.getElementById('send-button');
+            
+            if (payloadItems.length === 0) {
+                payloadList.innerHTML = '<div class="payload-empty">Click functions to add XEdit-Paths</div>';
+                sendButton.textContent = '🚀 Send 0 to Optimized Pipeline';
+                sendButton.disabled = true;
+                return;
+            }
+            
+            let html = '';
+            payloadItems.forEach(item => {
+                html += `
+                    <div class="payload-item">
+                        <div class="payload-item-info">
+                            <div class="xedit-id">${item.id}</div>
+                            <div class="payload-model">${item.name} (${item.type})</div>
+                        </div>
+                        <button class="remove-btn" onclick="removeFromPayload('${item.id}')" title="Remove from payload">×</button>
+                    </div>
+                `;
+            });
+            
+            payloadList.innerHTML = html;
+            sendButton.textContent = `🚀 Send ${payloadItems.length} to Optimized Pipeline`;
+            sendButton.disabled = false;
+        }
+        
+        function deployToPcock() {
+            console.log('deployToPcock() called');
+            const deployBtn = document.querySelector('.peacock-deploy-btn');
+            const deployStatus = document.getElementById('deploy-status');
+            const customNameInput = document.getElementById('custom-package-name');
+            
+            // Get custom name or use default
+            const customName = customNameInput.value.trim();
+            const finalProjectName = customName || projectName;
+            
+            // Show loading state
+            deployBtn.disabled = true;
+            deployBtn.textContent = '🔄 Building...'
+            deployStatus.innerHTML = '<div style="color: #ffff00;">🔧 Preparing build...</div>';
+            
+            // Prepare deployment data
+            const deploymentData = {
+                project_name: finalProjectName,
+                session_id: sessionId,
+                project_files: projectFiles,
+                payload_items: payloadItems,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Call deployment API
+            fetch('http://127.0.0.1:8000/deploy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(deploymentData)
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Deploy response:', data);
+                if (data.success) {
+                    deployBtn.textContent = '✅ Built!';
+                    deployBtn.style.background = 'linear-gradient(45deg, #00ff00, #00cc00)';
+                    deployStatus.innerHTML = `
+                        <div style="color: #00ff00;">
+                            ✅ Build successful!<br>
+                            📦 Project created<br>
+                            🚀 Ready to run
+                        </div>
+                    `;
+                } else {
+                    throw new Error(data.error || 'Deployment failed');
+                }
+            })
+            .catch(error => {
+                console.error('Deploy error:', error);
+                deployBtn.textContent = '❌ Build Failed';
+                deployBtn.style.background = 'linear-gradient(45deg, #ff0000, #cc0000)';
+                deployStatus.innerHTML = `
+                    <div style="color: #ff0000;">
+                        ❌ Build failed:<br>
+                        ${error.message}
+                    </div>
+                `;
+            })
+            .finally(() => {
+                deployBtn.disabled = false;
+                setTimeout(() => {
+                    deployBtn.textContent = '🦚 Generate Python Project';
+                    deployBtn.style.background = 'linear-gradient(45deg, #00ff00, #00cc00)';
+                }, 4000);
+            });
+        }
+        
+        // Decode base64 project files
+        projectFiles.forEach(file => {
+            if (file.code_b64) {
+                file.code = atob(file.code_b64);
+                delete file.code_b64;
+            }
+        });
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🦚 XEdit Enhanced Interface Loaded');
+            console.log('Project:', projectName);
+            console.log('Session:', sessionId);
+            console.log('Functions found:', Object.keys(xeditPaths).length);
+            console.log('Project files:', projectFiles.length);
+        });
+    </script>
+</body>
+</html>
