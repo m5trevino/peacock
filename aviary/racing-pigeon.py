@@ -20,7 +20,7 @@ from falcon import FalconArchitect
 class FalconHandler:
     """FALCON API Handler - Manages SCOUT model calls for FALCON architecture"""
     
-    def __init__(self):
+    def __init__(self, broadcaster=None):
         self.stage_name = "RACING-PIGEON"
         self.icon = "🏎️"
         self.specialty = "FALCON API Communication"
@@ -51,6 +51,7 @@ class FalconHandler:
         
         # Initialize FALCON architect
         self.falcon_architect = FalconArchitect()
+        self.broadcaster = broadcaster
     
     def get_architecture(self, spark_response: str, session_id: str) -> str:
         """
@@ -131,7 +132,14 @@ class FalconHandler:
             if response.status_code == 200:
                 response_data = response.json()
                 content = response_data["choices"][0]["message"]["content"]
+                if self.broadcaster:
+                    char_count = len(content)
+                    self.broadcaster.send({"stage": "FALCON", "status": "COMPLETED", "char_count": char_count})
                 print(f"✅ SCOUT model response received: {len(content)} characters")
+                
+                # Rotate to next API key for deck-of-cards style rotation
+                self.current_key_index = (self.current_key_index + 1) % len(self.groq_api_keys)
+                
                 return content
             else:
                 error_msg = f"API Error {response.status_code}: {response.text}"
@@ -204,9 +212,9 @@ class FalconHandler:
         print(f"🚨 Logged error: {error_file}")
 
 
-def create_falcon_handler() -> FalconHandler:
+def create_falcon_handler(broadcaster=None) -> FalconHandler:
     """Factory function to create FalconHandler instance"""
-    return FalconHandler()
+    return FalconHandler(broadcaster=broadcaster)
 
 
 def test_falcon_handler():

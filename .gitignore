@@ -1,10 +1,19 @@
-# Secrets and environment files
-*.env
-good_keys.txt
-good_keys_2.txt
-api-test-synth.txt
-merged_content.txt
+# Existing rules from before
+.env
+*.json
+*.html
+*.txt
 
+# --- ADD THESE NEW RULES ---
+
+# Ignore log folders
+logs/
+core/logs/
+
+# Ignore test/junk files and folders
+Untitled*
+*(copy).py
+*merge/
 # Python cache and artifacts
 __pycache__/
 *.pyc

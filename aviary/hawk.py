@@ -1,602 +1,209 @@
 #!/usr/bin/env python3
 """
-hawk.py - EXTENSIVE HAWK Quality Assurance Bird (SYSTEM-COMPATIBLE VERSION)
-The comprehensive QA engineer and DevOps specialist with your existing method patterns
+hawk.py - EXTENSIVE HAWK QA & Testing Bird (SYSTEM-COMPATIBLE VERSION)
+The comprehensive quality assurance specialist with complexity-aware testing strategies
 """
 
 import json
 import re
 from typing import Dict, List, Any
 
-class HawkQASpecialist:
-    """HAWK - The Quality Assurance Specialist (EXTENSIVE VERSION - COMPATIBLE)"""
+class HawkTester:
+    """HAWK - The Quality Assurance & Testing Specialist (EXTENSIVE VERSION - COMPATIBLE)"""
     
     def __init__(self):
         self.stage_name = "HAWK"
         self.icon = "🦅"
-        self.specialty = "Comprehensive Quality Assurance & Production Readiness"
-        self.optimal_model = "meta-llama/llama-4-maverick-17b-128e-instruct"
-        self.target_chars = "4000-6000"
+        self.specialty = "Comprehensive QA and Testing Strategy"
+        self.optimal_model = "meta-llama/llama-4-scout-17b-16e-instruct"
+        self.target_chars = "3000-5000"
     
-    def analyze_implementation(self, eagle_implementation: Dict[str, Any]) -> Dict[str, Any]:
+    def develop_qa_strategy(self, eagle_implementation: Dict[str, Any]) -> Dict[str, Any]:
         """
         Main HAWK function - maintains compatibility with OUT-HOMING orchestrator
         """
-        print(f"🦅 EXTENSIVE HAWK QA SPECIALIST: Creating comprehensive quality assurance strategy...")
+        print(f"🦅 EXTENSIVE HAWK TESTER: Generating comprehensive QA and testing strategy...")
         
         # Extract data using your existing patterns
         implementation_text = eagle_implementation.get("raw_implementation", "")
         if not implementation_text:
             implementation_text = eagle_implementation.get("implementation", "")
         
-        code_files = eagle_implementation.get("code_files", [])
         json_data = eagle_implementation.get("json_data", {})
+        if not json_data:
+            json_data = eagle_implementation.get("analysis", {})
         
         # Generate the EXTENSIVE HAWK prompt
-        hawk_prompt = self._build_extensive_hawk_prompt(implementation_text, code_files, json_data)
+        hawk_prompt = self._build_extensive_hawk_prompt(implementation_text, json_data)
         
         # Package using your existing format for OUT-HOMING compatibility
-        hawk_analysis = {
+        hawk_strategy = {
             "stage": "HAWK",
             "prompt": hawk_prompt,
             "eagle_input": eagle_implementation,
             "model": self.optimal_model,
-            "temperature": 0.2,  # Lower for more structured QA analysis
-            "max_tokens": 2048,  # Increased for extensive QA content
-            "analysis_type": "comprehensive_qa_strategy"
+            "temperature": 0.2,  # Lower for structured QA plans
+            "max_tokens": 2048,  # Increased for detailed test plans
+            "qa_type": "comprehensive_quality_assurance"
         }
         
         print(f"✅ EXTENSIVE HAWK prompt generated: {len(hawk_prompt)} characters (Target: {self.target_chars})")
-        return hawk_analysis
+        return hawk_strategy
     
-    # Alias for backward compatibility
-    review_code = analyze_implementation
-    
-    def _build_extensive_hawk_prompt(self, implementation_text: str, code_files: List[Dict[str, Any]], json_data: Dict[str, Any]) -> str:
-        """Build optimized quality assurance prompt - reduced size for API limits"""
-        
-        # Truncate implementation_text if too long
-        if len(implementation_text) > 3000:
-            implementation_text = implementation_text[:3000] + "... [implementation truncated for optimization]"
-        
-        files_summary = self._generate_files_summary(code_files)
+    def _build_extensive_hawk_prompt(self, implementation_text: str, json_data: Dict[str, Any]) -> str:
+        """Build comprehensive QA and testing strategy prompt with complexity awareness"""
         
         prompt = f"""<thinking>
-I need to create a comprehensive QA strategy for this implementation.
+I need to develop a QA and testing strategy based on the EAGLE implementation, tailoring it to the project's complexity.
 
 Implementation: {implementation_text[:500]}...
-Files: {files_summary}
-Technical Data: {json_data}
+Data: {json_data}
+
+First, I must determine the project complexity from EAGLE/FALCON:
+- Simple apps (e.g., games, CLI tools): Basic unit tests using unittest, focus on core functionality.
+- Complex apps (e.g., web apps, analytics): Comprehensive test suite (unit, integration, API, performance), use pytest, coverage reports.
 
 I should provide:
-- Complete testing strategy
-- Security validation checklist  
-- Performance requirements
-- Production readiness assessment
-- Quality metrics and recommendations
+- For simple apps: 3-5 unit tests for core features, minimal coverage (~70%), basic edge cases.
+- For complex apps: Full test suite with unit, integration, API tests, 90%+ coverage, security/performance testing.
+- Test plan, setup instructions, and coverage goals tailored to complexity.
 </thinking>
 
-Act as Hawk, a senior QA engineer. Create comprehensive QA strategy for this implementation.
+Act as Hawk, a senior QA engineer with 15+ years of experience in software testing for enterprise and lightweight applications.
+
+Develop a comprehensive QA and testing strategy for this implementation:
 
 **IMPLEMENTATION DETAILS:**
 {implementation_text}
 
 **TECHNICAL SPECIFICATIONS:**
-{json.dumps(json_data, indent=2) if json_data else "No additional data"}
+{json.dumps(json_data, indent=2) if json_data else "No additional structured data"}
 
-Provide complete quality assurance strategy in this EXACT format:
+Provide a detailed QA and testing strategy in this EXACT format:
 
-**1. TESTING STRATEGY:**
+**1. PROJECT COMPLEXITY:**
+[Simple or Complex, extracted from EAGLE/FALCON or inferred from implementation]
 
-**Unit Testing Plan:**
-- Authentication and authorization comprehensive tests
-- Data validation and business logic tests  
-- Error handling and edge case tests
-- Component isolation with mocking
+**2. TESTING OBJECTIVES:**
+[For simple apps: Ensure core functionality works; For complex apps: Ensure functionality, performance, security, and scalability]
 
-**Integration Testing Plan:**
-- API endpoint testing with various scenarios
-- Database integration and transaction tests
-- Third-party service integration validation
-- Cross-component communication tests
+**3. TEST STRATEGY:**
 
-**End-to-End Testing Plan:**
-- Complete user journey testing
-- Browser compatibility (Chrome, Firefox, Safari, Edge)
-- Mobile responsiveness testing
-- Performance testing under load
+**Unit Testing:**
+[For simple apps: 3-5 unittest tests for core logic; For complex apps: pytest-based unit tests for all modules, mocks for external dependencies]
 
-**2. SECURITY VALIDATION:**
+**Integration Testing:**
+[For simple apps: None or minimal; For complex apps: Test component interactions, database connectivity, API integrations]
 
-**Authentication & Authorization:**
-- [ ] JWT token validation and expiration handling
-- [ ] Password hashing verification (bcrypt/scrypt)
-- [ ] Role-based access control implementation
-- [ ] Session management and timeout policies
+**API Testing:**
+[For simple apps: None; For complex apps: Test all RESTful endpoints, status codes, payloads using tools like requests]
 
-**Data Protection:**
-- [ ] Input validation and sanitization
-- [ ] SQL injection prevention
-- [ ] XSS and CSRF protection
-- [ ] Data encryption at rest and transit
+**Performance Testing:**
+[For simple apps: None or basic runtime checks; For complex apps: Load/stress tests using locust, benchmark response times]
 
-**Infrastructure Security:**
-- [ ] HTTPS/TLS verification
-- [ ] Security headers (CSP, HSTS, X-Frame-Options)
-- [ ] Rate limiting and DDoS protection
-- [ ] Environment variable security
+**Security Testing:**
+[For simple apps: Basic input validation checks; For complex apps: OWASP-based tests, SQL injection, XSS prevention]
 
-**3. PERFORMANCE TESTING:**
+**4. TEST COVERAGE GOALS:**
+[For simple apps: ~70% coverage, focus on critical paths; For complex apps: 90%+ coverage, including edge cases]
 
-**Load Testing Requirements:**
-- Concurrent user capacity (target: 500+ users)
-- API response times (target: <200ms)
-- Database query performance (<100ms)
-- Memory usage and leak detection
+**5. TEST IMPLEMENTATION:**
 
-**Performance Benchmarks:**
-- Page load times (<3 seconds)
-- API response times (<500ms)
-- Database optimization (95th percentile <100ms)
-- Real-time feature latency (<100ms)
+**filename: tests/test_main.py**
+```python
+[Unit tests for main.py; simple apps: 3-5 tests; complex apps: comprehensive tests with pytest]
+```
 
-**4. PRODUCTION READINESS:**
+**filename: tests/test_[module].py**
+```python
+[For complex apps: Additional test files for modules (e.g., test_routes.py, test_models.py); omitted for simple apps]
+```
 
-**Environment Configuration:**
-- [ ] Production environment variables secured
-- [ ] Database connections validated
-- [ ] SSL certificates configured
-- [ ] CDN and asset optimization
+**6. TEST SETUP & EXECUTION:**
 
-**Monitoring & Logging:**
-- [ ] Application performance monitoring
-- [ ] Error tracking and alerting
-- [ ] Database performance monitoring
-- [ ] System health checks
+**Setup Instructions:**
+1. Install test dependencies: pip install pytest pytest-cov [other dependencies]
+2. Run tests: pytest --cov=app tests/
+3. Generate coverage report: pytest-cov
 
-**5. DEPLOYMENT VALIDATION:**
+**Execution Plan:**
+[For simple apps: Run unit tests locally; For complex apps: Run full test suite in CI/CD, include coverage reports]
 
-**Pre-Deployment:**
-- [ ] All tests passing in CI/CD
-- [ ] Database migrations tested
-- [ ] Environment configs verified
-- [ ] Rollback procedures tested
+**7. QUALITY METRICS:**
 
-**Post-Deployment:**
-- [ ] Health checks responding
-- [ ] Database connections working
-- [ ] Third-party integrations functional
-- [ ] Monitoring active and alerting
+**Pass/Fail Criteria:**
+[For simple apps: All core functionality tests pass; For complex apps: 90% test pass rate, no critical bugs]
 
-**6. QUALITY METRICS:**
+**Coverage Metrics:**
+[For simple apps: ~70% line coverage; For complex apps: 90%+ line/branch coverage]
 
-**Code Quality Assessment:**
-- Test coverage target: 85%
-- Code complexity: Low to moderate
-- Security scan: No critical vulnerabilities
-- Performance: Meets benchmarks
+**Defect Tracking:**
+[For simple apps: Manual tracking; For complex apps: Integration with tools like Jira, defect severity classification]
 
-**Quality Score: 8.5/10**
-- Code Quality: 22/25
-- Security: 23/25  
-- Performance: 20/25
-- Production Ready: 24/25
+**8. RISK-BASED TESTING:**
 
-**RECOMMENDED ACTIONS:**
-1. Increase test coverage to 90% (Timeline: 1 week)
-2. Implement performance monitoring (Timeline: 3 days)
-3. Complete security audit (Timeline: 1 week)
+**High-Risk Areas:**
+[For simple apps: Core logic errors; For complex apps: API failures, database issues, security vulnerabilities]
 
-**CONFIDENCE SCORE: 8/10**
-High confidence in production readiness with minor optimizations recommended.
+**Mitigation Strategies:**
+[For simple apps: Focused unit tests; For complex apps: Prioritize high-risk tests, automated regression]
 
-Provide actionable QA strategy ensuring production readiness and maintainability."""
+**9. AUTOMATION STRATEGY:**
+
+**Test Automation Tools:**
+[For simple apps: unittest; For complex apps: pytest, pytest-cov, locust for performance]
+
+**CI/CD Integration:**
+[For simple apps: Optional manual tests; For complex apps: GitHub Actions pipeline for automated testing]
+
+**10. QA DOCUMENTATION:**
+
+**Test Plan:**
+[For simple apps: Brief plan for core tests; For complex apps: Detailed plan with test cases, schedules]
+
+**Test Reports:**
+[For simple apps: Basic pass/fail summary; For complex apps: Detailed reports with coverage, defects]
+
+Provide a comprehensive, production-ready QA and testing strategy that matches the project’s complexity (simple or complex) as defined by EAGLE/FALCON. Ensure tests are Python-based, executable, and aligned with implementation requirements."""
 
         return prompt
-    
-    def _generate_files_summary(self, code_files: List[Dict[str, Any]]) -> str:
-        """Generate summary of code files for QA analysis"""
-        
-        if not code_files:
-            return "No specific code files provided for analysis"
-        
-        summary_parts = []
-        for file_info in code_files:
-            file_name = file_info.get("name", "Unknown file")
-            file_type = file_info.get("type", "Unknown type")
-            file_size = file_info.get("size", "Unknown size")
-            summary_parts.append(f"- {file_name} ({file_type}, {file_size})")
-        
-        return "\n".join(summary_parts)
 
 # Factory function for OUT-HOMING compatibility
-def create_hawk_qa_specialist() -> HawkQASpecialist:
-    """Factory function to create EXTENSIVE HAWK QA specialist instance"""
-    return HawkQASpecialist()
+def create_hawk_tester() -> HawkTester:
+    """Factory function to create EXTENSIVE HAWK tester instance"""
+    return HawkTester()
 
 # Test function for HAWK bird
 def test_hawk_bird():
-    """Test the EXTENSIVE HAWK bird with sample implementation input"""
-    hawk = create_hawk_qa_specialist()
+    """Test the EXTENSIVE HAWK bird with sample EAGLE input"""
+    hawk = create_hawk_tester()
     
     # Mock EAGLE implementation using your existing format
     eagle_implementation = {
-        "raw_implementation": "Complete enterprise web application with React frontend, Node.js backend, PostgreSQL database, comprehensive authentication system, real-time features, and mobile-responsive design",
-        "code_files": [
-            {"name": "server.js", "type": "Node.js server", "size": "2.5KB"},
-            {"name": "database.js", "type": "Database config", "size": "1.2KB"},
-            {"name": "auth.js", "type": "Authentication", "size": "3.1KB"},
-            {"name": "api.js", "type": "API routes", "size": "4.8KB"},
-            {"name": "app.js", "type": "React app", "size": "6.2KB"}
-        ],
+        "raw_implementation": "Simple Python snake game with Pygame, single file, no backend",
         "json_data": {
             "tech_stack": {
-                "frontend": "React with TypeScript",
-                "backend": "Node.js with Express",
-                "database": "PostgreSQL with Redis"
+                "frontend": "Pygame",
+                "backend": "None",
+                "database": "None"
             },
-            "security_features": ["JWT authentication", "Rate limiting", "Input validation"],
-            "complexity": "enterprise"
+            "complexity": "simple"
         }
     }
     
-    analysis = hawk.analyze_implementation(eagle_implementation)
+    strategy = hawk.develop_qa_strategy(eagle_implementation)
     
     print("🧪 TESTING EXTENSIVE HAWK BIRD (SYSTEM-COMPATIBLE)")
-    print(f"🦅 Stage: {analysis['stage']}")
-    print(f"🤖 Model: {analysis['model']}")
-    print(f"🔍 Analysis Type: {analysis['analysis_type']}")
-    print(f"📏 Prompt Length: {len(analysis['prompt'])} characters")
+    print(f"🦅 Stage: {strategy['stage']}")
+    print(f"🤖 Model: {strategy['model']}")
+    print(f"🧪 QA Type: {strategy['qa_type']}")
+    print(f"📏 Prompt Length: {len(strategy['prompt'])} characters")
     print(f"🎯 Target Range: {hawk.target_chars} characters")
-    print(f"🔥 Temperature: {analysis['temperature']}")
-    print(f"📊 Max Tokens: {analysis['max_tokens']}")
+    print(f"🔥 Temperature: {strategy['temperature']}")
+    print(f"📊 Max Tokens: {strategy['max_tokens']}")
     
-    return analysis
+    return strategy
 
 if __name__ == "__main__":
     # Test EXTENSIVE HAWK bird independently
-    test_hawk_bird()#!/usr/bin/env python3
-"""
-hawk.py - EXTENSIVE HAWK Quality Assurance Bird
-The comprehensive QA engineer and DevOps specialist
-"""
-
-import json
-import re
-from typing import Dict, List, Any
-
-class HawkQASpecialist:
-    """HAWK - The Quality Assurance Specialist (EXTENSIVE VERSION)"""
-    
-    def __init__(self):
-        self.stage_name = "HAWK"
-        self.icon = "🦅"
-        self.specialty = "Comprehensive Quality Assurance & Production Readiness"
-        self.optimal_model = "meta-llama/llama-4-maverick-17b-128e-instruct"
-        self.target_chars = "4000-6000"
-    
-    def analyze_implementation(self, implementation_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Main HAWK function - comprehensive quality assurance analysis
-        """
-        print(f"🦅 HAWK QA SPECIALIST: Creating comprehensive quality assurance strategy...")
-        
-        # Extract implementation details
-        implementation_text = implementation_data.get("implementation", "")
-        architecture_text = implementation_data.get("architecture", "")
-        requirements_text = implementation_data.get("requirements", "")
-        user_request = implementation_data.get("user_request", "")
-        
-        # Generate the extensive HAWK prompt
-        hawk_prompt = self._build_extensive_hawk_prompt(implementation_text, architecture_text, requirements_text, user_request)
-        
-        hawk_analysis = {
-            "stage": "HAWK",
-            "prompt": hawk_prompt,
-            "implementation_input": implementation_data,
-            "model": self.optimal_model,
-            "temperature": 0.2,
-            "max_tokens": 2048,
-            "analysis_type": "comprehensive_qa_strategy"
-        }
-        
-        return hawk_analysis
-    
-    def _build_extensive_hawk_prompt(self, implementation: str, architecture: str, requirements: str, user_request: str) -> str:
-        """Build the comprehensive quality assurance prompt"""
-        
-        prompt = f"""<thinking>
-I need to create a comprehensive QA strategy for this implementation.
-
-Implementation Details: {implementation[:500]}...
-Architecture: {architecture[:500]}...
-Requirements: {requirements[:500]}...
-User Request: {user_request}
-
-I should provide:
-- Complete testing strategy and test cases
-- Security audit and validation checklist
-- Performance testing requirements
-- Code quality assessment
-- Production readiness checklist
-- Monitoring and alerting setup
-- Documentation review
-- Deployment validation
-- Disaster recovery planning
-- Continuous improvement recommendations
-</thinking>
-
-Act as Hawk, a senior QA engineer and DevOps specialist with 15+ years of experience in enterprise quality assurance.
-
-Create comprehensive QA strategy for this implementation:
-
-**IMPLEMENTATION DETAILS:**
-{implementation}
-
-**ARCHITECTURE:**
-{architecture}
-
-**REQUIREMENTS:**
-{requirements}
-
-**ORIGINAL REQUEST:** {user_request}
-
-Provide complete quality assurance strategy in this EXACT format:
-
-**1. TESTING STRATEGY:**
-
-**Unit Testing Plan:**
-**Core Functionality Tests:**
-- Authentication and authorization test cases
-- Data validation and sanitization tests
-- Business logic and calculation tests
-- Error handling and edge case tests
-- Component isolation and mocking tests
-
-**Example Test Cases:**
-describe('User Authentication', () => {{
-  test('should create user with valid data', async () => {{
-    // Test implementation with assertions
-  }});
-  
-  test('should reject invalid email format', async () => {{
-    // Test implementation with error validation
-  }});
-  
-  test('should hash password before saving', async () => {{
-    // Test implementation with security validation
-  }});
-}});
-
-**Integration Testing Plan:**
-- API endpoint testing with various scenarios
-- Database integration and transaction testing
-- Third-party service integration tests
-- Cross-component communication validation
-- Data flow and pipeline testing
-
-**End-to-End Testing Plan:**
-- Complete user journey testing scenarios
-- Browser compatibility testing matrix
-- Mobile responsiveness testing
-- Performance testing under various loads
-- Accessibility compliance testing
-
-**2. SECURITY VALIDATION:**
-
-**Authentication & Authorization Security:**
-- [ ] JWT token validation and expiration handling
-- [ ] Password hashing algorithm verification (bcrypt/scrypt)
-- [ ] Role-based access control implementation
-- [ ] Session management and timeout policies
-- [ ] Multi-factor authentication (if applicable)
-
-**Input Validation & Data Protection:**
-- [ ] SQL injection prevention validation
-- [ ] XSS attack prevention measures
-- [ ] CSRF protection implementation
-- [ ] Input sanitization and validation
-- [ ] File upload security measures
-
-**Infrastructure Security:**
-- [ ] HTTPS/TLS encryption verification
-- [ ] Security headers implementation (CSP, HSTS, etc.)
-- [ ] Rate limiting and DDoS protection
-- [ ] Environment variable security
-- [ ] API key and secret management
-
-**Data Protection Compliance:**
-- [ ] PII data handling and encryption
-- [ ] GDPR compliance measures
-- [ ] Data retention and deletion policies
-- [ ] Audit trail implementation
-- [ ] Backup encryption and security
-
-**3. PERFORMANCE TESTING:**
-
-**Load Testing Requirements:**
-- Concurrent user capacity testing (target: [X] users)
-- Database query performance optimization
-- API response time validation (target: <200ms)
-- Memory usage and leak detection
-- CPU utilization under peak load
-
-**Stress Testing Scenarios:**
-- System behavior under extreme load
-- Database connection pool exhaustion
-- Memory and storage limitations
-- Network latency and timeout handling
-- Graceful degradation validation
-
-**Performance Benchmarks:**
-- Page load time targets (<3 seconds)
-- API response time targets (<500ms)
-- Database query optimization (<100ms)
-- File upload/download performance
-- Real-time feature latency testing
-
-**4. CODE QUALITY ASSESSMENT:**
-
-**Code Review Checklist:**
-- [ ] Code follows established style guidelines
-- [ ] Functions and methods have single responsibility
-- [ ] Error handling is comprehensive and consistent
-- [ ] Code documentation is complete and accurate
-- [ ] Security best practices are implemented
-
-**Static Analysis Requirements:**
-- ESLint/JSHint configuration and rules
-- Code complexity analysis and thresholds
-- Dependency vulnerability scanning
-- Code coverage requirements (minimum 80%)
-- Technical debt identification and tracking
-
-**5. PRODUCTION READINESS CHECKLIST:**
-
-**Environment Configuration:**
-- [ ] Production environment variables configured
-- [ ] Database connections and credentials secured
-- [ ] Third-party service configurations validated
-- [ ] SSL certificates and domain setup
-- [ ] CDN and static asset optimization
-
-**Monitoring & Logging:**
-- [ ] Application performance monitoring (APM)
-- [ ] Error tracking and alerting system
-- [ ] Database performance monitoring
-- [ ] User activity and analytics tracking
-- [ ] System health checks and uptime monitoring
-
-**Backup & Recovery:**
-- [ ] Automated database backup schedule
-- [ ] Application state backup procedures
-- [ ] Disaster recovery plan documentation
-- [ ] Recovery time objective (RTO) validation
-- [ ] Recovery point objective (RPO) testing
-
-**6. DEPLOYMENT VALIDATION:**
-
-**Pre-Deployment Checklist:**
-- [ ] All tests passing in CI/CD pipeline
-- [ ] Database migrations tested and validated
-- [ ] Environment configurations verified
-- [ ] Rollback procedures tested and documented
-- [ ] Performance benchmarks met
-
-**Post-Deployment Validation:**
-- [ ] Health check endpoints responding correctly
-- [ ] Database connections and queries working
-- [ ] Third-party integrations functioning
-- [ ] Monitoring systems active and alerting
-- [ ] User acceptance testing completed
-
-**7. SECURITY AUDIT PLAN:**
-
-**Vulnerability Assessment:**
-- Automated security scanning (OWASP ZAP/Nessus)
-- Manual penetration testing procedures
-- Dependency vulnerability analysis
-- Infrastructure security assessment
-- Social engineering and phishing resistance
-
-**Compliance Validation:**
-- Security framework compliance (SOC 2, ISO 27001)
-- Industry-specific compliance requirements
-- Data protection regulation compliance
-- Security policy implementation validation
-
-**8. DISASTER RECOVERY PLAN:**
-
-**Backup Strategy:**
-- Database backup schedule and verification
-- Application code and configuration backup
-- User data backup and restoration testing
-- Third-party integration backup procedures
-
-**Incident Response Plan:**
-- Escalation procedures for critical issues
-- Communication plan for stakeholders
-- Rollback procedures and timelines
-- Post-incident review and improvement process
-
-**9. COMPLIANCE & DOCUMENTATION:**
-
-**Documentation Review:**
-- [ ] API documentation complete and accurate
-- [ ] User documentation comprehensive and tested
-- [ ] Developer setup guide validated
-- [ ] Architecture documentation updated
-- [ ] Security procedures documented
-
-**Compliance Validation:**
-- [ ] Security compliance requirements met
-- [ ] Data protection regulations followed
-- [ ] Industry-specific compliance verified
-- [ ] Audit trail implementation complete
-
-**10. CONTINUOUS IMPROVEMENT:**
-
-**Performance Optimization Opportunities:**
-- Database query optimization recommendations
-- Caching strategy improvements and expansion
-- Frontend performance enhancement opportunities
-- Infrastructure scaling and optimization
-
-**Technical Debt Assessment:**
-- Code refactoring priorities and timeline
-- Dependency update schedule and procedures
-- Architecture improvement opportunities
-- Technology upgrade roadmap and planning
-
-**Quality Metrics Tracking:**
-- Test coverage trends and improvement goals
-- Performance metrics and optimization targets
-- Security incident tracking and prevention
-- User satisfaction and feedback integration
-
-**QUALITY SCORE ASSESSMENT:**
-Overall Quality Score: [X]/100
-- Code Quality: [X]/25
-- Security Implementation: [X]/25
-- Performance Optimization: [X]/25
-- Production Readiness: [X]/25
-
-**RECOMMENDED ACTIONS:**
-1. [High priority action item with timeline]
-2. [Medium priority improvement with timeline]
-3. [Long-term optimization opportunity]
-
-**CONFIDENCE SCORE:** [X]/10
-[Justification for confidence level based on comprehensive analysis]
-
-Provide actionable, comprehensive quality assurance that ensures production readiness, security compliance, and long-term maintainability. Focus on enterprise-grade QA processes that scale with the application."""
-
-        return prompt
-
-# Test function for standalone testing
-def test_hawk_bird():
-    hawk = HawkQASpecialist()
-    
-    # Mock implementation data for testing
-    implementation_data = {
-        "implementation": "Complete Snake game with HTML5 canvas, JavaScript game engine, collision detection, scoring system",
-        "architecture": "Frontend-only game with modular JavaScript structure",
-        "requirements": "Browser-based Snake game with keyboard controls",
-        "user_request": "Build a simple Snake game in HTML/CSS/JavaScript"
-    }
-    
-    analysis = hawk.analyze_implementation(implementation_data)
-    
-    print("🧪 TESTING EXTENSIVE HAWK BIRD")
-    print(f"🦅 Stage: {analysis['stage']}")
-    print(f"🤖 Model: {analysis['model']}")
-    print(f"📏 Prompt Length: {len(analysis['prompt'])} characters")
-    print(f"🎯 Target: {hawk.target_chars} characters")
-    print(f"🔥 Temperature: {analysis['temperature']}")
-    print(f"📊 Max Tokens: {analysis['max_tokens']}")
-    
-    return analysis
-
-if __name__ == "__main__":
-    # Test HAWK bird independently
     test_hawk_bird()

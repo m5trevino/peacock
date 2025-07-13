@@ -14,13 +14,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from hawk import HawkQASpecialist
+from hawk import HawkTester
 
 
 class HawkHandler:
     """HAWK API Handler - Manages MAVERICK model calls for HAWK QA analysis"""
     
-    def __init__(self):
+    def __init__(self, broadcaster=None):
         self.stage_name = "HOMING-PIGEON"
         self.icon = "🏠"
         self.specialty = "HAWK API Communication"
@@ -50,7 +50,8 @@ class HawkHandler:
         }
         
         # Initialize HAWK QA specialist
-        self.hawk_qa_specialist = HawkQASpecialist()
+        self.hawk_qa_specialist = HawkTester()
+        self.broadcaster = broadcaster
     
     def get_qa_plan(self, eagle_response: str, session_id: str) -> str:
         """
@@ -75,7 +76,7 @@ class HawkHandler:
             }
             
             # Get prompt data from HawkQASpecialist
-            hawk_data = self.hawk_qa_specialist.analyze_implementation(eagle_implementation)
+            hawk_data = self.hawk_qa_specialist.develop_qa_strategy(eagle_implementation)
             prompt = hawk_data["prompt"]
             
             # Log the prompt
@@ -132,7 +133,14 @@ class HawkHandler:
             if response.status_code == 200:
                 response_data = response.json()
                 content = response_data["choices"][0]["message"]["content"]
+                if self.broadcaster:
+                    char_count = len(content)
+                    self.broadcaster.send({"stage": "HAWK", "status": "COMPLETED", "char_count": char_count})
                 print(f"✅ MAVERICK model response received: {len(content)} characters")
+                
+                # Rotate to next API key for deck-of-cards style rotation
+                self.current_key_index = (self.current_key_index + 1) % len(self.groq_api_keys)
+                
                 return content
             else:
                 error_msg = f"API Error {response.status_code}: {response.text}"
@@ -205,9 +213,9 @@ class HawkHandler:
         print(f"🚨 Logged error: {error_file}")
 
 
-def create_hawk_handler() -> HawkHandler:
+def create_hawk_handler(broadcaster=None) -> HawkHandler:
     """Factory function to create HawkHandler instance"""
-    return HawkHandler()
+    return HawkHandler(broadcaster=broadcaster)
 
 
 def test_hawk_handler():

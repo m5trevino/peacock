@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 eagle.py - EXTENSIVE EAGLE Code Implementation Bird (SYSTEM-COMPATIBLE VERSION)
-The comprehensive full-stack developer with your existing method patterns
+The comprehensive full-stack developer with complexity-aware code generation
 """
 
 import json
@@ -51,30 +51,28 @@ class EagleImplementer:
         return eagle_implementation
     
     def _build_extensive_eagle_prompt(self, architecture_text: str, json_data: Dict[str, Any]) -> str:
-        """Build comprehensive production-ready code implementation prompt"""
+        """Build comprehensive production-ready code implementation prompt with complexity awareness"""
         
         prompt = f"""<thinking>
-I need to implement complete, working code based on this architecture design.
+I need to implement complete, working Python code based on this FALCON architecture design.
 
 Architecture: {architecture_text[:500]}...
 Data: {json_data}
 
+First, I must determine the project complexity from FALCON:
+- Simple apps (e.g., games, CLI tools): Single or few Python files, use standard library or Pygame, no backend/database.
+- Complex apps (e.g., web apps, analytics): Modular Python structure with FastAPI/Streamlit, include database if specified.
+
 I should provide:
-- Complete file structure with all necessary files
-- Production-ready code with proper error handling
-- Configuration files and environment setup
-- Database schemas and migrations (if needed)
-- API implementations with full CRUD operations
-- Frontend components with complete functionality
-- Testing setup and initial test cases
-- Documentation and setup instructions
-- Package.json with all dependencies
-- README with deployment instructions
+- For simple apps: Minimal Python code (1-2 files), basic error handling, no external dependencies unless essential (e.g., Pygame for games).
+- For complex apps: Full Python application with modular structure, FastAPI/Streamlit, SQLAlchemy if database needed, comprehensive error handling.
+- Requirements.txt for all dependencies.
+- Setup instructions for Python environment.
 </thinking>
 
-Act as Eagle, a senior full-stack developer with 15+ years of experience building production applications.
+Act as Eagle, a senior full-stack Python developer with 15+ years of experience building production applications.
 
-Transform this architecture into complete, working code:
+Transform this architecture into complete, working Python code:
 
 **ARCHITECTURE DESIGN:**
 {architecture_text}
@@ -82,164 +80,86 @@ Transform this architecture into complete, working code:
 **TECHNICAL SPECIFICATIONS:**
 {json.dumps(json_data, indent=2) if json_data else "No additional structured data"}
 
-Provide complete, production-ready implementation in this EXACT format:
+Provide complete, production-ready Python implementation in this EXACT format:
 
 **PROJECT OVERVIEW:**
-[Comprehensive description of the complete system based on architecture specifications]
+[Brief description of the Python application, tailored to complexity]
 
-**COMPLETE CODE FILES:**
+**COMPLETE PYTHON FILES:**
+
+**filename: requirements.txt**
+```
+[Python dependencies with versions; none or minimal (e.g., pygame) for simple apps; include FastAPI, Streamlit, SQLAlchemy, etc., for complex apps]
+```
+
+**filename: main.py**
+```python
+[Complete main entry point; for simple apps: core logic; for complex apps: app initialization and routing]
+```
+
+**filename: [module_name].py**
+```python
+[Additional Python modules for complex apps; e.g., models.py, routes.py, utils.py; omitted for simple apps unless needed]
+```
 
 **Configuration & Setup Files:**
 
-filename: package.json
-[Complete package.json with all dependencies, scripts, and configuration for the project]
+**filename: .env.example**
+[For simple apps: None or minimal variables; For complex apps: Environment variables for API/database]
 
-filename: .env.example
-[Complete environment configuration template with all required variables]
-
-filename: .gitignore
-[Complete gitignore file with appropriate exclusions for the technology stack]
-
-**Backend Implementation (if applicable):**
-
-filename: server.js
-[Complete server implementation with routing, middleware, comprehensive error handling]
-
-filename: config/database.js
-[Complete database configuration and connection setup with error handling]
-
-filename: models/[ModelName].js
-[Complete data models with validation, relationships, and methods]
-
-filename: controllers/[ControllerName].js
-[Complete controllers with full CRUD operations and comprehensive error handling]
-
-filename: routes/[RouteName].js
-[Complete API routes following RESTful principles with validation]
-
-filename: middleware/auth.js
-[Complete authentication middleware with JWT/session handling and security]
-
-filename: middleware/validation.js
-[Complete input validation middleware with comprehensive error handling]
-
-filename: utils/helpers.js
-[Complete utility functions and helper methods for common operations]
-
-**Frontend Implementation:**
-
-filename: public/index.html
-[Complete HTML with semantic structure, meta tags, responsive design, and accessibility]
-
-filename: public/styles.css
-[Complete CSS with modern styling, responsive design, animations, and cross-browser compatibility]
-
-filename: public/script.js
-[Complete JavaScript with modular structure, API integration, error handling, and user interactions]
-
-**Additional Frontend Files (if framework needed):**
-
-filename: src/components/[ComponentName].js
-[Complete component implementations with props, state, lifecycle, and error boundaries]
-
-filename: src/services/api.js
-[Complete API service layer with error handling, retry logic, and interceptors]
-
-filename: src/utils/constants.js
-[Complete constants and configuration variables for the application]
+**filename: .gitignore**
+```
+[Standard Python .gitignore; e.g., __pycache__/, venv/, .env]
+```
 
 **Testing Implementation:**
 
-filename: tests/unit/[TestName].test.js
-[Complete unit tests with comprehensive coverage of core functionality]
-
-filename: tests/integration/[TestName].test.js
-[Complete integration tests with database and API testing scenarios]
-
-filename: tests/e2e/[TestName].spec.js
-[Complete end-to-end tests with user journey testing and browser automation]
-
-**Database Implementation (if applicable):**
-
-filename: database/migrations/001_initial_schema.sql
-[Complete database schema with proper indexes, constraints, and relationships]
-
-filename: database/seeds/sample_data.sql
-[Complete sample data for development and testing purposes]
+**filename: tests/test_[module].py**
+```python
+[Basic unit tests for simple apps using unittest; Comprehensive tests for complex apps covering all components]
+```
 
 **Documentation:**
 
-filename: README.md
-[Complete documentation with setup instructions, usage examples, and API documentation]
-
-filename: API_DOCS.md
-[Complete API documentation with all endpoints, request/response examples, and error codes]
-
-**Development Tools:**
-
-filename: docker-compose.yml
-[Complete Docker configuration for development environment with all services]
-
-filename: Dockerfile
-[Complete Docker container configuration for production deployment]
+**filename: README.md**
+[Simple setup/run instructions for simple apps; Detailed setup, run, and deployment instructions for complex apps]
 
 **IMPLEMENTATION NOTES:**
 
 **Architecture Decisions:**
-- [Key architectural patterns implemented and their justifications]
-- [Technology choices and detailed rationales for selections]
-- [Design patterns used throughout codebase for maintainability]
+[For simple apps: Simple Python structure justification; For complex apps: Modular design, framework choices]
 
 **Security Implementation:**
-- [Authentication and authorization implementation with token management]
-- [Input validation and sanitization with security best practices]
-- [Security headers and CORS configuration for protection]
-- [Rate limiting and DDoS protection mechanisms]
+[For simple apps: Basic input validation; For complex apps: Authentication, input sanitization, secure configuration]
 
 **Performance Optimizations:**
-- [Caching strategies implemented at multiple levels]
-- [Database query optimizations with indexing strategies]
-- [Frontend performance optimizations with lazy loading]
-- [Asset optimization and compression techniques]
+[For simple apps: Basic Python efficiency; For complex apps: Caching, query optimization, async handling]
 
 **Error Handling Strategy:**
-- [Global error handling implementation with consistent responses]
-- [Logging and monitoring setup with appropriate log levels]
-- [Graceful degradation patterns for service failures]
-- [User-friendly error messages with actionable guidance]
+[For simple apps: Basic try-except blocks; For complex apps: Comprehensive error handling, logging]
 
 **Code Organization:**
-- [File structure and naming conventions for scalability]
-- [Module separation and dependency management]
-- [Component reusability patterns and shared utilities]
-- [Configuration management and environment handling]
+[For simple apps: Single file or minimal modules; For complex apps: Modular structure with clear separation]
 
 **SETUP & DEPLOYMENT:**
 
 **Development Setup:**
-1. Clone repository and navigate to project directory
-2. Install dependencies: npm install (or appropriate package manager)
-3. Configure environment variables: cp .env.example .env
-4. Initialize database (if applicable): npm run db:migrate
-5. Start development server: npm run dev
-6. Run tests: npm test
+1. Clone repository
+2. Create virtual environment: python -m venv venv
+3. Activate virtual environment: source venv/bin/activate (Linux/Mac) or venv\Scripts\activate (Windows)
+4. Install dependencies: pip install -r requirements.txt
+5. Run application: python main.py
 
 **Production Deployment:**
-1. Build application for production: npm run build
-2. Configure production environment variables securely
-3. Deploy to hosting platform with specific deployment instructions
-4. Set up monitoring and logging with health checks
-5. Configure backup and recovery procedures with testing
+[For simple apps: Local execution; For complex apps: Docker deployment, cloud hosting instructions]
 
 **Quality Assurance:**
-- All code follows established coding standards and best practices
-- Comprehensive error handling implemented throughout the application
-- Security best practices followed with regular security audits
-- Performance optimizations applied with monitoring and alerting
-- Testing coverage meets industry standards with automated testing
-- Documentation is complete, accurate, and maintained regularly
+- Code follows PEP 8 standards
+- Comprehensive error handling implemented
+- Tests cover critical functionality
+- Documentation is complete and accurate
 
-Provide complete, working files that can be immediately deployed without modifications. Every file should be production-ready with proper error handling, security measures, performance optimizations, and comprehensive documentation."""
+Provide complete, working Python files that can be immediately run or deployed. Ensure code matches the project’s complexity (simple or complex) as defined by FALCON."""
 
         return prompt
 
@@ -255,14 +175,14 @@ def test_eagle_bird():
     
     # Mock FALCON architecture using your existing format
     falcon_architecture = {
-        "raw_design": "Comprehensive web application architecture with modern frontend framework, RESTful API backend, database integration, and responsive design",
+        "raw_design": "Simple Python-based snake game with Pygame, no backend or database",
         "json_data": {
             "tech_stack": {
-                "frontend": "React with TypeScript, Tailwind CSS",
-                "backend": "Node.js with Express framework",
-                "database": "PostgreSQL with Redis caching"
+                "frontend": "Pygame",
+                "backend": "None",
+                "database": "None"
             },
-            "complexity": "enterprise"
+            "complexity": "simple"
         }
     }
     

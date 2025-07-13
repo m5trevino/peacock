@@ -20,7 +20,7 @@ from eagle import EagleImplementer
 class EagleHandler:
     """EAGLE API Handler - Manages MAVERICK model calls for EAGLE implementation"""
     
-    def __init__(self):
+    def __init__(self, broadcaster=None):
         self.stage_name = "WAR-PIGEON"
         self.icon = "⚔️"
         self.specialty = "EAGLE API Communication"
@@ -51,6 +51,7 @@ class EagleHandler:
         
         # Initialize EAGLE implementer
         self.eagle_implementer = EagleImplementer()
+        self.broadcaster = broadcaster
     
     def get_implementation_plan(self, falcon_response: str, session_id: str) -> str:
         """
@@ -131,7 +132,14 @@ class EagleHandler:
             if response.status_code == 200:
                 response_data = response.json()
                 content = response_data["choices"][0]["message"]["content"]
+                if self.broadcaster:
+                    char_count = len(content)
+                    self.broadcaster.send({"stage": "EAGLE", "status": "COMPLETED", "char_count": char_count})
                 print(f"✅ MAVERICK model response received: {len(content)} characters")
+                
+                # Rotate to next API key for deck-of-cards style rotation
+                self.current_key_index = (self.current_key_index + 1) % len(self.groq_api_keys)
+                
                 return content
             else:
                 error_msg = f"API Error {response.status_code}: {response.text}"
@@ -204,9 +212,9 @@ class EagleHandler:
         print(f"🚨 Logged error: {error_file}")
 
 
-def create_eagle_handler() -> EagleHandler:
+def create_eagle_handler(broadcaster=None) -> EagleHandler:
     """Factory function to create EagleHandler instance"""
-    return EagleHandler()
+    return EagleHandler(broadcaster=broadcaster)
 
 
 def test_eagle_handler():

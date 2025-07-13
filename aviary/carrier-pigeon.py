@@ -20,7 +20,7 @@ from spark import SparkAnalyst
 class SparkHandler:
     """SPARK API Handler - Manages SCOUT model calls for SPARK analysis"""
     
-    def __init__(self):
+    def __init__(self, broadcaster=None):
         self.stage_name = "CARRIER-PIGEON"
         self.icon = "🕊️"
         self.specialty = "SPARK API Communication"
@@ -51,6 +51,7 @@ class SparkHandler:
         
         # Initialize SPARK analyst
         self.spark_analyst = SparkAnalyst()
+        self.broadcaster = broadcaster
     
     def get_analysis(self, user_request: str, session_id: str) -> str:
         """
@@ -124,7 +125,14 @@ class SparkHandler:
             if response.status_code == 200:
                 response_data = response.json()
                 content = response_data["choices"][0]["message"]["content"]
+                if self.broadcaster:
+                    char_count = len(content)
+                    self.broadcaster.send({"stage": "SPARK", "status": "COMPLETED", "char_count": char_count})
                 print(f"✅ SCOUT model response received: {len(content)} characters")
+                
+                # Rotate to next API key for deck-of-cards style rotation
+                self.current_key_index = (self.current_key_index + 1) % len(self.groq_api_keys)
+                
                 return content
             else:
                 error_msg = f"API Error {response.status_code}: {response.text}"
@@ -197,9 +205,9 @@ class SparkHandler:
         print(f"🚨 Logged error: {error_file}")
 
 
-def create_spark_handler() -> SparkHandler:
+def create_spark_handler(broadcaster=None) -> SparkHandler:
     """Factory function to create SparkHandler instance"""
-    return SparkHandler()
+    return SparkHandler(broadcaster=broadcaster)
 
 
 def test_spark_handler():

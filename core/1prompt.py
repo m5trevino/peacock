@@ -49,9 +49,29 @@ def generate_live_dashboard(session_timestamp):
         .send-btn:hover {{ transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3); }}
         .send-btn:disabled {{ background: #30363d; color: #8b949e; cursor: not-allowed; transform: none; }}
         .stage-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }}
-        .stage-card {{ background: #0d1117; border: 2px solid #30363d; border-radius: 8px; padding: 20px; transition: all 0.3s; }}
+        .stage-card {{ position: relative; overflow: hidden; background: #0d1117; border: 2px solid #30363d; border-radius: 8px; padding: 20px; transition: all 0.3s; }}
         .stage-card.active {{ border-color: #ff6b35; box-shadow: 0 0 20px rgba(255, 107, 53, 0.2); }}
         .stage-card.completed {{ border-color: #238636; background: rgba(35, 134, 54, 0.05); }}
+        .stage-card.error {{ border-color: #da3633; background: rgba(218, 54, 51, 0.05); }}
+        .stage-card .checkmark-overlay {{
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(35, 134, 54, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4em;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none;
+        }}
+        .stage-card .checkmark-overlay.active {{
+            opacity: 1;
+        }}
         .stage-header {{ display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }}
         .stage-icon {{ font-size: 20px; }}
         .stage-name {{ font-weight: 600; font-size: 14px; }}
@@ -59,6 +79,7 @@ def generate_live_dashboard(session_timestamp):
         .stage-status.waiting {{ background: #30363d; color: #8b949e; }}
         .stage-status.active {{ background: rgba(255, 107, 53, 0.2); color: #ff6b35; }}
         .stage-status.completed {{ background: rgba(35, 134, 54, 0.2); color: #238636; }}
+        .stage-status.error {{ background: rgba(218, 54, 51, 0.2); color: #da3633; }}
         .stage-model {{ font-size: 10px; color: #8b949e; margin-bottom: 8px; }}
         .stage-progress, .stage-chars {{ font-size: 12px; color: #e6edf3; }}
         .final-section {{ grid-column: 1 / -1; background: #0d1117; border: 2px solid #30363d; border-radius: 8px; padding: 20px; text-align: center; display: none; }}
@@ -94,18 +115,18 @@ def generate_live_dashboard(session_timestamp):
             <div class="pipeline-title">📊 Live Pipeline Progress</div>
             <div class="stage-grid">
                 <!-- Bird Stages -->
-                <div class="stage-card" id="sparkCard"><div class="stage-header"><div class="stage-icon">⚡</div><div class="stage-name">SPARK</div><div class="stage-status waiting" id="sparkStatus">WAITING</div></div><div class="stage-model">Analysis Model</div><div class="stage-progress">Requirements</div></div>
-                <div class="stage-card" id="falconCard"><div class="stage-header"><div class="stage-icon">🦅</div><div class="stage-name">FALCON</div><div class="stage-status waiting" id="falconStatus">WAITING</div></div><div class="stage-model">Analysis Model</div><div class="stage-progress">Architecture</div></div>
-                <div class="stage-card" id="eagleCard"><div class="stage-header"><div class="stage-icon">🦅</div><div class="stage-name">EAGLE</div><div class="stage-status waiting" id="eagleStatus">WAITING</div></div><div class="stage-model">Analysis Model</div><div class="stage-progress">Implementation Plan</div></div>
-                <div class="stage-card" id="hawkCard"><div class="stage-header"><div class="stage-icon">🦅</div><div class="stage-name">HAWK</div><div class="stage-status waiting" id="hawkStatus">WAITING</div></div><div class="stage-model">Analysis Model</div><div class="stage-progress">QA Plan</div></div>
+                <div class="stage-card" id="sparkCard"><div class="stage-header"><div class="stage-icon">🕊️</div><div class="stage-name">SPARK</div><div class="stage-status waiting" id="sparkStatus">WAITING</div></div><div class="stage-model">meta-llama/llama-4-scout-17b-16e-instruct</div><div class="stage-progress">Requirements</div><div class="checkmark-overlay">&#10003;</div></div>
+                <div class="stage-card" id="falconCard"><div class="stage-header"><div class="stage-icon">🏎️</div><div class="stage-name">FALCON</div><div class="stage-status waiting" id="falconStatus">WAITING</div></div><div class="stage-model">meta-llama/llama-4-scout-17b-16e-instruct</div><div class="stage-progress">Architecture</div><div class="checkmark-overlay">&#10003;</div></div>
+                <div class="stage-card" id="eagleCard"><div class="stage-header"><div class="stage-icon">⚔️</div><div class="stage-name">EAGLE</div><div class="stage-status waiting" id="eagleStatus">WAITING</div></div><div class="stage-model">meta-llama/llama-4-maverick-17b-128e-instruct</div><div class="stage-progress">Implementation Plan</div><div class="checkmark-overlay">&#10003;</div></div>
+                <div class="stage-card" id="hawkCard"><div class="stage-header"><div class="stage-icon">🏠</div><div class="stage-name">HAWK</div><div class="stage-status waiting" id="hawkStatus">WAITING</div></div><div class="stage-model">meta-llama/llama-4-maverick-17b-128e-instruct</div><div class="stage-progress">QA Plan</div><div class="checkmark-overlay">&#10003;</div></div>
             </div>
 
             <!-- Synthesis & Codegen Sections -->
             <div class="pipeline-title" style="margin-top: 24px; font-size: 14px;">🤖 Synthesis & Code Generation</div>
             <div class="stage-grid">
-                <div class="stage-card" id="synth1Card"><div class="stage-header"><div class="stage-icon">✍️</div><div class="stage-name">SYNTHESIS 1</div><div class="stage-status waiting" id="synth1Status">WAITING</div></div><div class="stage-model">deepseek-r1-distill-llama-70b</div><div class="stage-progress">Project Blueprint</div></div>
-                <div class="stage-card" id="synth2Card"><div class="stage-header"><div class="stage-icon">📋</div><div class="stage-name">SYNTHESIS 2</div><div class="stage-status waiting" id="synth2Status">WAITING</div></div><div class="stage-model">deepseek-r1-distill-llama-70b</div><div class="stage-progress">Build & Test Plan</div></div>
-                <div class="stage-card" id="codegenCard" style="grid-column: 1 / -1;"><div class="stage-header"><div class="stage-icon">💻</div><div class="stage-name">FINAL CODE GENERATION</div><div class="stage-status waiting" id="codegenStatus">WAITING</div></div><div class="stage-model">qwen/qwen3-32b</div><div class="stage-progress">Generating final code...</div></div>
+                <div class="stage-card" id="synth1Card"><div class="stage-header"><div class="stage-icon">🦉</div><div class="stage-name">SYNTHESIS 1</div><div class="stage-status waiting" id="synth1Status">WAITING</div></div><div class="stage-model">deepseek-r1-distill-llama-70b</div><div class="stage-progress">Project Blueprint</div><div class="checkmark-overlay">&#10003;</div></div>
+                <div class="stage-card" id="synth2Card"><div class="stage-header"><div class="stage-icon">🦉</div><div class="stage-name">SYNTHESIS 2</div><div class="stage-status waiting" id="synth2Status">WAITING</div></div><div class="stage-model">deepseek-r1-distill-llama-70b</div><div class="stage-progress">Build & Test Plan</div><div class="checkmark-overlay">&#10003;</div></div>
+                <div class="stage-card" id="codegenCard" style="grid-column: 1 / -1;"><div class="stage-header"><div class="stage-icon">🦚</div><div class="stage-name">FINAL CODE GENERATION</div><div class="stage-status waiting" id="codegenStatus">WAITING</div></div><div class="stage-model">qwen/qwen3-32b</div><div class="stage-progress">Generating final code...</div><div class="checkmark-overlay">&#10003;</div></div>
             </div>
             
             <div class="final-section" id="finalSection">
@@ -119,19 +140,50 @@ def generate_live_dashboard(session_timestamp):
             </div>
         </div>
     </div>
+    <audio id="completionSound" src="https://www.soundjay.com/buttons/sounds/button-1.mp3" preload="auto"></audio>
     <script>
         let pipelineResults = null;
         let currentSessionId = '{session_timestamp}';
+        let eventSource = null;
+        let flashInterval = null;
+        const stageOrder = ['spark', 'falcon', 'eagle', 'hawk', 'synth1', 'synth2', 'codegen'];
+        let currentFlashIndex = 0;
+        let flashDirection = 1;
+        let flashCycleCount = 0;
 
-        function updateStageStatus(stageId, status, message = '') {{
-            const card = document.getElementById(stageId + 'Card');
-            const statusEl = document.getElementById(stageId + 'Status');
+        function updateStageStatus(stageId, status, message = '', charCount = null) {{
+            const stageMap = {{
+                'SYNTHESIS_1': 'synth1',
+                'SYNTHESIS_2': 'synth2',
+                'CODEGEN': 'codegen'
+            }};
+            
+            const mappedStage = stageMap[stageId] || stageId.toLowerCase();
+            const card = document.getElementById(mappedStage + 'Card');
+            const statusEl = document.getElementById(mappedStage + 'Status');
+            const progressEl = card ? card.querySelector('.stage-progress') : null;
+            const checkmarkOverlay = card ? card.querySelector('.checkmark-overlay') : null;
+
             if (card && statusEl) {{
-                statusEl.className = 'stage-status ' + status;
+                statusEl.className = 'stage-status ' + status.toLowerCase();
                 statusEl.textContent = status.toUpperCase();
                 card.className = 'stage-card';
-                if (status === 'active') card.classList.add('active');
-                else if (status === 'completed') card.classList.add('completed');
+                if (status.toLowerCase() === 'active') {{
+                    card.classList.add('active');
+                }} else if (status.toLowerCase() === 'completed') {{
+                    card.classList.add('completed');
+                    if (checkmarkOverlay) {{
+                        checkmarkOverlay.classList.add('active');
+                    }}
+                }} else if (status.toLowerCase() === 'error') {{
+                    card.classList.add('error');
+                }}
+
+                if (progressEl && charCount !== null) {{
+                    progressEl.textContent = `Chars: ${{charCount.toLocaleString()}}`;
+                }} else if (progressEl && message) {{
+                    progressEl.textContent = message;
+                }}
             }}
         }}
 
@@ -164,13 +216,72 @@ def generate_live_dashboard(session_timestamp):
             }}
         }}
 
+        function startCelebrationFlashing() {{
+            if (flashInterval) clearInterval(flashInterval);
+            flashCycleCount = 0;
+            currentFlashIndex = 0;
+            flashDirection = 1;
+
+            flashInterval = setInterval(() => {{
+                const prevStageId = stageOrder[currentFlashIndex];
+                const prevCard = document.getElementById(prevStageId + 'Card');
+                if (prevCard) {{
+                    const prevCheckmark = prevCard.querySelector('.checkmark-overlay');
+                    if (prevCheckmark) prevCheckmark.classList.remove('active');
+                }}
+
+                currentFlashIndex += flashDirection;
+                if (currentFlashIndex >= stageOrder.length || currentFlashIndex < 0) {{
+                    flashDirection *= -1;
+                    currentFlashIndex += flashDirection;
+                    flashCycleCount++;
+                    
+                    if (flashCycleCount >= 25) {{
+                        clearInterval(flashInterval);
+                        flashInterval = null;
+                        stageOrder.forEach(id => {{
+                            const card = document.getElementById(id + 'Card');
+                            if (card) {{
+                                const checkmark = card.querySelector('.checkmark-overlay');
+                                if (checkmark) checkmark.classList.add('active');
+                            }}
+                        }});
+                        return;
+                    }}
+                }}
+
+                const currentStageId = stageOrder[currentFlashIndex];
+                const currentCard = document.getElementById(currentStageId + 'Card');
+                if (currentCard) {{
+                    const currentCheckmark = currentCard.querySelector('.checkmark-overlay');
+                    if (currentCheckmark) currentCheckmark.classList.add('active');
+                }}
+            }}, 150);
+        }}
+
+        function stopFlashingAnimation() {{
+            if (flashInterval) {{
+                clearInterval(flashInterval);
+                flashInterval = null;
+                stageOrder.forEach(id => {{
+                    const card = document.getElementById(id + 'Card');
+                    if (card) {{
+                        const checkmark = card.querySelector('.checkmark-overlay');
+                        if (checkmark) checkmark.classList.remove('active');
+                    }}
+                }});
+            }}
+        }}
+
         async function startPipeline() {{
             const promptInput = document.getElementById('promptInput');
             const sendBtn = document.getElementById('sendBtn');
             const prompt = promptInput.value.trim();
-            if (!prompt) {{ alert('Please describe your project'); return; }}
+            if (!prompt) {{
+                alert('Please describe your project');
+                return;
+            }}
 
-            // Reset UI
             document.getElementById('finalSection').classList.remove('show');
             ['spark', 'falcon', 'eagle', 'hawk', 'synth1', 'synth2', 'codegen'].forEach(id => updateStageStatus(id, 'waiting'));
             
@@ -179,41 +290,78 @@ def generate_live_dashboard(session_timestamp):
             sendBtn.textContent = 'Running...';
             const pipelineStartTime = Date.now();
 
+
             try {{
-                // This simulates the MCP server handling the session ID
-                updateStageStatus('spark', 'active');
                 const response = await fetch('http://localhost:8000/process', {{
                     method: 'POST',
                     headers: {{ 'Content-Type': 'application/json' }},
-                    body: JSON.stringify({{ command: 'peacock_full', text: prompt }})
+                    body: JSON.stringify({{ command: 'peacock_full', text: prompt, session: currentSessionId }})
                 }});
 
                 if (!response.ok) throw new Error(`HTTP ${{response.status}}: ${{response.statusText}}`);
                 const result = await response.json();
-                pipelineResults = result;
+                console.log("Pipeline initiation response:", result);
 
-                if (result.success) {{
-                    // Update all stages to completed
-                    ['spark', 'falcon', 'eagle', 'hawk', 'synth1', 'synth2', 'codegen'].forEach(id => updateStageStatus(id, 'completed'));
-                    
-                    const totalTime = Math.round((Date.now() - pipelineStartTime) / 1000);
-                    document.getElementById('totalTime').textContent = totalTime + 's';
-                    document.getElementById('filesGenerated').textContent = result.project_files?.length || 'N/A';
-                    
-                    currentSessionId = result.session_id;
-                    document.getElementById('sessionInfo').textContent = `Session: ${{currentSessionId}}`;
-                    populateLogLinks(currentSessionId);
-
-                    document.getElementById('finalSection').classList.add('show');
-                    
-                    setTimeout(() => openXEdit(), 3000);
-                }} else {{
-                    throw new Error(result.error || 'Pipeline failed');
+                if (!result.success) {{
+                    throw new Error(result.error || 'Failed to initiate pipeline');
                 }}
+
+                eventSource = new EventSource('http://localhost:8000/stream');
+
+                eventSource.onmessage = function(event) {{
+                    const data = JSON.parse(event.data);
+                    console.log("SSE Message:", data);
+
+                    switch (data.stage) {{
+                        case 'SPARK':
+                        case 'FALCON':
+                        case 'EAGLE':
+                        case 'HAWK':
+                        case 'SYNTHESIS_1':
+                        case 'SYNTHESIS_2':
+                        case 'CODEGEN':
+                            updateStageStatus(data.stage, data.status, '', data.char_count);
+                            break;
+                        case 'PIPELINE':
+                            if (data.status === 'COMPLETED') {{
+                                pipelineResults = data.result;
+                                console.log('Pipeline Results:', pipelineResults);
+                                const completionSound = document.getElementById('completionSound');
+                                if (completionSound) {{
+                                    completionSound.play();
+                                }}
+                                eventSource.close();
+                                const totalTime = Math.round((Date.now() - pipelineStartTime) / 1000);
+                                document.getElementById('totalTime').textContent = totalTime + 's';
+                                document.getElementById('filesGenerated').textContent = pipelineResults.project_files ? pipelineResults.project_files.length : 'N/A';
+                                populateLogLinks(currentSessionId);
+                                document.getElementById('finalSection').classList.add('show');
+                                startCelebrationFlashing();
+                                setTimeout(() => openXEdit(), 8000);
+                            }} else if (data.status === 'FAILED') {{
+                                eventSource.close();
+                                alert('Pipeline failed: ' + (data.error || 'Unknown error'));
+                                updateStageStatus('codegen', 'error');
+                            }}
+                            break;
+                        default:
+                            console.log('Unknown stage:', data.stage);
+                    }}
+                }};
+
+                eventSource.onerror = function(err) {{
+                    console.error('EventSource failed:', err);
+                    eventSource.close();
+                    alert('Live update connection failed. Check server status.');
+                    updateStageStatus('codegen', 'error');
+                    promptInput.disabled = false;
+                    sendBtn.disabled = false;
+                    sendBtn.textContent = 'Start Pipeline';
+                }};
+
             }} catch (error) {{
-                alert('Pipeline failed: ' + error.message);
-                updateStageStatus('codegen', 'error'); // Mark the last stage as failed
-            }} finally {{
+                alert('Pipeline initiation failed: ' + error.message);
+                updateStageStatus('codegen', 'error');
                 promptInput.disabled = false;
                 sendBtn.disabled = false;
                 sendBtn.textContent = 'Start Pipeline';

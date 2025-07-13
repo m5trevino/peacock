@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 spark.py - EXTENSIVE SPARK Requirements Analysis Bird (SYSTEM-COMPATIBLE VERSION)
-The comprehensive strategic analyst with your existing method patterns
+The comprehensive strategic analyst with complexity-aware requirements
 """
 
 import json
@@ -42,22 +42,31 @@ class SparkAnalyst:
         return spark_analysis
     
     def _build_extensive_spark_prompt(self, user_request: str) -> str:
-        """Build comprehensive strategic analysis prompt"""
+        """Build comprehensive strategic analysis prompt with complexity detection"""
         
         prompt = f"""<thinking>
 I need to analyze this project comprehensively as a senior requirements analyst with 15+ years of experience.
 
-Project: {user_request}
+Project Request: {user_request}
+
+First, I must determine the project complexity:
+- Simple apps: Games, CLI tools, or small utilities (e.g., "snake game", "calculator")
+  - Use Python standard library or minimal libraries (e.g., Pygame for games)
+  - No backend, database, or complex infrastructure
+  - Minimal features, no enterprise requirements
+- Complex apps: Web apps, analytics platforms, or enterprise systems (e.g., "business analytics", "task management")
+  - Include appropriate frameworks (e.g., FastAPI, Streamlit)
+  - Include backend, database, and infrastructure as needed
+  - Full enterprise requirements (security, scalability, etc.)
+
+Complexity keywords:
+- Simple: "game", "CLI", "simple", "basic", "small", "utility"
+- Complex: "web", "analytics", "dashboard", "enterprise", "platform", "management"
 
 I should provide:
-- Strategic business analysis with clear value proposition
-- Detailed functional requirements with acceptance criteria
-- Non-functional requirements (performance, security, usability)
-- Technical constraints and platform considerations
-- Stakeholder analysis with success criteria
-- Risk assessment with mitigation strategies
-- Clear scope definition with boundaries
-- Success metrics and KPIs
+- For simple apps: Lightweight requirements with Python focus, minimal scope
+- For complex apps: Full enterprise analysis with strategic value, detailed requirements
+- Clear scope, stakeholder analysis, and success metrics tailored to complexity
 </thinking>
 
 Act as Spark, a senior requirements analyst with 15+ years of experience in enterprise software development and strategic business analysis.
@@ -66,145 +75,98 @@ Analyze this project request comprehensively:
 
 **PROJECT REQUEST:** {user_request}
 
-Provide detailed requirements analysis in this EXACT format:
+Determine the project complexity based on keywords and context, then provide requirements analysis in this EXACT format:
 
-**1. CORE OBJECTIVE:**
-[One clear, strategic sentence describing the primary business goal and value proposition]
+**1. PROJECT COMPLEXITY:**
+[Simple or Complex, with justification based on keywords and request context]
 
-**2. CURRENT STATE ANALYSIS:**
-- Existing pain points and inefficiencies
-- Current tools/systems in use (if applicable)
-- Business impact of current limitations
-- Stakeholder challenges and frustrations
-- Market context and competitive landscape
+**2. CORE OBJECTIVE:**
+[One clear sentence describing the primary goal, tailored to complexity]
 
-**3. TARGET STATE VISION:**
-- Desired end state after successful implementation
-- Key success metrics and measurable KPIs
-- Business value proposition and ROI potential
-- User experience improvements
-- Competitive advantages gained
+**3. CURRENT STATE ANALYSIS:**
+[For simple apps: Brief context of user need; For complex apps: Detailed pain points, existing tools, and market context]
 
-**4. FUNCTIONAL REQUIREMENTS:**
+**4. TARGET STATE VISION:**
+[For simple apps: Simple functional description; For complex apps: Detailed vision with KPIs, ROI, and competitive advantages]
+
+**5. FUNCTIONAL REQUIREMENTS:**
 
 **Core Features (Must Have):**
-- [Primary feature 1 with detailed acceptance criteria]
-- [Primary feature 2 with detailed acceptance criteria]
-- [Primary feature 3 with detailed acceptance criteria]
-- [Primary feature 4 with detailed acceptance criteria]
+[For simple apps: 2-3 basic features with acceptance criteria; For complex apps: 4-5 detailed features with acceptance criteria]
 
 **Secondary Features (Should Have):**
-- [Enhancement 1 with business justification]
-- [Enhancement 2 with business justification]
-- [Enhancement 3 with business justification]
+[For simple apps: 1-2 optional enhancements; For complex apps: 2-3 enhancements with justification]
 
 **Future Features (Could Have):**
-- [Future consideration 1 with timeline estimate]
-- [Future consideration 2 with timeline estimate]
+[For simple apps: 1 future idea; For complex apps: 2-3 future considerations with timelines]
 
-**5. NON-FUNCTIONAL REQUIREMENTS:**
+**6. NON-FUNCTIONAL REQUIREMENTS:**
 
 **Performance Requirements:**
-- Response time expectations (page load, API calls)
-- Throughput requirements (concurrent users, transactions)
-- Scalability needs (growth projections)
-- Availability targets (uptime requirements)
+[For simple apps: Basic performance needs (e.g., "runs smoothly on standard hardware"); For complex apps: Detailed response times, throughput, scalability]
 
 **Security Requirements:**
-- Authentication and authorization needs
-- Data protection and privacy requirements
-- Compliance requirements (GDPR, HIPAA, etc.)
-- Security threat model and mitigation
+[For simple apps: Minimal security (e.g., "no sensitive data exposure"); For complex apps: Authentication, data protection, compliance (e.g., GDPR)]
 
 **Usability Requirements:**
-- Accessibility standards (WCAG compliance)
-- User experience standards
-- Browser and device compatibility
-- Internationalization needs
+[For simple apps: Basic usability (e.g., "intuitive controls"); For complex apps: Accessibility (WCAG), UX standards, device compatibility]
 
 **Reliability Requirements:**
-- Error handling and graceful degradation
-- Backup and disaster recovery needs
-- Data integrity requirements
-- Monitoring and alerting needs
+[For simple apps: Basic error handling; For complex apps: Detailed error handling, backup, and monitoring]
 
-**6. TECHNICAL CONSTRAINTS:**
-- Platform limitations and preferences
-- Integration requirements with existing systems
-- Legacy system considerations
-- Budget constraints and timeline limitations
-- Technology stack preferences
-- Hosting and infrastructure constraints
+**7. TECHNICAL CONSTRAINTS:**
+[For simple apps: Python standard library or Pygame, local execution; For complex apps: Appropriate frameworks (e.g., FastAPI, Streamlit), hosting, and integrations]
 
-**7. STAKEHOLDER ANALYSIS:**
+**8. STAKEHOLDER ANALYSIS:**
 
 **Primary Users:**
-- [User type 1: needs, expectations, success criteria]
-- [User type 2: needs, expectations, success criteria]
+[For simple apps: Single user type with basic needs; For complex apps: Multiple user types with detailed needs]
 
 **Secondary Stakeholders:**
-- [Stakeholder type 1: requirements, concerns]
-- [Stakeholder type 2: requirements, concerns]
+[For simple apps: None or minimal; For complex apps: Detailed stakeholders with concerns]
 
 **Decision Makers:**
-- [Decision maker: approval criteria, concerns]
+[For simple apps: User as decision maker; For complex apps: Business/technical decision makers]
 
-**8. RISK ASSESSMENT:**
+**9. RISK ASSESSMENT:**
 
 **Technical Risks:**
-- [Risk 1: probability, impact, mitigation strategy]
-- [Risk 2: probability, impact, mitigation strategy]
+[For simple apps: 1-2 minor risks; For complex apps: Multiple risks with mitigation]
 
 **Business Risks:**
-- [Risk 1: probability, impact, mitigation strategy]
-- [Risk 2: probability, impact, mitigation strategy]
+[For simple apps: Minimal or none; For complex apps: Detailed risks with mitigation]
 
 **Dependencies and Assumptions:**
-- Critical dependencies on external systems
-- Key assumptions about user behavior
-- Market assumptions and validations needed
+[For simple apps: Minimal dependencies; For complex apps: Detailed dependencies and assumptions]
 
-**9. PROJECT SCOPE:**
+**10. PROJECT SCOPE:**
 
 **In Scope (Deliverables):**
-- [Clearly defined deliverable 1 with acceptance criteria]
-- [Clearly defined deliverable 2 with acceptance criteria]
-- [Clearly defined deliverable 3 with acceptance criteria]
+[For simple apps: 1-2 deliverables (e.g., single Python file); For complex apps: Multiple deliverables with acceptance criteria]
 
 **Out of Scope (Exclusions):**
-- [Explicitly excluded item 1 with rationale]
-- [Explicitly excluded item 2 with rationale]
-- [Future phase considerations]
+[For simple apps: Complex features like backend; For complex apps: Explicit exclusions with rationale]
 
 **Scope Boundaries:**
-- Integration boundaries
-- Data migration boundaries
-- User training boundaries
+[For simple apps: Local app boundaries; For complex apps: Integration and migration boundaries]
 
-**10. SUCCESS CRITERIA & METRICS:**
+**11. SUCCESS CRITERIA & METRICS:**
 
 **Launch Criteria:**
-- Measurable outcomes that define project success
-- Acceptance criteria for go-live decision
-- Quality gates and validation checkpoints
+[For simple apps: Functional app; For complex apps: Measurable outcomes and quality gates]
 
 **Post-Launch Metrics:**
-- User adoption metrics
-- Performance metrics
-- Business impact metrics
-- Customer satisfaction metrics
+[For simple apps: User satisfaction; For complex apps: User adoption, performance, ROI]
 
 **Long-term Success Indicators:**
-- ROI achievement timeline
-- Market impact measurements
-- User retention and engagement
+[For simple apps: Continued use; For complex apps: ROI, market impact, retention]
 
-Provide thorough, strategic, and business-focused analysis that will drive all subsequent development stages. Be comprehensive enough that developers can understand both the WHAT and the WHY behind every requirement."""
+Provide thorough, strategic, and complexity-aware analysis that drives subsequent development stages. Ensure requirements match the project’s complexity (simple or complex) based on the request."""
 
         return prompt
     
     def _parse_spark_response(self, response_text: str) -> Dict[str, Any]:
-        """Parse the LLM response and extract structured requirements (if needed for compatibility)"""
+        """Parse the LLM response and extract structured requirements"""
         
         requirements = {
             "core_objective": "",
@@ -215,18 +177,23 @@ Provide thorough, strategic, and business-focused analysis that will drive all s
             "json_data": {}
         }
         
+        # Extract complexity
+        complexity_match = re.search(r'\*\*1\. Project Complexity:\*\*\s*\n([^\n*]+)', response_text)
+        if complexity_match:
+            requirements["json_data"]["complexity"] = complexity_match.group(1).strip().split(',')[0].strip()
+        
         # Extract core objective
-        obj_match = re.search(r'\*\*1\. Core Objective:\*\*\s*\n([^\n*]+)', response_text)
+        obj_match = re.search(r'\*\*2\. Core Objective:\*\*\s*\n([^\n*]+)', response_text)
         if obj_match:
             requirements["core_objective"] = obj_match.group(1).strip()
         
         # Extract current state
-        current_match = re.search(r'\*\*2\. Current State Analysis:\*\*\s*\n([^\n*]+)', response_text)
+        current_match = re.search(r'\*\*3\. Current State Analysis:\*\*\s*\n([^\n*]+)', response_text)
         if current_match:
             requirements["current_state"] = current_match.group(1).strip()
         
         # Extract target state
-        target_match = re.search(r'\*\*3\. Target State Vision:\*\*\s*\n([^\n*]+)', response_text)
+        target_match = re.search(r'\*\*4\. Target State Vision:\*\*\s*\n([^\n*]+)', response_text)
         if target_match:
             requirements["target_state"] = target_match.group(1).strip()
         
@@ -254,7 +221,7 @@ def test_spark_bird():
     """Test the EXTENSIVE SPARK bird with sample input"""
     spark = create_spark_analyst()
     
-    test_request = "Build a comprehensive enterprise task management application with real-time collaboration, advanced reporting, and mobile accessibility"
+    test_request = "Build a simple snake game in Python"
     analysis = spark.analyze_project_request(test_request)
     
     print("🧪 TESTING EXTENSIVE SPARK BIRD (SYSTEM-COMPATIBLE)")

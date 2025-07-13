@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 falcon.py - EXTENSIVE FALCON Architecture Design Bird (SYSTEM-COMPATIBLE VERSION)
-The comprehensive system architect with your existing factory function pattern
+The comprehensive system architect with complexity-aware architecture design
 """
 
 import json
@@ -51,30 +51,28 @@ class FalconArchitect:
         return falcon_design
     
     def _build_extensive_falcon_prompt(self, spark_text: str, requirements_data: Dict[str, Any]) -> str:
-        """Build comprehensive enterprise-grade architecture prompt"""
+        """Build comprehensive architecture prompt with complexity-aware design"""
         
         prompt = f"""<thinking>
-I need to design a comprehensive technical architecture based on these requirements from SPARK.
+I need to design a technical architecture based on SPARK requirements, tailoring it to the project's complexity.
 
-Requirements: {spark_text}
+Requirements: {spark_text[:500]}...
 Data: {requirements_data}
 
+First, I must check the project complexity from SPARK:
+- Simple apps (e.g., games, CLI tools): Use Python standard library or Pygame, no backend/database.
+- Complex apps (e.g., web apps, analytics): Use appropriate Python frameworks (e.g., FastAPI, Streamlit), include backend/database as needed.
+
 I should provide:
-- Complete technology stack recommendations with justifications
-- Detailed system architecture with all components
-- Database design with relationships and data flow
-- Complete API specifications with endpoints
-- Security architecture with threat model
-- Deployment and infrastructure strategy
-- Scalability and performance strategy
-- Integration patterns and workflows
-- Development methodology and CI/CD
-- Technical debt considerations and future planning
+- For simple apps: Minimal Python-based architecture, single-file or modular Python, local execution.
+- For complex apps: Full enterprise architecture with backend, database, and deployment strategy.
+- Technology stack, database design, and API specs matching complexity.
+- Scalability, security, and DevOps tailored to project needs.
 </thinking>
 
-Act as Falcon, a senior solution architect with 15+ years of experience designing enterprise-grade, scalable applications.
+Act as Falcon, a senior solution architect with 15+ years of experience designing enterprise-grade and lightweight applications.
 
-Design the complete technical architecture for this system:
+Design the technical architecture for this system based on SPARK requirements:
 
 **REQUIREMENTS ANALYSIS:**
 {spark_text}
@@ -82,225 +80,110 @@ Design the complete technical architecture for this system:
 **ADDITIONAL CONTEXT:**
 {json.dumps(requirements_data, indent=2) if requirements_data else "No additional structured data"}
 
-Provide comprehensive enterprise architecture design in this EXACT format:
+Provide comprehensive architecture design in this EXACT format:
 
-**1. TECHNOLOGY STACK RECOMMENDATIONS:**
+**1. PROJECT COMPLEXITY:**
+[Simple or Complex, extracted from SPARK or inferred from requirements]
+
+**2. TECHNOLOGY STACK RECOMMENDATIONS:**
 
 **Frontend Technology:**
-- Framework: [Specific framework with version and detailed justification]
-- UI Component Library: [Library with design system rationale and implementation strategy]
-- State Management: [Solution with complexity justification and data flow patterns]
-- Build Tools: [Webpack/Vite with configuration rationale and optimization strategy]
-- Testing Framework: [Jest/Cypress with comprehensive testing strategy]
-- Performance Optimization: [Lazy loading, code splitting, CDN strategies]
+[For simple apps: "None" or "Pygame" for games, "CLI" for utilities; For complex apps: Streamlit/Gradio or minimal frontend]
 
 **Backend Technology:**
-- Runtime Environment: [Node.js/Python with version justification and performance analysis]
-- Framework: [Express/Django/FastAPI with detailed feature comparison]
-- Authentication: [JWT/OAuth/Session with comprehensive security analysis]
-- Validation: [Joi/Yup with data integrity strategy and error handling]
-- API Documentation: [Swagger/OpenAPI with maintenance strategy and versioning]
-- Background Processing: [Queue system with job scheduling and failure handling]
+[For simple apps: "Python" with standard library; For complex apps: FastAPI/Flask, authentication, and validation]
 
 **Database Strategy:**
-- Primary Database: [PostgreSQL/MongoDB with detailed data model justification]
-- Caching Layer: [Redis/Memcached with comprehensive caching strategy]
-- Search Engine: [Elasticsearch with indexing strategy and query optimization]
-- Data Migration: [Migration strategy, versioning, and rollback procedures]
+[For simple apps: "None" or file-based storage; For complex apps: PostgreSQL/SQLite with caching (e.g., Redis)]
 
 **DevOps & Infrastructure:**
-- Containerization: [Docker with orchestration strategy and scaling policies]
-- Cloud Platform: [AWS/GCP/Azure with detailed service selection rationale]
-- CI/CD Pipeline: [GitHub Actions/Jenkins with comprehensive workflow design]
-- Monitoring: [Application and infrastructure monitoring with alerting strategies]
+[For simple apps: "Local execution"; For complex apps: Docker, CI/CD, cloud deployment]
 
-**2. SYSTEM ARCHITECTURE DIAGRAM:**
+**3. SYSTEM ARCHITECTURE DIAGRAM:**
 
 **High-Level Architecture:**
+[For simple apps:]
 ```
-[Browser/Mobile] ↔ [Load Balancer/CDN] ↔ [API Gateway] ↔ [Microservices] ↔ [Database Cluster]
-        ↓                    ↓                ↓              ↓                ↓
-[PWA Cache]         [SSL Termination]   [Rate Limiting]  [Service Mesh]   [Backup Systems]
-        ↓                    ↓                ↓              ↓                ↓
-[Offline Support]   [Security Headers]  [Authentication] [Load Balancing]  [Disaster Recovery]
+[Python Script] → [Local Execution]
+```
+[For complex apps:]
+```
+[Browser/Client] ↔ [API Gateway (FastAPI)] ↔ [Backend Service] ↔ [Database]
+    ↓                       ↓                       ↓                   ↓
+[UI (Streamlit)]   [Authentication]       [Business Logic]      [Data Storage]
 ```
 
 **Component Interactions:**
-- User authentication and authorization flow with multi-factor support
-- Data processing pipeline with real-time and batch processing
-- Real-time communication architecture (WebSockets/Server-Sent Events)
-- File upload/storage system with CDN integration
-- Third-party integrations with circuit breaker patterns
+[For simple apps: Describe Python script execution flow; For complex apps: Detail authentication, data flow, and integrations]
 
-**3. DATABASE DESIGN:**
+**4. DATABASE DESIGN:**
 
 **Entity Relationship Model:**
-```sql
--- Primary entities with comprehensive relationships
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    -- Additional fields based on requirements
-);
-
-CREATE TABLE [business_entities] (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    -- Complete schema design based on domain requirements
-);
-
--- Indexes for performance optimization
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_business_entities_user_id ON [business_entities](user_id);
-```
+[For simple apps: None or simple file-based schema; For complex apps: SQL schema with tables, indexes, and relationships]
 
 **Data Flow Architecture:**
-- CRUD operation patterns with optimistic locking
-- Data validation layers with comprehensive error handling
-- Query optimization strategy with prepared statements
-- Indexing strategy with performance monitoring
-- Data archival and retention policy with compliance considerations
+[For simple apps: Basic data handling in Python; For complex apps: CRUD operations, validation, and optimization]
 
-**4. API ARCHITECTURE:**
+**5. API ARCHITECTURE:**
 
-**RESTful API Design:**
-```
-# User Management
-GET    /api/v1/users              # List users with pagination, filtering, sorting
-POST   /api/v1/users              # Create user with comprehensive validation
-GET    /api/v1/users/:id          # Get user details with privacy controls
-PUT    /api/v1/users/:id          # Update user with versioning and audit trail
-DELETE /api/v1/users/:id          # Soft delete with audit trail and recovery
-
-# Business Logic Endpoints (based on requirements)
-GET    /api/v1/[resources]        # List with advanced filtering and pagination
-POST   /api/v1/[resources]        # Create with validation and business rules
-GET    /api/v1/[resources]/:id    # Retrieve with access control
-PUT    /api/v1/[resources]/:id    # Update with conflict resolution
-DELETE /api/v1/[resources]/:id    # Delete with cascade handling
-
-# Administrative Endpoints
-GET    /api/v1/admin/metrics      # System metrics and health checks
-POST   /api/v1/admin/maintenance  # Maintenance mode controls
-GET    /api/v1/admin/logs         # Log access with security controls
-```
+**API Design:**
+[For simple apps: None or simple function-based API; For complex apps: RESTful API with endpoints, e.g., GET/POST /api/v1/resources]
 
 **API Standards:**
-- Request/Response format standardization with JSON:API compliance
-- Comprehensive error handling with detailed error codes and messages
-- Rate limiting and throttling with different tiers for user types
-- API versioning strategy with backward compatibility guarantees
-- Complete documentation with interactive API explorer
+[For simple apps: None or minimal; For complex apps: JSON:API, error handling, versioning, and documentation]
 
-**5. SECURITY ARCHITECTURE:**
+**6. SECURITY ARCHITECTURE:**
 
 **Authentication & Authorization:**
-- Multi-factor authentication with TOTP and backup codes
-- Role-based access control (RBAC) with fine-grained permissions
-- JWT token management with refresh token rotation
-- Session security with secure cookie handling and timeout policies
-- OAuth 2.0 integration with social providers and enterprise SSO
+[For simple apps: None or basic validation; For complex apps: JWT/OAuth, RBAC, session management]
 
 **Data Protection:**
-- Encryption at rest using AES-256 for database and file storage
-- Encryption in transit with TLS 1.3 and certificate pinning
-- Comprehensive input validation with whitelist-based sanitization
-- SQL injection prevention with parameterized queries and ORM protections
-- XSS and CSRF protection with Content Security Policy and token validation
+[For simple apps: Basic input sanitization; For complex apps: Encryption, SQL injection prevention, XSS/CSRF protection]
 
 **Infrastructure Security:**
-- Network security with VPC, subnets, and security groups
-- DDoS protection with rate limiting and traffic analysis
-- Security headers implementation (HSTS, CSP, X-Frame-Options)
-- Vulnerability scanning with automated security testing in CI/CD
-- Penetration testing schedule and security audit procedures
+[For simple apps: None or minimal; For complex apps: TLS, security headers, rate limiting]
 
-**6. SCALABILITY STRATEGY:**
+**7. SCALABILITY STRATEGY:**
 
 **Horizontal Scaling:**
-- Load balancing strategy with health checks and failover
-- Database sharding/partitioning with consistent hashing
-- Microservices decomposition with domain-driven design
-- CDN and edge computing with global distribution strategy
+[For simple apps: None; For complex apps: Load balancing, database sharding, microservices]
 
 **Performance Optimization:**
-- Multi-level caching strategy (browser, CDN, application, database)
-- Database query optimization with query analysis and indexing
-- Asset optimization with compression and minification
-- Real-time performance monitoring with APM tools and alerting
+[For simple apps: Basic Python optimization; For complex apps: Caching, query optimization, asset compression]
 
-**7. DEPLOYMENT ARCHITECTURE:**
+**8. DEPLOYMENT ARCHITECTURE:**
 
 **Environment Strategy:**
-- Development environment with Docker Compose for local development
-- Staging environment mirroring production with blue-green deployment
-- Production environment with high availability and disaster recovery
-- Environment-specific configurations with secret management
+[For simple apps: Local Python environment; For complex apps: Docker, staging/production environments]
 
 **CI/CD Pipeline:**
-- Automated testing stages (unit, integration, end-to-end, security)
-- Code quality gates with static analysis and coverage requirements
-- Deployment automation with rollback capabilities and canary releases
-- Infrastructure as Code with Terraform/CloudFormation
+[For simple apps: Manual execution; For complex apps: GitHub Actions, automated testing, and deployment]
 
-**Infrastructure as Code:**
-- Container orchestration with Kubernetes or Docker Swarm
-- Infrastructure provisioning with automated scaling policies
-- Configuration management with centralized secret storage
-- Monitoring and alerting setup with PagerDuty/Slack integration
-
-**8. INTEGRATION STRATEGY:**
+**9. INTEGRATION STRATEGY:**
 
 **Third-Party Integrations:**
-- Payment processing with PCI compliance and fraud detection
-- Email and notification services with template management
-- Analytics and monitoring tools with data pipeline integration
-- Social media or external APIs with rate limiting and error handling
+[For simple apps: None or minimal; For complex apps: Payment systems, email services, analytics]
 
 **Data Integration:**
-- API integration patterns with circuit breaker and retry logic
-- Webhook implementations with signature validation and replay protection
-- Message queue systems with dead letter queues and monitoring
-- Event-driven architecture with event sourcing and CQRS patterns
+[For simple apps: None; For complex apps: API integrations, webhooks, message queues]
 
-**9. DEVELOPMENT WORKFLOW:**
+**10. DEVELOPMENT WORKFLOW:**
 
 **Code Organization:**
-- Monorepo vs microrepo strategy with dependency management
-- Component architecture patterns with clear separation of concerns
-- Code reuse strategies with shared libraries and design systems
-- Documentation standards with automated documentation generation
+[For simple apps: Single or few Python files; For complex apps: Modular structure, shared utilities]
 
 **Quality Assurance:**
-- Comprehensive testing strategy (unit, integration, e2e, performance)
-- Code review processes with automated checks and security scanning
-- Performance testing with load testing and stress testing
-- Security testing with SAST, DAST, and dependency scanning
+[For simple apps: Basic unit tests; For complex apps: Comprehensive testing, code reviews]
 
-**10. TECHNICAL DEBT & FUTURE CONSIDERATIONS:**
+**11. TECHNICAL DEBT & FUTURE CONSIDERATIONS:**
 
 **Architecture Evolution:**
-- Technology upgrade roadmap with migration strategies
-- Scalability enhancement opportunities with performance benchmarks
-- Security enhancement priorities with threat modeling updates
-- Feature roadmap alignment with architectural decisions
+[For simple apps: Minimal upgrades; For complex apps: Technology roadmap, scalability enhancements]
 
 **Maintenance Strategy:**
-- Dependency management with automated updates and security patches
-- Technical debt tracking with prioritization matrix
-- Refactoring priorities with code quality metrics
-- Documentation maintenance with automated updates
+[For simple apps: Basic updates; For complex apps: Dependency management, refactoring plans]
 
-**Long-term Sustainability:**
-- Team training and knowledge transfer strategies
-- Code maintainability standards with complexity analysis
-- Performance monitoring and optimization roadmap
-- Security posture improvement with regular audits
-
-Provide detailed, production-ready architecture that can be directly implemented by development teams. Focus on enterprise-grade solutions that scale gracefully and maintain high security and performance standards over time."""
+Provide detailed, production-ready architecture that matches the project’s complexity (simple or complex) as defined by SPARK. Ensure the tech stack and design align with the requirements for immediate implementation."""
 
         return prompt
 
@@ -316,12 +199,12 @@ def test_falcon_bird():
     
     # Mock SPARK requirements using your existing format
     spark_requirements = {
-        "raw_analysis": "Build a comprehensive snake game with HTML, CSS, and JavaScript featuring modern game mechanics, responsive design, and progressive web app capabilities",
+        "raw_analysis": "Build a simple snake game in Python with basic game mechanics and CLI interface",
         "json_data": {
-            "core_objective": "Create an interactive snake game with enterprise-grade architecture",
-            "in_scope": ["Game mechanics", "Score tracking", "Visual interface", "PWA features", "Responsive design"],
-            "out_of_scope": ["Multiplayer features", "Backend user accounts"],
-            "complexity": "moderate"
+            "core_objective": "Create a lightweight snake game in Python",
+            "in_scope": ["Game mechanics", "Score tracking", "CLI interface"],
+            "out_of_scope": ["Web interface", "Multiplayer features"],
+            "complexity": "simple"
         }
     }
     
