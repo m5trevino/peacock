@@ -1,4 +1,3 @@
-
 export enum PipelineStage {
   SPARK = 'spark',
   FALCON = 'falcon',
@@ -23,6 +22,12 @@ export interface CallTelemetry {
   status: 'idle' | 'loading' | 'success' | 'error';
   fullCall?: string;
   errorMessage?: string;
+  keyUsed?: string;
+  stats?: {
+    words: number;
+    tokens: number;
+    chars: number;
+  };
 }
 
 export interface OwlFile {
@@ -39,10 +44,13 @@ export interface PromptTemplate {
   content: string;
 }
 
-export interface HistoryItem {
-  id?: number;
-  stage: string;
-  input: string;
-  output: string;
+export interface Session {
+  id: string;
+  name: string;
   timestamp: number;
+  ammoUsed?: string;
+  inputs: Record<string, string>;
+  outputs: Record<string, string>;
+  telemetry: Record<string, CallTelemetry>;
+  owlQueue: OwlFile[];
 }
