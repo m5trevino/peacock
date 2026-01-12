@@ -1,4 +1,6 @@
+
 export enum PipelineStage {
+  NEXUS = 'nexus',
   SPARK = 'spark',
   FALCON = 'falcon',
   EAGLE = 'eagle',

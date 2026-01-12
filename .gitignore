@@ -13,3 +13,17 @@ dist/
 build/
 .vscode/
 npm-debug.log
+bootstrap_manifesto.py
+checkpoint-*
+cleaned_user_manifesto.txt
+master_architect_blueprint.md
+merged_payload_20260105_064929.txt
+refinery,code.txt
+refinery.logic/
+bootstrap_manifesto.py
+checkpoint-*
+cleaned_user_manifesto.txt
+master_architect_blueprint.md
+merged_payload_20260105_064929.txt
+refinery,code.txt
+refinery.logic/
