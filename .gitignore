@@ -1,29 +1,44 @@
-.DS_Store
+# Dependencies
+node_modules/
+ai-handler/node_modules/
+dist/
+build/
+
+# Environment / Secrets
 .env
-.env.local
 .env.*
-*.log
-*.sqlite3
-*.db
 secrets.json
 keys.json
 credentials.json
-node_modules/
-dist/
-build/
+*.sqlite3
+*.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+server.log
+engine.log
+peacock_server.log
+
+# IDE / OS
 .vscode/
-npm-debug.log
-bootstrap_manifesto.py
+.idea/
+.DS_Store
+Thumbs.db
+
+# Project Artifacts (Temporary/Local)
+sessions/
 checkpoint-*
 cleaned_user_manifesto.txt
 master_architect_blueprint.md
-merged_payload_20260105_064929.txt
+merged_payload_*
 refinery,code.txt
 refinery.logic/
-bootstrap_manifesto.py
-checkpoint-*
-cleaned_user_manifesto.txt
-master_architect_blueprint.md
-merged_payload_20260105_064929.txt
-refinery,code.txt
-refinery.logic/
+src/config/*
+src/core/*
+src/routes/*
+
+# Keep specific public images but ignore others if needed
+# public/assets/images/*

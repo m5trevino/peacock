@@ -1,0 +1,14 @@
+Act as a Principal Software Architect.
+I am providing a chaotic chat log where we built an application.
+
+YOUR GOAL: Extract the "Final Perfect State" and create a Mermaid.js Mindmap Blueprint.
+
+RULES:
+1. Ignore failed attempts, reverted code, and casual conversation.
+2. Focus ONLY on the final working version of the code and logic.
+3. Structure the Mindmap to show: Tech Stack, File Structure, Function Logic, and UI Layout.
+
+OUTPUT:
+Wrap the Mermaid code in a self-executing Bash script (`generate_blueprint.sh`) that checks for `mmdc`, creates a directory, writes the `.mmd` file, and outputs SVG/PNG/PDF.
+
+### INPUT CHAT LOG:

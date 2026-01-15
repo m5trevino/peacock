@@ -1,6 +1,4 @@
-
 export enum PipelineStage {
-  NEXUS = 'nexus',
   SPARK = 'spark',
   FALCON = 'falcon',
   EAGLE = 'eagle',
@@ -22,9 +20,7 @@ export interface StageSettings {
 
 export interface CallTelemetry {
   status: 'idle' | 'loading' | 'success' | 'error';
-  fullCall?: string;
   errorMessage?: string;
-  keyUsed?: string;
   stats?: {
     words: number;
     tokens: number;
@@ -41,12 +37,14 @@ export interface OwlFile {
   output?: string;
 }
 
-export interface PromptTemplate {
+export interface PromptAsset {
   id: string;
+  name: string;
+  phase: PipelineStage;
   content: string;
 }
 
-export interface Session {
+export interface SessionData {
   id: string;
   name: string;
   timestamp: number;
@@ -55,4 +53,5 @@ export interface Session {
   outputs: Record<string, string>;
   telemetry: Record<string, CallTelemetry>;
   owlQueue: OwlFile[];
+  activePrompts: Record<string, string>; // Maps phase to prompt name
 }

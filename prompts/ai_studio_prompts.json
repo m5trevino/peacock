@@ -1,0 +1,72 @@
+[
+  {
+    "id": "1710234567890",
+    "name": "Senior Systems Architect - Technical Debt Analysis",
+    "content": "You are a senior systems architect. Analyze the provided logs for technical debt..."
+  },
+  {
+    "id": "1710234567891",
+    "name": "Code Autopsy - Root Cause Analysis",
+    "content": "Perform a root-cause analysis on the logic within these chat logs..."
+  },
+  {
+    "id": "1710234567892",
+    "name": "Mermaid Mindmap Converter",
+    "content": "Convert the following text into a Mermaid.js **Mindmap**.\n**Rules:**\n1. Start with `mindmap`.\n2. Create a root node based on the main topic.\n3. Strict Indentation: Use exactly 2 spaces for each level of indentation based on the hierarchy of the text.\n4. **Clean the text:** Remove all leading hyphens (`-`), asterisks (`*`), or numbers. Just keep the keywords.\n5. Do not add connecting arrows or shapes unless necessary, keep it clean.\n Please strip out all special characters (like : or -) from the node IDs and check the indentation."
+  },
+  {
+    "id": "1710234567893",
+    "name": "Mermaid Flowchart Converter",
+    "content": "Convert the following text into a Mermaid.js **Flowchart** (`graph TD`).\n**Rules:**\n1. Use square brackets `[]` for processes and diamonds `{}` for decisions/questions.\n2. Ensure the logic flows from top to bottom.\n3. If the text mentions specific modules (like 'Client' vs 'Server'), group them using `subgraph`.\n4. Keep labels on the arrows short.\n Please strip out all special characters (like : or -) from the node IDs and check the indentation."
+  },
+  {
+    "id": "1710234567894",
+    "name": "Mermaid Sequence Diagram Converter",
+    "content": "Convert the following text into a Mermaid.js **Sequence Diagram**.\n**Rules:**\n 1. Identify the participants (e.g., User, Browser, Server, Database).\n2. Use `->>` for requests and `-->>` for responses.\n 3. Create a valid timeline of events based on the text.\n 4. Add notes (`Note over...`) if there is context that doesn't fit in a message arrow.\n Please strip out all special characters (like : or -) from the node IDs and check the indentation."
+  },
+  {
+    "id": "1710234567895",
+    "name": "DevOps Mermaid Diagram Generator",
+    "content": "Act as a Senior DevOps and Documentation Engineer. I am going to provide you with a dump of text, documentation, or code.\nYour goal is to convert this information into a high-quality Mermaid.js diagram and wrap it in a \"One-Click\" Bash script that renders the diagram into SVG, PNG, and PDF formats.\n### PHASE 1: ANALYSIS & STRUCTURE\n1. Analyze the input text to determine the BEST structure...\n### PHASE 2: MERMAID CODING STANDARDS\n...\n### PHASE 3: THE OUTPUT FORMAT (CRITICAL)\nYou must output a SINGLE code block containing a Bash script..."
+  },
+  {
+    "id": "1710234567896",
+    "name": "Principal Architect - Final Blueprint Mindmap",
+    "content": "Act as a Principal Software Architect and Technical Lead.\nI am going to paste a long, chaotic conversation log containing code iterations, brainstorming, and debugging.\n**YOUR GOAL:**\nExtract the \"Final Perfect State\" of the application described in the chat and convert it into a highly detailed **Mermaid.js Mindmap**...\n### PHASE 1: NOISE FILTERING\n...\n### PHASE 2: BLUEPRINT STRUCTURE (The Mindmap)\n...\n### PHASE 3: THE OUTPUT (Bash Script Wrapper)\n..."
+  },
+  {
+    "id": "1710234567897",
+    "name": "Principal Architect - Final State Extraction",
+    "content": "Act as a Principal Software Architect.\nI am providing a chaotic chat log where we built an application.\nYOUR GOAL: Extract the \"Final Perfect State\" and create a Mermaid.js Mindmap Blueprint.\nRULES:\n1. Ignore failed attempts, reverted code, and casual conversation...\nOUTPUT:\nWrap the Mermaid code in a self-executing Bash script (`generate_blueprint.sh`)..."
+  },
+  {
+    "id": "1710234567898",
+    "name": "SRE Root Cause Flowchart",
+    "content": "Act as a Senior Site Reliability Engineer (SRE).\nI am providing a chat log of a difficult debugging session.\nYOUR GOAL: Create a \"Root Cause Analysis\" Flowchart using Mermaid.js.\nRULES:\n1. Identify the SYMPTOM...\nOUTPUT:\nWrap the Mermaid code in a self-executing Bash script (`generate_autopsy.sh`)..."
+  },
+  {
+    "id": "1710234567899",
+    "name": "Product Manager Vision Mindmap",
+    "content": "Act as a Product Manager and Visionary.\nI am providing a chat log of a brainstorming session.\nYOUR GOAL: Crystalize these scattered ideas into a Mermaid.js Mindmap.\nRULES:\n1. Extract the Core Concept...\nOUTPUT:\nWrap the Mermaid code in a self-executing Bash script (`generate_manifesto.sh`)..."
+  },
+  {
+    "id": "1710234567900",
+    "name": "Technical Educator Diagram",
+    "content": "Act as a Technical Educator.\nI am providing a chat log where I learned about a specific technology.\nYOUR GOAL: Create an Educational Diagram (Flowchart or Sequence) that visually explains the concept.\nRULES:\n1. If it's a process, use Sequence...\nOUTPUT:\nWrap the Mermaid code in a self-executing Bash script (`generate_grimoire.sh`)..."
+  },
+  {
+    "id": "1710234567901",
+    "name": "Data Archivist Auto Diagram",
+    "content": "Act as a Data Archivist.\nI am providing a chat log.\nYOUR GOAL: Analyze the content and generate the MOST APPROPRIATE Mermaid.js diagram.\nRULES:\n1. Analyze the text. Is it Code? Debugging? Ideas?...\nOUTPUT:\nWrap the Mermaid code in a self-executing Bash script (`generate_summary.sh`)..."
+  },
+  {
+    "id": "1710234567902",
+    "name": "Security Engineer Refactor Review",
+    "content": "Act as a Senior Security Engineer and Lead Dev.\nI am providing a chat log containing code iterations.\nYOUR GOAL: Create a text-based \"Refactoring Plan\" and a Mermaid Flowchart showing the security/logic gaps.\nRULES:\n1. Identify security vulnerabilities...\nOUTPUT:\nProvide the critique in Markdown and the Mermaid code wrapped in a bash script (`generate_review.sh`)."
+  },
+  {
+    "id": "1710234567903",
+    "name": "Executive Assistant High-Level Summary",
+    "content": "Act as a C-Level Executive Assistant.\nI am providing a technical chat log.\nYOUR GOAL: Create a high-level visual summary for non-technical stakeholders.\nRULES:\n1. Remove all code snippets and jargon...\nOUTPUT:\nWrap the Mermaid code in a self-executing Bash script (`generate_exec_summary.sh`)."
+  }
+]

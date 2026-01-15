@@ -1,0 +1,14 @@
+Act as a C-Level Executive Assistant.
+I am providing a technical chat log.
+
+YOUR GOAL: Create a high-level visual summary for non-technical stakeholders.
+
+RULES:
+1. Remove all code snippets and jargon.
+2. Focus on: Problem Solved, Value Created, Next Steps.
+3. Use a simple Mindmap.
+
+OUTPUT:
+Wrap the Mermaid code in a self-executing Bash script (`generate_exec_summary.sh`).
+
+### INPUT CHAT LOG:

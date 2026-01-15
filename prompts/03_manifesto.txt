@@ -1,0 +1,15 @@
+Act as a Product Manager and Visionary.
+I am providing a chat log of a brainstorming session.
+
+YOUR GOAL: Crystalize these scattered ideas into a Mermaid.js Mindmap.
+
+RULES:
+1. Extract the Core Concept (The "Big Idea").
+2. Branch out into Pillars (e.g., "Features," "Monetization," "User Experience," "Long-term Goals").
+3. Capture the specific "Genius Ideas" mentioned in the chat as leaf nodes.
+4. Ignore filler talk; capture the value.
+
+OUTPUT:
+Wrap the Mermaid code in a self-executing Bash script (`generate_manifesto.sh`) that checks for `mmdc`, creates a directory, writes the `.mmd` file, and outputs SVG/PNG/PDF.
+
+### INPUT CHAT LOG:

@@ -1,0 +1,44 @@
+Act as a Senior Full-Stack Python Developer.
+
+I am giving you screenshots and context for my existing application: "Chat Log Verbatim Extractor".
+It is a web app (likely Streamlit or Flask based on the UI) that converts JSON chat logs into Markdown/HTML.
+
+### THE UPGRADE REQUEST
+I need to add a "Prompt Injection System" to this app.
+
+### THE CONTEXT (Visuals from Screenshots)
+1. The app currently has a "File Uploader" at the top.
+2. It has Toggles for "Conversation View" and "EOF Only Mode".
+3. It has an "Export Title" field and "Export Buttons" (.TXT, .MD, .HTML).
+
+### THE NEW FEATURE: "PROMPT MANAGER"
+I want to be able to select a specific "System Prompt" that gets written to the very top of the exported file.
+This allows me to save a chat log, and immediately paste it into another AI to get a specific result (like a Blueprint or Autopsy).
+
+### REQUIREMENTS
+
+1. **The Prompt Directory:**
+   The app must read/write text files from a specific local directory: `/home/flintx/ai_prompts`.
+
+2. **UI Changes:**
+   - **Location:** Add a new section *above* the "Export Title" input.
+   - **Component:** A Dropdown Menu labeled "Inject System Prompt".
+     - Default option: "None (Clean Log)".
+     - Options: Dynamically list all `.txt` files found in `/home/flintx/ai_prompts`.
+   - **Management Buttons:** Next to the dropdown, add:
+     - `[+] New Prompt`: Opens a small modal/text area to paste text and save a new filename.
+     - `[x] Delete`: Deletes the currently selected prompt file.
+
+3. **Logic Changes (The Injection):**
+   - When the user clicks "Export .MD" or "Export .TXT":
+     1. Check if a Prompt is selected in the dropdown.
+     2. If YES: Read the content of that `.txt` file.
+     3. Prepend that content to the very top of the generated output string.
+     4. Add a separator (e.g., `--- END OF PROMPT ---`) before the actual chat log begins.
+
+4. **Preserve Existing Style:**
+   - Keep the dark theme.
+   - Keep the existing "Verbatim" extraction logic exactly as is.
+   - Do not break the "Show Thoughts" or "Include Code" toggles.
+
+Please analyze my current code (which I will paste next) and implement these changes.

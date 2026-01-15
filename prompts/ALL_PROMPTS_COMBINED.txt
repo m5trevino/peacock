@@ -1,0 +1,101 @@
+Act as a Principal Software Architect.
+I am providing a chaotic chat log where we built an application.
+
+YOUR GOAL: Extract the "Final Perfect State" and create a Mermaid.js Mindmap Blueprint.
+
+RULES:
+1. Ignore failed attempts, reverted code, and casual conversation.
+2. Focus ONLY on the final working version of the code and logic.
+3. Structure the Mindmap to show: Tech Stack, File Structure, Function Logic, and UI Layout.
+
+OUTPUT:
+Wrap the Mermaid code in a self-executing Bash script (`generate_blueprint.sh`) that checks for `mmdc`, creates a directory, writes the `.mmd` file, and outputs SVG/PNG/PDF.
+
+### INPUT CHAT LOG:
+Act as a Senior Site Reliability Engineer (SRE).
+I am providing a chat log of a difficult debugging session.
+
+YOUR GOAL: Create a "Root Cause Analysis" Flowchart using Mermaid.js.
+
+RULES:
+1. Identify the SYMPTOM (What went wrong).
+2. Identify the RED HERRINGS (The fixes that didn't work).
+3. Identify the ROOT CAUSE (The actual issue).
+4. Identify the FIX (The code change that solved it).
+5. Map this flow: Symptom -> Investigation -> Failed Fixes -> Discovery -> Solution.
+
+OUTPUT:
+Wrap the Mermaid code in a self-executing Bash script (`generate_autopsy.sh`) that checks for `mmdc`, creates a directory, writes the `.mmd` file, and outputs SVG/PNG/PDF.
+
+### INPUT CHAT LOG:
+Act as a Product Manager and Visionary.
+I am providing a chat log of a brainstorming session.
+
+YOUR GOAL: Crystalize these scattered ideas into a Mermaid.js Mindmap.
+
+RULES:
+1. Extract the Core Concept (The "Big Idea").
+2. Branch out into Pillars (e.g., "Features," "Monetization," "User Experience," "Long-term Goals").
+3. Capture the specific "Genius Ideas" mentioned in the chat as leaf nodes.
+4. Ignore filler talk; capture the value.
+
+OUTPUT:
+Wrap the Mermaid code in a self-executing Bash script (`generate_manifesto.sh`) that checks for `mmdc`, creates a directory, writes the `.mmd` file, and outputs SVG/PNG/PDF.
+
+### INPUT CHAT LOG:
+Act as a Technical Educator.
+I am providing a chat log where I learned about a specific technology.
+
+YOUR GOAL: Create an Educational Diagram (Flowchart or Sequence) that visually explains the concept.
+
+RULES:
+1. If it's a process, use Sequence. If it's structure, use Class/Flowchart.
+2. Include "Note" nodes with key takeaways.
+3. Make it dense and information-rich.
+
+OUTPUT:
+Wrap the Mermaid code in a self-executing Bash script (`generate_grimoire.sh`) that checks for `mmdc`, creates a directory, writes the `.mmd` file, and outputs SVG/PNG/PDF.
+
+### INPUT CHAT LOG:
+Act as a Data Archivist.
+I am providing a chat log.
+
+YOUR GOAL: Analyze the content and generate the MOST APPROPRIATE Mermaid.js diagram.
+
+RULES:
+1. Analyze the text. Is it Code? Debugging? Ideas?
+2. Select the best diagram type.
+3. Extract high-value info, discard noise.
+
+OUTPUT:
+Wrap the Mermaid code in a self-executing Bash script (`generate_summary.sh`) that checks for `mmdc`, creates a directory, writes the `.mmd` file, and outputs SVG/PNG/PDF.
+
+### INPUT CHAT LOG:
+Act as a Senior Security Engineer and Lead Dev.
+I am providing a chat log containing code iterations.
+
+YOUR GOAL: Create a text-based "Refactoring Plan" and a Mermaid Flowchart showing the security/logic gaps.
+
+RULES:
+1. Identify security vulnerabilities or bad practices in the final code.
+2. Suggest optimizations.
+3. Create a Flowchart showing the "Current vs Optimized" logic flow.
+
+OUTPUT:
+Provide the critique in Markdown and the Mermaid code wrapped in a bash script (`generate_review.sh`).
+
+### INPUT CHAT LOG:
+Act as a C-Level Executive Assistant.
+I am providing a technical chat log.
+
+YOUR GOAL: Create a high-level visual summary for non-technical stakeholders.
+
+RULES:
+1. Remove all code snippets and jargon.
+2. Focus on: Problem Solved, Value Created, Next Steps.
+3. Use a simple Mindmap.
+
+OUTPUT:
+Wrap the Mermaid code in a self-executing Bash script (`generate_exec_summary.sh`).
+
+### INPUT CHAT LOG:

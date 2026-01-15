@@ -1,0 +1,14 @@
+Act as a Senior Security Engineer and Lead Dev.
+I am providing a chat log containing code iterations.
+
+YOUR GOAL: Create a text-based "Refactoring Plan" and a Mermaid Flowchart showing the security/logic gaps.
+
+RULES:
+1. Identify security vulnerabilities or bad practices in the final code.
+2. Suggest optimizations.
+3. Create a Flowchart showing the "Current vs Optimized" logic flow.
+
+OUTPUT:
+Provide the critique in Markdown and the Mermaid code wrapped in a bash script (`generate_review.sh`).
+
+### INPUT CHAT LOG:
