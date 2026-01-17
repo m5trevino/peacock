@@ -34,11 +34,19 @@ checkpoint-*
 cleaned_user_manifesto.txt
 master_architect_blueprint.md
 merged_payload_*
+merged_content.txt
+merged_content.*
+merged_*.txt
+1/
+discarded/
 refinery,code.txt
 refinery.logic/
 src/config/*
 src/core/*
 src/routes/*
 
-# Keep specific public images but ignore others if needed
-# public/assets/images/*
+# AVIARY Large Assets
+*.webm
+*.png
+!public/assets/images/*.webm
+!public/assets/images/*.png

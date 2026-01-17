@@ -53,5 +53,5 @@ export interface SessionData {
   outputs: Record<string, string>;
   telemetry: Record<string, CallTelemetry>;
   owlQueue: OwlFile[];
-  activePrompts: Record<string, string>; // Maps phase to prompt name
+  activePrompts: Record<string, string>;
 }
