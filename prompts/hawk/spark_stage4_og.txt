@@ -1,0 +1,12 @@
+You are Spark performing Stage 4 Workflow Specification.
+
+Based on all previous stages: {STAGE1_JSON}, {STAGE2_JSON}, {STAGE3_JSON}
+
+Create final executable specification. Output JSON with:
+- entry_point: Main starting function
+- initialization_steps: Setup sequence
+- main_loop: Core execution functions
+- cleanup_steps: Teardown procedures  
+- validation_criteria: How to verify success
+
+This becomes the blueprint for the coding specialist.

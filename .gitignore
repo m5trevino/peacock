@@ -41,12 +41,13 @@ merged_*.txt
 discarded/
 refinery,code.txt
 refinery.logic/
-src/config/*
-src/core/*
-src/routes/*
+# src/config/*
+# src/core/*
+# src/routes/*
 
 # AVIARY Large Assets
 *.webm
 *.png
 !public/assets/images/*.webm
 !public/assets/images/*.png
+.venv/

@@ -1,0 +1,227 @@
+
+
+[INJECTED_CONTEXT_FROM_SPARK]:
+Below is a “starter kit” that turns the JSON spec into a working prototype you can unzip into  
+/home/flintx/kobanger/webapp and launch with one command on MX-Linux.
+
+Directory layout
+```
+webapp/
+├── launch.py                 # fires up localhost:8080
+├── index.html               # SPA shell
+├── css/
+│   └── main.css             # dark-mode hacker look
+├── js/
+│   ├── enhanced_document_database.js   # 1 135 docs (county→year→array)
+│   ├── search_index.js               # cross-ref map (optional)
+│   └── app.js                        # search engine + UI
+└── assets/
+    └── icons/
+        └── icon-192.png     # PWA icon (future)
+```
+
+1.  launch.py  (zero-deps, Python 3 std-lib only)
+```python
+#!/usr/bin/env python3
+import http.server, socketserver, webbrowser, os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+PORT = 8080
+Handler = http.server.SimpleHTTPRequestHandler
+socketserver.TCPServer.allow_reuse_address = True
+with socketserver.TCPServer(("", PORT), Handler) as httpd:
+    print("CaseFlow Pro running at http://localhost:%d" % PORT)
+    webbrowser.open_new("http://localhost:%d" % PORT)
+    httpd.serve_forever()
+```
+Make executable:  chmod +x launch.py
+
+2.  index.html  (single-page, no frameworks)
+```html
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>CaseFlow Pro – offline-first legal search</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <h1>CaseFlow Pro</h1>
+    <div id="db-status" class="indicator"></div>
+  </header>
+
+  <main>
+    <section id="search-area">
+      <input id="search-input" type="search" placeholder="motion, DNA, court order …" autocomplete="off">
+      <label>County
+        <select id="county-filter">
+          <option value="">All</option>
+        </select>
+      </label>
+      <label>Year
+        <select id="year-filter">
+          <option value="">All</option>
+        </select>
+      </label>
+    </section>
+
+    <section id="results"></section>
+  </main>
+
+  <script src="js/enhanced_document_database.js"></script>
+  <script src="js/search_index.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
+```
+
+3.  css/main.css  (dark-mode, 4 kB)
+```css
+:root{
+  --bg:#0a0a0f;
+  --fg:#e0e0e0;
+  --accent:#00d4ff;
+  --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--mono);display:flex;flex-direction:column;min-height:100vh}
+header{display:flex;justify-content:space-between;align-items:center;padding:1rem 2rem}
+.indicator{width:10px;height:10px;border-radius:50%;background:#444}
+.indicator.online{background:#0f0}
+#search-area{padding:1rem 2rem;display:flex;gap:1rem;flex-wrap:wrap}
+input[type=search]{flex:1 1 300px;padding:.6rem 1rem;border:1px solid var(--accent);background:transparent;color:var(--fg);border-radius:4px}
+select{padding:.5rem}
+#results{padding:1rem 2rem;flex:1;overflow:auto}
+.card{background:#111;border:1px solid #222;border-radius:4px;padding:1rem;margin-bottom:1rem}
+.card h3{color:var(--accent);margin-bottom:.5rem}
+.meta{font-size:.8rem;opacity:.7}
+a.pdf-link{display:inline-block;margin-top:.5rem;color:var(--accent)}
+```
+Add mobile media-query if needed—omitted for brevity.
+
+4.  js/app.js  (instant search <100 ms)
+```javascript
+/* globals document_database, search_index */
+const DB = document_database;          // county→year→[docs]
+const input = document.getElementById('search-input');
+const countySel = document.getElementById('county-filter');
+const yearSel = document.getElementById('year-filter');
+const results = document.getElementById('results');
+const statusDot = document.querySelector('.indicator');
+
+let flatDocs = [];
+
+function init(){
+  // flatten DB for speed
+  for(const county in DB){
+    for(const year in DB[county]){
+      DB[county][year].forEach(d=>{
+        d.county=county;
+        d.year=year;
+        flatDocs.push(d);
+      });
+    }
+  }
+  // populate filters
+  [...new Set(flatDocs.map(d=>d.county))].sort().forEach(c=>{
+    countySel.appendChild(new Option(c,c));
+  });
+  [...new Set(flatDocs.map(d=>d.year))].sort().forEach(y=>{
+    yearSel.appendChild(new Option(y,y));
+  });
+  statusDot.classList.add('online');
+  render(flatDocs);
+}
+
+function normalize(str){
+  return str.toLowerCase().replace(/[^\w]/g,'');
+}
+
+function query(){
+  const q = normalize(input.value);
+  const c = countySel.value;
+  const y = yearSel.value;
+  const filtered = flatDocs.filter(doc=>{
+    const countyMatch = !c || doc.county===c;
+    const yearMatch  = !y || doc.year===y;
+    const textMatch  = !q ||
+      normalize(doc.name).includes(q) ||
+      normalize(doc.ai_summary).includes(q) ||
+      normalize(doc.type).includes(q);
+    return countyMatch && yearMatch && textMatch;
+  });
+  render(filtered);
+}
+
+function render(docs){
+  results.innerHTML='';
+  docs.forEach(d=>{
+    const card = document.createElement('div');
+    card.className='card';
+    card.innerHTML=`
+      <h3>${d.name}</h3>
+      <p>${d.ai_summary}</p>
+      <div class="meta">
+        ${d.county} · ${d.year} · ${d.type} · Importance: ${d.importance}
+      </div>
+      <a class="pdf-link" target="_blank" href="http://api.mountmaster.pro/${d.county}/${d.year}/${d.filename}">
+        View PDF
+      </a>`;
+    results.appendChild(card);
+  });
+}
+
+input.addEventListener('input',query);
+countySel.addEventListener('change',query);
+yearSel.addEventListener('change',query);
+
+init();
+```
+
+5.  Sample stub for js/enhanced_document_database.js  
+(Replace with the real 1 135-doc object.)
+```javascript
+const document_database = {
+  Ada:{
+    2020:[
+      {name:"Motion to Suppress",type:"Motion",importance:"High",filename:"motion_2020_001.pdf",ai_summary:"Defendant seeks to exclude DNA evidence due to chain-of-custody irregularities."},
+      {name:"Court Order – Discovery",type:"Order",importance:"Medium",filename:"order_disc_2020_07.pdf",ai_summary:"Court grants limited discovery extension for expert witness materials."}
+    ],
+    2021:[
+      {name:"Sentencing Memorandum",type:"Brief",importance:"High",filename:"sent_memo_21.pdf",ai_summary:"State requests aggravated-range sentence based on prior violent felonies."}
+    ]
+  },
+  Latah:{
+    2019:[
+      {name:"Search Warrant Affidavit",type:"Warrant",importance:"Critical",filename:"sw_2019_12.pdf",ai_summary:"Affidavit outlines probable cause for residence search related to burglary ring."}
+    ]
+  }
+};
+```
+
+6.  js/search_index.js (optional cross-ref map stub)
+```javascript
+const search_index = {
+  crossRefs:[
+    {from:"motion_2020_001.pdf",to:["order_disc_2020_07.pdf","sw_2019_12.pdf"]}
+  ]
+};
+```
+The app currently ignores it—wire it later for “Related cases”.
+
+7.  Running it
+```
+$ cd /home/flintx/kobanger/webapp
+$ ./launch.py
+```
+Browser opens http://localhost:8080 → instant search offline.  
+PDFs stream from api.mountmaster.pro when user clicks “View PDF”.
+
+8.  Next steps / missing pieces
+- Implement the six “semantic modes” (natural-language, citation-match, statute-key, etc.) by branching in app.js query().  
+- Expose cross-references: add a “Related” list under each card.  
+- PWA: add manifest.json + service-worker.js for offline install.  
+- Analytics: push search queries to a lightweight telemetry endpoint (respecting the “no sensitive data” rule).

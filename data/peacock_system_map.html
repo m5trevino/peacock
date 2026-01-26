@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peacock AI Development System - Architecture Map</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ff41;
+            min-height: 100vh;
+            overflow-x: auto;
+        }
+        
+        .container {
+            padding: 20px;
+            min-width: 1200px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border: 2px solid #00ff41;
+            padding: 15px;
+            background: rgba(0, 255, 65, 0.1);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #00ff41;
+        }
+        
+        .system-map {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            border: 2px solid #00ff41;
+            border-radius: 8px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            position: relative;
+        }
+        
+        .section-title {
+            background: #00ff41;
+            color: #000;
+            padding: 5px 10px;
+            margin: -25px -15px 15px -15px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 16px;
+        }
+        
+        .pipeline {
+            grid-column: span 3;
+            margin-top: 20px;
+        }
+        
+        .pipeline-flow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .pipeline-step {
+            background: rgba(0, 255, 65, 0.2);
+            border: 1px solid #00ff41;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-align: center;
+            min-width: 120px;
+            position: relative;
+        }
+        
+        .pipeline-step:after {
+            content: '→';
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #ff6b35;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .pipeline-step:last-child:after {
+            display: none;
+        }
+        
+        .module {
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid #00ff41;
+            margin: 8px 0;
+            padding: 8px;
+            border-radius: 4px;
+            position: relative;
+        }
+        
+        .module-name {
+            color: #ff6b35;
+            font-weight: bold;
+        }
+        
+        .imports {
+            color: #ffd700;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        
+        .api-key {
+            color: #ff1744;
+            font-size: 11px;
+        }
+        
+        .connection-line {
+            position: absolute;
+            background: #00ff41;
+            height: 2px;
+        }
+        
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .legend-item {
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #666;
+            padding: 10px;
+            text-align: center;
+            border-radius: 5px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            margin-right: 8px;
+            border-radius: 3px;
+        }
+        
+        .status-indicators {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #00ff41;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        
+        .blink {
+            animation: blink 1.5s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+        
+        .flow-arrow {
+            color: #ff6b35;
+            font-size: 16px;
+            margin: 0 10px;
+        }
+        
+        .critical-path {
+            border: 2px solid #ff1744;
+            background: rgba(255, 23, 68, 0.1);
+        }
+        
+        .data-flow {
+            grid-column: span 3;
+            background: rgba(255, 107, 53, 0.1);
+            border-color: #ff6b35;
+        }
+        
+        .interconnect {
+            grid-column: span 3;
+            background: rgba(255, 215, 0, 0.1);
+            border-color: #ffd700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🦚 PEACOCK AI DEVELOPMENT SYSTEM - COMPLETE ARCHITECTURE MAP 🦚</h1>
+            <p>Street-Level Blueprint: From Input to Output - Every Connection Mapped</p>
+        </div>
+        
+        <div class="status-indicators">
+            <div>🟢 SYSTEM ACTIVE</div>
+            <div>🔄 9 API KEYS ROTATING</div>
+            <div class="blink">⚡ REAL-TIME MONITORING</div>
+        </div>
+        
+        <div class="system-map">
+            <!-- ENTRY POINT -->
+            <div class="section critical-path">
+                <div class="section-title">🚪 ENTRY POINT</div>
+                <div class="module">
+                    <div class="module-name">1prompt.py</div>
+                    <div class="imports">→ Dashboard Starter</div>
+                    <div class="api-key">Calls pea-mcp-1.py</div>
+                </div>
+            </div>
+            
+            <!-- MAIN ORCHESTRATOR -->
+            <div class="section critical-path">
+                <div class="section-title">🎯 MAIN ORCHESTRATOR</div>
+                <div class="module">
+                    <div class="module-name">pea-mcp-1.py</div>
+                    <div class="imports">IMPORTS: ALL birds, owls, peacock</div>
+                    <div class="imports">CONTROLS: 7-stage pipeline</div>
+                    <div class="api-key">Session tracking & coordination</div>
+                </div>
+            </div>
+            
+            <!-- OUTPUT SYSTEM -->
+            <div class="section critical-path">
+                <div class="section-title">📤 OUTPUT SYSTEM</div>
+                <div class="module">
+                    <div class="module-name">xedit_generator.py</div>
+                    <div class="imports">IMPORTS: schemas.py</div>
+                    <div class="api-key">→ HTML Interface</div>
+                </div>
+                <div class="module">
+                    <div class="module-name">project-builder.py</div>
+                    <div class="imports">IMPORTS: schemas.py</div>
+                    <div class="api-key">→ Project Deployment</div>
+                </div>
+            </div>
+            
+            <!-- BIRD HANDLERS -->
+            <div class="section">
+                <div class="section-title">🐦 BIRD HANDLERS (API Wrappers)</div>
+                <div class="module">
+                    <div class="module-name">carrier-pigeon.py</div>
+                    <div class="imports">IMPORTS: spark.py</div>
+                    <div class="api-key">→ Groq/SCOUT API</div>
+                </div>
+                <div class="module">
+                    <div class="module-name">racing-pigeon.py</div>
+                    <div class="imports">IMPORTS: falcon.py</div>
+                    <div class="api-key">→ Groq/SCOUT API</div>
+                </div>
+                <div class="module">
+                    <div class="module-name">war-pigeon.py</div>
+                    <div class="imports">IMPORTS: eagle.py</div>
+                    <div class="api-key">→ Groq/MAVERICK API</div>
+                </div>
+                <div class="module">
+                    <div class="module-name">homing-pigeon.py</div>
+                    <div class="imports">IMPORTS: hawk.py</div>
+                    <div class="api-key">→ Groq/MAVERICK API</div>
+                </div>
+            </div>
+            
+            <!-- BIRD LOGIC -->
+            <div class="section">
+                <div class="section-title">🧠 BIRD LOGIC (Core AI)</div>
+                <div class="module">
+                    <div class="module-name">spark.py</div>
+                    <div class="imports">Requirements Analysis</div>
+                    <div class="api-key">Independent Module</div>
+                </div>
+                <div class="module">
+                    <div class="module-name">falcon.py</div>
+                    <div class="imports">Architecture Design</div>
+                    <div class="api-key">Independent Module</div>
+                </div>
+                <div class="module">
+                    <div class="module-name">eagle.py</div>
+                    <div class="imports">Code Implementation</div>
+                    <div class="api-key">Independent Module</div>
+                </div>
+                <div class="module">
+                    <div class="module-name">hawk.py</div>
+                    <div class="imports">QA Testing</div>
+                    <div class="api-key">Independent Module</div>
+                </div>
+            </div>
+            
+            <!-- SYNTHESIS MODULES -->
+            <div class="section">
+                <div class="section-title">🦉 SYNTHESIS MODULES</div>
+                <div class="module">
+                    <div class="module-name">snow-owl.py</div>
+                    <div class="imports">Blueprint Synthesis</div>
+                    <div class="api-key">→ Groq/DeepSeek API</div>
+                </div>
+                <div class="module">
+                    <div class="module-name">great-owl.py</div>
+                    <div class="imports">IMPORTS: session logs</div>
+                    <div class="api-key">Code Critique</div>
+                </div>
+                <div class="module">
+                    <div class="module-name">peacock.py</div>
+                    <div class="imports">Final Generation</div>
+                    <div class="api-key">→ Groq/Qwen API</div>
+                </div>
+            </div>
+            
+            <!-- CORE INFRASTRUCTURE -->
+            <div class="section">
+                <div class="section-title">⚙️ CORE INFRASTRUCTURE</div>
+                <div class="module">
+                    <div class="module-name">schemas.py</div>
+                    <div class="imports">Type Definitions</div>
+                    <div class="api-key">Used by ALL modules</div>
+                </div>
+                <div class="module">
+                    <div class="module-name">master_parser.py</div>
+                    <div class="imports">IMPORTS: schemas.py</div>
+                    <div class="api-key">Response parsing for ALL</div>
+                </div>
+                <div class="module">
+                    <div class="module-name">in_homing.py</div>
+                    <div class="imports">IMPORTS: schemas, master_parser</div>
+                    <div class="api-key">Response processing</div>
+                </div>
+                <div class="module">
+                    <div class="module-name">peacock_doctor.py</div>
+                    <div class="imports">System Analysis</div>
+                    <div class="api-key">Reads ALL files</div>
+                </div>
+            </div>
+            
+            <!-- OUTPUT GENERATORS -->
+            <div class="section">
+                <div class="section-title">📊 OUTPUT GENERATORS</div>
+                <div class="module">
+                    <div class="module-name">__init__.py</div>
+                    <div class="imports">Exports ALL bird classes</div>
+                    <div class="api-key">Module orchestration</div>
+                </div>
+                <div class="module">
+                    <div class="module-name">Broadcaster</div>
+                    <div class="imports">Real-time updates</div>
+                    <div class="api-key">→ Dashboard</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PIPELINE FLOW -->
+        <div class="section pipeline data-flow">
+            <div class="section-title">🔄 COMPLETE DATA PIPELINE FLOW</div>
+            <div class="pipeline-flow">
+                <div class="pipeline-step">User Request</div>
+                <div class="pipeline-step">1prompt.py</div>
+                <div class="pipeline-step">pea-mcp-1.py</div>
+                <div class="pipeline-step">carrier→racing</div>
+                <div class="pipeline-step">war→homing</div>
+                <div class="pipeline-step">snow-owl</div>
+                <div class="pipeline-step">great-owl</div>
+                <div class="pipeline-step">peacock.py</div>
+                <div class="pipeline-step">in_homing</div>
+                <div class="pipeline-step">xedit_generator</div>
+                <div class="pipeline-step">project-builder</div>
+            </div>
+        </div>
+        
+        <!-- CRITICAL INTERCONNECTIONS -->
+        <div class="section interconnect">
+            <div class="section-title">🔗 CRITICAL INTERCONNECTIONS & DEPENDENCIES</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h4 style="color: #ffd700; margin-bottom: 10px;">🔑 KEY CONNECTIONS:</h4>
+                    <div class="module">
+                        <div class="module-name">Session IDs</div>
+                        <div class="imports">Track requests through ENTIRE pipeline</div>
+                    </div>
+                    <div class="module">
+                        <div class="module-name">Master Parser</div>
+                        <div class="imports">Handles ALL LLM response parsing</div>
+                    </div>
+                    <div class="module">
+                        <div class="module-name">Schemas</div>
+                        <div class="imports">Type safety across ALL modules</div>
+                    </div>
+                </div>
+                <div>
+                    <h4 style="color: #ff6b35; margin-bottom: 10px;">🌐 EXTERNAL DEPS:</h4>
+                    <div class="module">
+                        <div class="module-name">Groq API</div>
+                        <div class="imports">Primary LLM provider (9 keys rotating)</div>
+                        <div class="api-key">Models: SCOUT, MAVERICK, DeepSeek, Qwen</div>
+                    </div>
+                    <div class="module">
+                        <div class="module-name">Python Deps</div>
+                        <div class="imports">Pydantic, Rich/Typer, UV/Pip</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- LEGEND -->
+        <div class="section">
+            <div class="section-title">🗺️ LEGEND & STATUS INDICATORS</div>
+            <div class="legend">
+                <div class="legend-item">
+                    <span class="legend-color" style="background: #ff1744;"></span>
+                    Critical Path
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background: #00ff41;"></span>
+                    Core Modules
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background: #ff6b35;"></span>
+                    Data Flow
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background: #ffd700;"></span>
+                    Interconnections
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

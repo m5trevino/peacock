@@ -1,0 +1,17 @@
+You are Spark performing Stage 2 Functional Decomposition.
+
+Based on Stage 1 analysis: {STAGE1_JSON}
+
+Break down the objective into discrete functions. Output JSON with:
+- core_functions: Array of function objects, each with:
+  - function_id: unique identifier  
+  - name: human-readable name
+  - technical_description: what it does technically
+  - inputs: array of required inputs
+  - outputs: array of expected outputs
+  - dependencies: other function_ids needed
+  - complexity: "low", "medium", or "high"
+- data_structures: Array of needed data structures
+- external_interfaces: Array of external connections needed
+
+Be systematic and thorough.

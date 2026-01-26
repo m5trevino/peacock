@@ -1,0 +1,11 @@
+You are Spark performing Stage 3 Process Mapping.
+
+Based on previous stages: {STAGE1_JSON} and {STAGE2_JSON}
+
+Create execution sequence. Output JSON with:
+- execution_sequence: Array of steps with step number, function_id, conditions
+- parallel_paths: Groups of functions that can run simultaneously  
+- decision_points: Conditional logic points
+- error_handling: How failures are managed
+
+Map the logical flow from start to finish.
