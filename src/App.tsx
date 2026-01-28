@@ -17,6 +17,7 @@ import { SettingsDeck } from './components/views/SettingsDeck';
 import { EditorOverlay } from './components/ui/EditorOverlay';
 import { IntelHub } from './components/layout/IntelHub';
 import { SessionManager } from './components/views/SessionManager';
+import { MiniMap } from './components/ui/MiniMap';
 
 // --- CONFIG ---
 const STAGE_CONFIG = {
@@ -157,7 +158,12 @@ function App() {
 
             setOutputs(prev => ({ ...prev, [activeStageId]: finalResponse }));
             setTelemetry(prev => ({ ...prev, [activeStageId]: { status: 'success', latency, exitIP: result.ipUsed, key: result.keyUsed } }));
-            if (casinoSettings.audio) audioService.playSuccess();
+
+            if (activeStageId === PipelineStage.HAWK) {
+                if (casinoSettings.audio) audioService.playJackpot();
+            } else if (casinoSettings.audio) {
+                audioService.playSuccess();
+            }
         } catch (error) {
             console.error(error);
             setTelemetry(prev => ({ ...prev, [activeStageId]: { status: 'error' } }));
@@ -165,49 +171,47 @@ function App() {
         }
     };
 
+    // Derived
+    const activePromptName = activePrompts[activeStageId];
+    const promptContent = arsenal[activeStageId]?.find(p => p.name === activePromptName)?.content || '';
+
     // --- RENDER (THE BOX) ---
     return (
         <div className="the-box">
             {/* BACKGROUND SCANLINES */}
             <div className="fixed inset-0 pointer-events-none z-0 opacity-10 scanline" />
 
-            {/* COL 1: SIDEBAR (Command) */}
-            <div className="col-span-1 border-r border-[#1F1F23] flex flex-col items-center py-4 gap-4 z-10">
-                <button onClick={() => setSessionOpen(true)} className="w-10 h-10 rounded border border-white/5 hover:bg-white/5 flex items-center justify-center text-[#444] hover:text-white transition-all">
+            {/* COL 1: SIDEBAR (Command) - REDUCED TO UTILITIES */}
+            <div className="fixed left-4 top-1/2 -translate-y-1/2 flex flex-col items-center gap-6 z-50">
+                <button onClick={() => setSessionOpen(true)} className="w-12 h-12 rounded-xl tactical-glass border border-white/10 hover:border-matrix/50 flex items-center justify-center text-xl hover:shadow-[0_0_15px_var(--matrix-glow)] transition-all">
                     🕒
                 </button>
-                <div className="w-8 h-[1px] bg-[#222]" />
-                {Object.keys(STAGE_CONFIG).map((stage) => (
-                    <button
-                        key={stage}
-                        onClick={() => setActiveStageId(stage as PipelineStage)}
-                        className={`w-10 h-10 rounded flex items-center justify-center font-bold text-lg transition-all ${activeStageId === stage
-                            ? `bg-[${STAGE_CONFIG[stage].color}]/10 text-[${STAGE_CONFIG[stage].color}] border border-[${STAGE_CONFIG[stage].color}] shadow-[0_0_10px_rgba(0,0,0,0.5)]`
-                            : 'text-[#444] hover:text-[#888]'
-                            }`}
-                        style={{ borderColor: activeStageId === stage ? STAGE_CONFIG[stage].color : 'transparent' }}
-                    >
-                        {STAGE_CONFIG[stage].icon}
-                    </button>
-                ))}
-                <div className="mt-auto">
-                    <button onClick={() => setSettingsOpen(true)} className="w-10 h-10 opacity-30 hover:opacity-100 transition-opacity">⚙️</button>
-                </div>
+                <button onClick={() => setSettingsOpen(true)} className="w-12 h-12 rounded-xl tactical-glass border border-white/10 hover:border-voltage/50 flex items-center justify-center text-xl hover:shadow-[0_0_15px_var(--voltage-glow)] transition-all">
+                    ⚙️
+                </button>
             </div>
 
-            {/* COL 2: MAIN STAGE (11 Columns) */}
-            <div className="col-span-11 relative z-10 flex flex-col h-full overflow-hidden">
+            {/* MAIN CONTENT AREA */}
+            <div className="flex-1 relative z-10 flex flex-col h-full overflow-hidden items-center pt-6 px-10">
                 {/* HEADER: STATUS BAR */}
-                <div className="status-bar mb-2">
-                    <div className="flex gap-4">
-                        <span className="text-[var(--color-gold)]">⚡ SYSTEM_ONLINE</span>
-                        <span>PORT: 3000</span>
-                        <span>{activeStageId.toUpperCase()} SEQUENCE ACTIVE</span>
+                <div className="w-full flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] mb-4 text-muted/60 px-4">
+                    <div className="flex gap-8">
+                        <span className="text-matrix flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-matrix animate-pulse" />
+                            PEACOCK_V21_ONLINE
+                        </span>
+                        <span>NODE_LATENCY: {telemetry[activeStageId].latency || 0}MS</span>
                     </div>
-                    <div className="flex gap-4">
-                        <span>LATENCY: {telemetry[activeStageId].latency || 0}MS</span>
-                        <span>TIMER: {timeSinceCall}</span>
-                    </div>
+                    <span>SYSTEM_TIME: {timeSinceCall}</span>
+                </div>
+
+                {/* THE MIND MAP (CENTRAL NAVIGATION) */}
+                <div className="w-full h-40 mb-2 mt-4 flex justify-center">
+                    <MiniMap
+                        telemetry={telemetry}
+                        activeStageId={activeStageId}
+                        setActiveStageId={setActiveStageId}
+                    />
                 </div>
 
                 {/* CONTENT AREA */}
@@ -246,8 +250,11 @@ function App() {
             </div>
 
             {/* OVERLAYS */}
-            <EditorOverlay isOpen={editorOpen} title="PAYLOAD EDITOR" content={editorType === 'input' ? inputs[activeStageId] || '' : ''} onSave={(val) => setInputs(prev => ({ ...prev, [activeStageId]: val }))} onClose={() => setEditorOpen(false)} />
-            <IntelHub isOpen={hubOpen} onClose={() => setHubOpen(false)} activeStageId={activeStageId} startFiles={startFiles} arsenal={arsenal} activePrompts={activePrompts} setInputs={setInputs} setActivePrompts={setActivePrompts} executeStrike={() => { }} />
+            <EditorOverlay isOpen={editorOpen} title="PAYLOAD EDITOR" content={editorType === 'input' ? inputs[activeStageId] || '' : promptContent} onSave={(val) => {
+                if (editorType === 'input') setInputs(prev => ({ ...prev, [activeStageId]: val }));
+                // Note: Prompt saving would need extra wiring in App.tsx if desired
+            }} onClose={() => setEditorOpen(false)} />
+            <IntelHub isOpen={hubOpen} onClose={() => setHubOpen(false)} activeStageId={activeStageId} startFiles={startFiles} arsenal={arsenal} activePrompts={activePrompts} setInputs={setInputs} setActivePrompts={setActivePrompts} executeStrike={handleStrike} sessionOutputs={outputs} initialTab={hubTab} />
             <SessionManager isOpen={sessionOpen} onClose={() => setSessionOpen(false)} currentSessionId={currentSessionId} onLoadSession={handleLoadSession} onNewSession={handleNewSession} />
             <SettingsDeck isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} stageSettings={stageSettings} setStageSettings={setStageSettings} casinoSettings={casinoSettings} setCasinoSettings={setCasinoSettings} />
         </div>

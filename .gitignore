@@ -1,3 +1,10 @@
 node_modules/
 dist/
 .venv/
+.env
+*.log
+merged.*.files.txt
+peacock-dossier-*
+peacock_*.md
+tree.md
+src_payload_full.txt

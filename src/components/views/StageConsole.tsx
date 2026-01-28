@@ -32,9 +32,9 @@ export const StageConsole: React.FC<StageConsoleProps> = ({
     return (
         <motion.div
             key={activeStageId}
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="w-full max-w-6xl tactical-glass rounded-3xl p-6 flex flex-col items-center relative border border-white/5 shadow-[0_50px_100px_rgba(0,0,0,0.5)]"
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            className="w-full max-w-7xl h-full tactical-glass rounded-3xl p-10 flex flex-col items-center relative border border-white/5 shadow-[0_50px_100px_rgba(0,0,0,0.8)] overflow-y-auto custom-scrollbar"
         >
 
             {/* TOP ROW: MINIMAPS */}
@@ -122,13 +122,14 @@ export const StageConsole: React.FC<StageConsoleProps> = ({
             {/* FIRE BUTTON */}
             <button disabled={telemetry[activeStageId].status === 'loading'}
                 onClick={handleStrike}
-                className={`w-full py-16 rounded-3xl font-black text-5xl tracking-[0.4em] transition-all chasing-light border shadow-2xl relative overflow-hidden group ${telemetry[activeStageId].status === 'loading' ? 'system-stress bg-void border-white/5' : isArmed ? 'bg-void text-white border-white/20 hover:border-matrix hover:text-matrix hover:shadow-[0_0_50px_rgba(0,255,65,0.2)]' : 'bg-void text-white/5 border-white/5 cursor-not-allowed'}`}
+                className={`w-full py-20 rounded-3xl font-black text-6xl tracking-[0.5em] italic transition-all border shadow-2xl relative overflow-hidden group ${telemetry[activeStageId].status === 'loading' ? 'system-stress bg-void border-white/5 cursor-wait' : isArmed ? 'bg-void text-white border-white/20 hover:border-matrix hover:text-matrix hover:shadow-[0_0_100px_rgba(0,255,65,0.3)] cursor-pointer active:scale-[0.98]' : 'bg-void text-white/5 border-white/5 cursor-not-allowed'}`}
             >
-                <span className="relative z-10 transition-transform group-hover:scale-105 inline-block">
+                <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-matrix/40 to-transparent group-hover:via-matrix opacity-0 group-hover:opacity-100 transition-opacity" />
+                <span className="relative z-10 transition-transform group-hover:scale-110 inline-block drop-shadow-2xl">
                     {telemetry[activeStageId].status === 'loading' ? 'STRIKING...' : activeStageId === PipelineStage.EAGLE && outputs[activeStageId] ? 'CLIPBOARD_SURGE' : `FIRE_${activeStageConfig.label}`}
                 </span>
-                {isArmed && !telemetry[activeStageId].status && (
-                    <div className="absolute inset-0 bg-matrix/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                {isArmed && telemetry[activeStageId].status !== 'loading' && (
+                    <div className="absolute inset-0 bg-matrix/5 opacity-0 group-hover:opacity-100 transition-opacity animate-pulse" />
                 )}
             </button>
 

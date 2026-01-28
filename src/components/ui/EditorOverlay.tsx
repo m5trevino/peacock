@@ -25,9 +25,11 @@ export const EditorOverlay: React.FC<EditorOverlayProps> = ({
             {isOpen && (
                 <motion.div
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-10"
+                    className="fixed inset-0 z-[1000] bg-void/95 backdrop-blur-2xl flex items-center justify-center p-10"
                 >
-                    <div className="w-full max-w-6xl h-full flex flex-col border border-white/10 rounded-2xl overflow-hidden shadow-[0_0_100px_rgba(0,0,0,1)] bg-[#050505]">
+                    <div className="w-full max-w-6xl h-full flex flex-col border border-white/10 rounded-2xl overflow-hidden shadow-[0_0_100px_rgba(0,0,0,1)] bg-void relative">
+                        {/* Background Scanlines for Overlay */}
+                        <div className="absolute inset-0 pointer-events-none opacity-5 scanlines z-0" />
                         <div className="h-16 bg-black/50 border-b border-white/5 px-8 flex justify-between items-center">
                             <div className="flex items-center gap-4">
                                 <div className="w-2 h-2 rounded-full bg-matrix animate-pulse" />

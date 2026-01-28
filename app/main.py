@@ -28,6 +28,7 @@ class StrikeRequest(BaseModel):
     prompt: str
     temp: float = 0.7
     phase: Optional[str] = None
+    format_mode: Optional[str] = None
     responseFormat: Optional[Any] = None
 
 @app.get("/")
@@ -50,7 +51,12 @@ async def get_models():
 @app.post("/v1/strike")
 async def strike(req: StrikeRequest):
     try:
-        result = await execute_strike(req.modelId, req.prompt, req.temp)
+        result = await execute_strike(
+            model_id=req.modelId, 
+            prompt=req.prompt, 
+            temp=req.temp, 
+            format_mode=req.format_mode
+        )
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -37,10 +37,10 @@ export const OwlHangar: React.FC<OwlHangarProps> = ({
 
             {/* LEFT RAIL: PRODUCTION QUEUE */}
             <div className="w-96 flex flex-col gap-4 h-full">
-                <div className="bg-surface/50 border border-white/10 rounded-2xl p-6 flex flex-col gap-2">
+                <div className="bg-surface/50 border border-white/10 rounded-2xl p-6 flex flex-col gap-2 tactical-glass">
                     <h2 className="text-xl font-black italic text-white tracking-tight uppercase">Owl_Hangar</h2>
                     <div className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${isAllComplete ? 'bg-matrix shadow-[0_0_10px_#00FF41]' : 'bg-voltage animate-pulse'}`} />
+                        <span className={`w-2 h-2 rounded-full ${isAllComplete ? 'bg-matrix shadow-[0_0_10px_var(--matrix-glow)]' : 'bg-voltage shadow-[0_0_10px_var(--voltage-glow)] animate-pulse'}`} />
                         <span className="text-[10px] font-bold text-muted uppercase tracking-widest">{isAllComplete ? 'PRODUCTION_COMPLETE' : 'ASSEMBLY_ACTIVE'}</span>
                         <button onClick={() => setShowRaw(!showRaw)} className="ml-auto text-[9px] font-bold text-white/40 hover:text-white uppercase transition-colors">
                             {showRaw ? 'HIDE_INTEL' : 'VIEW_RAW'}
@@ -156,23 +156,23 @@ export const OwlHangar: React.FC<OwlHangarProps> = ({
                     <div className="absolute inset-0 bg-[url('/assets/images/grid.svg')] opacity-10" />
 
                     {activeFileId && !isAllComplete ? (
-                        <div className="text-center">
-                            <div className="w-24 h-24 bg-voltage/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-voltage/30 animate-pulse">
+                        <div className="text-center relative z-10">
+                            <div className="w-24 h-24 bg-voltage/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-voltage/30 shadow-[0_0_30px_var(--voltage-dim)] animate-pulse">
                                 <span className="text-4xl">⚡</span>
                             </div>
-                            <h3 className="text-2xl font-black text-white italic tracking-tight mb-2">TARGET_LOCKED</h3>
+                            <h3 className="text-2xl font-black text-white italic tracking-tight mb-2 uppercase">Target_Locked</h3>
                             <p className="text-sm font-mono text-white/50">{queue.find(f => f.id === activeFileId)?.path}</p>
                             <div className="mt-8">
-                                <span className="text-[10px] font-black text-voltage uppercase tracking-[0.3em] blink">AWAITING_FIRE_COMMAND</span>
+                                <span className="text-[10px] font-black text-voltage uppercase tracking-[0.3em] blink">Awaiting_Fire_Command</span>
                             </div>
                         </div>
                     ) : isAllComplete ? (
-                        <div className="text-center">
-                            <div className="w-24 h-24 bg-matrix/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-matrix/30 shadow-[0_0_50px_rgba(0,255,65,0.2)]">
+                        <div className="text-center relative z-10">
+                            <div className="w-24 h-24 bg-matrix/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-matrix/30 shadow-[0_0_50px_var(--matrix-dim)]">
                                 <span className="text-4xl text-matrix">✔</span>
                             </div>
-                            <h3 className="text-2xl font-black text-white italic tracking-tight mb-2">RUN_COMPLETE</h3>
-                            <p className="text-sm font-mono text-white/50">All modules successfully generated.</p>
+                            <h3 className="text-2xl font-black text-white italic tracking-tight mb-2 uppercase">Operation_Complete</h3>
+                            <p className="text-sm font-mono text-white/50">Mission assets successfully deployed.</p>
                         </div>
                     ) : (
                         <span className="text-xs font-mono text-white/20">SYSTEM_IDLE</span>
@@ -234,9 +234,10 @@ export const OwlHangar: React.FC<OwlHangarProps> = ({
                             executeStrike(activeFileId);
                         }
                     }}
-                    className={`w-full h-16 rounded-xl border transition-all relative overflow-hidden group ${activeFileId ? 'bg-void text-white border-white/20 hover:border-voltage hover:text-voltage hover:shadow-[0_0_50px_rgba(255,215,0,0.2)] cursor-pointer' : isAllComplete ? 'bg-void text-white border-white/20 hover:border-matrix hover:text-matrix hover:shadow-[0_0_50px_rgba(0,255,65,0.2)] cursor-pointer' : 'bg-void border-white/5 opacity-50 cursor-not-allowed'}`}
+                    className={`w-full h-20 rounded-2xl border transition-all relative overflow-hidden group ${activeFileId ? 'bg-void text-white border-white/20 hover:border-voltage hover:text-voltage hover:shadow-[0_0_50px_var(--voltage-dim)] cursor-pointer active:scale-[0.98]' : isAllComplete ? 'bg-void text-white border-white/20 hover:border-matrix hover:text-matrix hover:shadow-[0_0_50px_var(--matrix-dim)] cursor-pointer active:scale-[0.98]' : 'bg-void border-white/5 opacity-50 cursor-not-allowed'}`}
                 >
-                    <span className={`text-xl font-black tracking-[0.5em] italic transition-colors ${activeFileId ? 'text-white group-hover:text-voltage' : isAllComplete ? 'text-white group-hover:text-matrix' : 'text-white/10'}`}>
+                    <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:via-current transition-all" />
+                    <span className={`text-2xl font-black tracking-[0.5em] italic transition-all ${activeFileId ? 'text-white group-hover:text-voltage group-hover:scale-105' : isAllComplete ? 'text-white group-hover:text-matrix group-hover:scale-105' : 'text-white/10'}`}>
                         {isAllComplete ? 'DEPLOY_SYSTEM' : 'FIRE_OWL'}
                     </span>
                 </button>
