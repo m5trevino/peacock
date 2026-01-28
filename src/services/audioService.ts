@@ -27,6 +27,82 @@ class AudioService {
     osc.stop(this.ctx!.currentTime + 0.4);
   }
 
+  playSymphony(index: number) {
+    this.init();
+    const now = this.ctx!.currentTime;
+
+    // C Major Scale (DO-RE-MI-FA-SO-LA-TI-DO)
+    const scale = [
+      261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25
+    ];
+
+    const noteIndex = index % scale.length;
+    const freq = scale[noteIndex];
+    const octaveShift = Math.floor(index / scale.length);
+    const finalFreq = freq * Math.pow(2, octaveShift);
+
+    const osc = this.ctx!.createOscillator();
+    const gain = this.ctx!.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(finalFreq, now);
+
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.1, now + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+
+    osc.connect(gain);
+    gain.connect(this.ctx!.destination);
+
+    osc.start();
+    osc.stop(now + 0.8);
+  }
+
+  playBriefcaseAhhh() {
+    this.init();
+    const now = this.ctx!.currentTime;
+
+    // THE "AHHHHH" CHORD (Heavenly Choir Layer)
+    const choirNotes = [261.63, 329.63, 392.00, 523.25]; // C Major Chord
+    choirNotes.forEach(freq => {
+      const osc = this.ctx!.createOscillator();
+      const gain = this.ctx!.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.05, now + 0.2);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 2);
+
+      osc.connect(gain);
+      gain.connect(this.ctx!.destination);
+      osc.start(now);
+      osc.stop(now + 2);
+    });
+
+    // THE MECHANICAL LOCK-IN (Industrial Latch Layer)
+    const noise = this.ctx!.createBufferSource();
+    const bufferSize = this.ctx!.sampleRate * .1;
+    const buffer = this.ctx!.createBuffer(1, bufferSize, this.ctx!.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    noise.buffer = buffer;
+
+    const filter = this.ctx!.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1000, now);
+    filter.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+
+    const noiseGain = this.ctx!.createGain();
+    noiseGain.gain.setValueAtTime(0.2, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(this.ctx!.destination);
+    noise.start(now);
+  }
+
   playError() {
     this.init();
     const osc = this.ctx!.createOscillator();
@@ -43,45 +119,9 @@ class AudioService {
     gain.connect(this.ctx!.destination);
 
     osc.start();
-    osc.start();
     osc.stop(this.ctx!.currentTime + 0.3);
   }
 
-  playScaleNote(index: number) {
-    this.init();
-    const osc = this.ctx!.createOscillator();
-    const gain = this.ctx!.createGain();
-
-    // C Major Scale frequencies (C4 to C5)
-    // Do, Re, Mi, Fa, Sol, La, Ti, Do
-    const scale = [
-      261.63, // C4
-      293.66, // D4
-      329.63, // E4
-      349.23, // F4
-      392.00, // G4
-      440.00, // A4
-      493.88, // B4
-      523.25  // C5
-    ];
-
-    const noteIndex = index % scale.length;
-    const freq = scale[noteIndex];
-
-    osc.type = 'triangle'; // Softer, more flute-like for the scale
-    osc.frequency.setValueAtTime(freq, this.ctx!.currentTime);
-
-    // Envelope for a clean "ding"
-    gain.gain.setValueAtTime(0, this.ctx!.currentTime);
-    gain.gain.linearRampToValueAtTime(0.1, this.ctx!.currentTime + 0.05);
-    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx!.currentTime + 0.5);
-
-    osc.connect(gain);
-    gain.connect(this.ctx!.destination);
-
-    osc.start();
-    osc.stop(this.ctx!.currentTime + 0.5);
-  }
   private humOsc: OscillatorNode | null = null;
   private humGain: GainNode | null = null;
 
@@ -121,7 +161,6 @@ class AudioService {
     this.init();
     const now = this.ctx!.currentTime;
 
-    // Simple "Level Complete" arpeggio
     const notes = [
       { f: 523.25, t: 0 },    // C5
       { f: 659.25, t: 0.1 },  // E5
@@ -142,6 +181,55 @@ class AudioService {
       osc.start(now + note.t);
       osc.stop(now + note.t + 0.5);
     });
+  }
+
+  playFlyoutSnap() {
+    this.init();
+    const now = this.ctx!.currentTime;
+    const osc = this.ctx!.createOscillator();
+    const gain = this.ctx!.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(1200, now);
+    osc.frequency.exponentialRampToValueAtTime(800, now + 0.05);
+    gain.gain.setValueAtTime(0.05, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+    osc.connect(gain);
+    gain.connect(this.ctx!.destination);
+    osc.start(now);
+    osc.stop(now + 0.05);
+  }
+
+  playWeaponArm() {
+    this.init();
+    const now = this.ctx!.currentTime;
+    const osc = this.ctx!.createOscillator();
+    const gain = this.ctx!.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(80, now);
+    osc.frequency.linearRampToValueAtTime(40, now + 0.1);
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc.connect(gain);
+    gain.connect(this.ctx!.destination);
+    osc.start(now);
+    osc.stop(now + 0.2);
+  }
+
+  playSurgeArc() {
+    this.init();
+    const now = this.ctx!.currentTime;
+    const osc = this.ctx!.createOscillator();
+    const gain = this.ctx!.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(60, now);
+    osc.frequency.exponentialRampToValueAtTime(240, now + 1.5);
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.05, now + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+    osc.connect(gain);
+    gain.connect(this.ctx!.destination);
+    osc.start(now);
+    osc.stop(now + 1.5);
   }
 }
 

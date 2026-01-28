@@ -1,26 +1,27 @@
 :root {
-    /* THEME TOKENS: MATRIX-VOLTAGE-VOID */
+    /* THEME TOKENS: V26.5 INDUSTRIAL VOID */
     --void: #050505;
     --surface: #0a0a0a;
     --elevated: #111111;
+    --gunmetal: #0d0f12;
 
     --matrix: #00FF41;
-    --matrix-glow: rgba(0, 255, 65, 0.3);
-    --matrix-dim: rgba(0, 255, 65, 0.1);
+    --matrix-glow: rgba(0, 255, 65, 0.6);
+    --matrix-dim: rgba(0, 255, 65, 0.2);
 
     --voltage: #FFD700;
-    --voltage-glow: rgba(255, 215, 0, 0.3);
-    --voltage-dim: rgba(255, 215, 0, 0.1);
+    --voltage-glow: rgba(255, 215, 0, 0.8);
+    --voltage-dim: rgba(255, 215, 0, 0.3);
 
     --error: #FF3131;
-    --error-glow: rgba(255, 49, 49, 0.3);
+    --error-glow: rgba(255, 49, 49, 0.5);
 
-    --muted: #666666;
+    --muted: #444444;
     --white-soft: rgba(255, 255, 255, 0.8);
 
     /* SCANLINE & TEXTURE */
-    --scanline-opacity: 0.03;
-    --grid-opacity: 0.05;
+    --scanline-opacity: 0.05;
+    --grid-size: 24px;
 }
 
 @tailwind base;
@@ -29,101 +30,240 @@
 
 @layer base {
     body {
-        @apply bg-void text-white font-sans selection:bg-matrix selection:text-void overflow-hidden;
+        @apply bg-void text-white font-mono selection:bg-voltage selection:text-void;
         background-color: var(--void);
+        background-image:
+            linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        background-size: var(--grid-size) var(--grid-size);
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+        /* THE ZERO-SCROLL LAW */
+        position: fixed;
+    }
+
+    * {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    *::-webkit-scrollbar {
+        display: none;
     }
 }
 
 @layer components {
 
-    /* TACTICAL GLASS MORPHISM */
+    /* TACTICAL GLASS: V26.5 SPEC */
     .tactical-glass {
-        @apply backdrop-blur-xl border border-white/5 bg-surface/80;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+        @apply backdrop-blur-md border border-white/10 bg-void/80;
+        box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.9);
     }
 
-    /* SCANLINES EFFECT */
-    .scanlines {
+    /* BRIEFCASE LIGHT-LEAK (PULP FICTION) */
+    .briefcase-glow {
+        position: relative;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+    }
+
+    .briefcase-glow::before {
+        content: '';
+        position: absolute;
+        inset: -1px;
+        background: conic-gradient(from 0deg,
+                transparent 0%,
+                var(--voltage) 25%,
+                transparent 50%,
+                var(--voltage) 75%,
+                transparent 100%);
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        mask-composite: exclude;
+        animation: briefcase-spin 4s linear infinite;
+        opacity: 0.8;
+        pointer-events: none;
+    }
+
+    @keyframes briefcase-spin {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .briefcase-armed {
+        animation: briefcase-pulse 0.5s infinite alternate;
+    }
+
+    @keyframes briefcase-pulse {
+        from {
+            filter: brightness(1) drop-shadow(0 0 5px var(--voltage));
+        }
+
+        to {
+            filter: brightness(1.5) drop-shadow(0 0 30px var(--voltage));
+        }
+    }
+
+    /* SUCCESS GLINT (BLING-BLING) */
+    .success-glint {
         position: relative;
         overflow: hidden;
     }
 
-    .scanlines::after {
-        content: " ";
-        display: block;
+    .success-glint::after {
+        content: '';
         position: absolute;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        right: 0;
-        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-        z-index: 2;
-        background-size: 100% 2px, 3px 100%;
+        top: -100%;
+        left: -100%;
+        width: 300%;
+        height: 300%;
+        background: linear-gradient(45deg,
+                transparent 45%,
+                rgba(255, 255, 255, 0.8) 50%,
+                transparent 55%);
+        animation: glint-sweep 0.8s ease-out forwards;
+    }
+
+    @keyframes glint-sweep {
+        0% {
+            transform: translate(-15%, -15%);
+        }
+
+        100% {
+            transform: translate(15%, 15%);
+        }
+    }
+
+    /* CHASING BORDER (MATRIX ACTIVE) */
+    .chasing-border {
+        position: relative;
+    }
+
+    .chasing-border::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border: 1px solid var(--matrix);
+        mask: linear-gradient(to right, #000 20%, transparent 40%, transparent 60%, #000 80%) 0 0 / 200% 100%;
+        animation: border-chase 1s linear infinite;
+    }
+
+    @keyframes border-chase {
+        from {
+            mask-position: 100% 0;
+        }
+
+        to {
+            mask-position: -100% 0;
+        }
+    }
+
+    /* MATRIX DESCRAMBLE UTILITY */
+    .descramble-lock {
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* CRT SCANLINES - REFINED DEPTH */
+    .crt-overlay {
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(rgba(18, 16, 16, 0) 50%,
+                rgba(0, 0, 0, 0.15) 50%), linear-gradient(90deg,
+                rgba(255, 0, 0, 0.03),
+                rgba(0, 255, 0, 0.02),
+                rgba(0, 0, 255, 0.03));
+        z-index: 9999;
+        background-size: 100% 3px, 4px 100%;
         pointer-events: none;
-        opacity: var(--scanline-opacity);
+        opacity: 0.25;
     }
 
-    /* PULSING UTILITY */
-    .pulse-matrix {
-        animation: pulse-matrix 2s infinite;
+    /* BLINDING FLARE */
+    .strike-flare {
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle, #fff 0%, var(--voltage) 50%, transparent 100%);
+        z-index: 10000;
+        opacity: 0.8;
+        pointer-events: none;
     }
 
-    @keyframes pulse-matrix {
-
-        0%,
-        100% {
-            box-shadow: 0 0 10px var(--matrix-dim);
-            border-color: rgba(0, 255, 65, 0.2);
-        }
-
-        50% {
-            box-shadow: 0 0 25px var(--matrix-glow);
-            border-color: var(--matrix);
-        }
+    /* TACOMA COMPACTION UTILITIES */
+    .tacoma-tight {
+        @apply p-1 m-1 gap-1;
     }
 
-    .pulse-voltage {
-        animation: pulse-voltage 2s infinite;
+    .data-core-slot {
+        @apply h-[30px] flex items-center px-3 border border-white/5 bg-void/40 transition-all duration-300;
     }
 
-    @keyframes pulse-voltage {
-
-        0%,
-        100% {
-            box-shadow: 0 0 10px var(--voltage-dim);
-            border-color: rgba(255, 215, 0, 0.2);
-        }
-
-        50% {
-            box-shadow: 0 0 25px var(--voltage-glow);
-            border-color: var(--voltage);
-        }
-    }
-
-    /* TACTICAL BUTTONS */
-    .btn-tactical {
-        @apply px-6 py-3 rounded-lg font-black uppercase tracking-widest text-[10px] transition-all duration-300 border;
-    }
-
-    .btn-matrix {
-        @apply bg-void text-matrix border-matrix/30 hover:bg-matrix/10 hover:border-matrix hover:shadow-[0_0_15px_var(--matrix-glow)];
-    }
-
-    .btn-voltage {
-        @apply bg-void text-voltage border-voltage/30 hover:bg-voltage/10 hover:border-voltage hover:shadow-[0_0_15px_var(--voltage-glow)];
-    }
-
-    /* CUSTOM SCROLLBAR */
-    .custom-scrollbar::-webkit-scrollbar {
+    /* TACTICAL SCROLLBARS */
+    .custom-scrollbar::-webkit-scrollbar,
+    .custom-scrollbar-voltage::-webkit-scrollbar {
+        display: block;
         width: 4px;
         height: 4px;
     }
 
-    .custom-scrollbar::-webkit-scrollbar-track {
-        background: transparent;
+    .custom-scrollbar::-webkit-scrollbar-track,
+    .custom-scrollbar-voltage::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
     }
 
     .custom-scrollbar::-webkit-scrollbar-thumb {
-        @apply bg-white/10 rounded-full hover:bg-matrix/40 transition-colors;
+        background: var(--matrix-dim);
+        border-radius: 2px;
+    }
+
+    .custom-scrollbar-voltage::-webkit-scrollbar-thumb {
+        background: var(--voltage-dim);
+        border-radius: 2px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: var(--matrix);
+    }
+
+    .custom-scrollbar-voltage::-webkit-scrollbar-thumb:hover {
+        background: var(--voltage);
+    }
+
+    /* GHOST JITTER: INDUSTRIAL ENGINE STRESS */
+    .ghost-jitter {
+        animation: jitter 0.15s infinite;
+    }
+
+    @keyframes jitter {
+        0% {
+            transform: translateY(0);
+        }
+
+        25% {
+            transform: translateY(0.5px);
+        }
+
+        50% {
+            transform: translateY(-0.5px);
+        }
+
+        75% {
+            transform: translateY(0.2px);
+        }
+
+        100% {
+            transform: translateY(0);
+        }
+    }
+
+    .terminal-line {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 9px;
+        line-height: 1.2;
+        color: var(--matrix);
+        white-space: pre-wrap;
     }
 }
