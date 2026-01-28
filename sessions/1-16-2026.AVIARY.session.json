@@ -1,0 +1,43 @@
+{
+  "inputs": {
+    "spark": "",
+    "falcon": "",
+    "eagle": "",
+    "owl": "",
+    "hawk": ""
+  },
+  "outputs": {
+    "spark": "",
+    "falcon": "",
+    "eagle": "",
+    "owl": "",
+    "hawk": ""
+  },
+  "telemetry": {
+    "spark": {
+      "status": "idle"
+    },
+    "falcon": {
+      "status": "idle"
+    },
+    "eagle": {
+      "status": "idle"
+    },
+    "owl": {
+      "status": "idle"
+    },
+    "hawk": {
+      "status": "idle"
+    }
+  },
+  "activePrompts": {
+    "spark": "02_spark_design",
+    "falcon": "03_falcon_architecture",
+    "eagle": "04_eagle_implementation",
+    "owl": "owl_v21",
+    "hawk": "05_hawk_qa"
+  },
+  "owlQueue": [],
+  "name": "AVIARY",
+  "id": "OP_1768605459250"
+}

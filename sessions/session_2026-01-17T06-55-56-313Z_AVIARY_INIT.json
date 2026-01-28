@@ -1,0 +1,43 @@
+{
+  "inputs": {
+    "spark": "",
+    "falcon": "SPARK | VISUAL LANGUAGE SHEET  \nLive Circuit – “Nervous System”\n\n--------------------------------------------------\n1. ROOT TOKENS (Tailwind plugin or CSS variables)\n\n:root {\n  --void: #050505;           /* bg */\n  --matrix: #00FF41;        /* success */\n  --alert: #FF2E4C;          /* failure */\n  --process: #FFD400;        /* processing */\n  --mono: 'JetBrains Mono', monospace;\n  --scan-speed: 6s;\n  --glow-blur: 0 0 4px;\n}\n\n--------------------------------------------------\n2. GLOBAL SCENE CLASSES\n\n.scene {\n  @apply min-h-screen bg-void text-matrix font-mono text-xs leading-none select-none;\n  background-image: repeating-linear-gradient(\n    0deg,\n    rgba(0,255,65,0.03) 0,\n    transparent 1px,\n    transparent 2px,\n    rgba(0,255,65,0.03) 3px\n  );\n  animation: scan var(--scan-speed) linear infinite;\n}\n\n@keyframes scan {\n  0%   { background-position: 0 0; }\n  100% { background-position: 0 100vh; }\n}\n\n--------------------------------------------------\n3. WIRE (THE NERVOUS SYSTEM)\n\n<wire> is an inline SVG <path> inside a <div class=\"wire\">.\n\n.wire {\n  @apply relative block w-full h-full;\n}\n.wire svg {\n  @apply w-full h-full;\n}\n.wire path {\n  stroke-width: 2;\n  stroke-linecap: round;\n  fill: none;\n  stroke: var(--matrix);\n  filter: drop-shadow(var(--glow-blur) var(--matrix));\n  transition: stroke 0.3s ease;\n}\n\n/* STATES */\n.wire[data-state=\"success\"] path {\n  stroke: var(--matrix);\n  filter: drop-shadow(var(--glow-blur) var(--matrix));\n}\n.wire[data-state=\"failure\"] path {\n  stroke: var(--alert);\n  filter: drop-shadow(var(--glow-blur) var(--alert));\n  animation: blink 0.4s steps(2) infinite;\n}\n.wire[data-state=\"processing\"] path {\n  stroke: var(--process);\n  filter: drop-shadow(var(--glow-blur) var(--process));\n}\n\n/* Pulsing light along the wire */\n.wire[data-state=\"processing\"] path {\n  stroke-dasharray: 12 8;\n  stroke-dashoffset: 0;\n  animation: flow 1s linear infinite;\n}\n@keyframes flow {\n  to { stroke-dashoffset: -20; }\n}\n@keyframes blink {\n  50% { opacity: 0; }\n}\n\n--------------------------------------------------\n4. FRAMER MOTION VARIANTS (React)\n\nconst wireStates = {\n  idle:   { filter: 'drop-shadow(0 0 4px #00FF41)' },\n  success:{ filter: 'drop-shadow(0 0 12px #00FF41)' },\n  failure:{\n    filter: 'drop-shadow(0 0 20px #FF2E4C)',\n    opacity: [1,0,1],\n    transition: { repeat: Infinity, duration: 0.4 }\n  },\n  processing:{\n    strokeDashoffset: [0, -20],\n    transition: { repeat: Infinity, ease: 'linear', duration: 1 }\n  }\n};\n\nUsage:\n<motion.path\n  variants={wireStates}\n  animate={state}          // 'idle' | 'success' | 'failure' | 'processing'\n/>\n\n--------------------------------------------------\n5. TEXT & CURSOR FX\n\n.blink::after {\n  content: '▋';\n  @apply inline-block text-matrix animate-pulse;\n}\n\n.text-glow {\n  text-shadow: 0 0 4px var(--matrix), 0 0 8px var(--matrix);\n}\n\n--------------------------------------------------\n6. JIT UTILITY SHORTCUTS (Tailwind)\n\nAdd to tailwind.config.js\n\ntheme: {\n  extend: {\n    colors: {\n      void: 'var(--void)',\n      matrix: 'var(--matrix)',\n      alert: 'var(--alert)',\n      process: 'var(--process)',\n    },\n    fontFamily: { mono: ['var(--mono)'] },\n    animation: {\n      scan: 'scan var(--scan-speed) linear infinite',\n      flow: 'flow 1s linear infinite',\n      blink: 'blink 0.4s steps(2) infinite',\n    },\n  },\n}\n\n--------------------------------------------------\n7. IMPLEMENTATION NOTES\n\n- Use SVG pathLength=\"100\" for consistent dash calculations.  \n- Keep wires inside a <svg viewBox=\"0 0 100 100\"> so Framer’s dashoffset animations scale responsively.  \n- Attach state to the parent .wire, not the SVG, so you can swap colors & filters in one place.  \n- For “point of break” on failure, split the path at the fault coordinate and animate two separate <motion.path> elements with stagger = 0.  \n\nSPARK | END OF SPEC",
+    "eagle": "",
+    "owl": "",
+    "hawk": ""
+  },
+  "outputs": {
+    "spark": "SPARK | VISUAL LANGUAGE SHEET  \nLive Circuit – “Nervous System”\n\n--------------------------------------------------\n1. ROOT TOKENS (Tailwind plugin or CSS variables)\n\n:root {\n  --void: #050505;           /* bg */\n  --matrix: #00FF41;        /* success */\n  --alert: #FF2E4C;          /* failure */\n  --process: #FFD400;        /* processing */\n  --mono: 'JetBrains Mono', monospace;\n  --scan-speed: 6s;\n  --glow-blur: 0 0 4px;\n}\n\n--------------------------------------------------\n2. GLOBAL SCENE CLASSES\n\n.scene {\n  @apply min-h-screen bg-void text-matrix font-mono text-xs leading-none select-none;\n  background-image: repeating-linear-gradient(\n    0deg,\n    rgba(0,255,65,0.03) 0,\n    transparent 1px,\n    transparent 2px,\n    rgba(0,255,65,0.03) 3px\n  );\n  animation: scan var(--scan-speed) linear infinite;\n}\n\n@keyframes scan {\n  0%   { background-position: 0 0; }\n  100% { background-position: 0 100vh; }\n}\n\n--------------------------------------------------\n3. WIRE (THE NERVOUS SYSTEM)\n\n<wire> is an inline SVG <path> inside a <div class=\"wire\">.\n\n.wire {\n  @apply relative block w-full h-full;\n}\n.wire svg {\n  @apply w-full h-full;\n}\n.wire path {\n  stroke-width: 2;\n  stroke-linecap: round;\n  fill: none;\n  stroke: var(--matrix);\n  filter: drop-shadow(var(--glow-blur) var(--matrix));\n  transition: stroke 0.3s ease;\n}\n\n/* STATES */\n.wire[data-state=\"success\"] path {\n  stroke: var(--matrix);\n  filter: drop-shadow(var(--glow-blur) var(--matrix));\n}\n.wire[data-state=\"failure\"] path {\n  stroke: var(--alert);\n  filter: drop-shadow(var(--glow-blur) var(--alert));\n  animation: blink 0.4s steps(2) infinite;\n}\n.wire[data-state=\"processing\"] path {\n  stroke: var(--process);\n  filter: drop-shadow(var(--glow-blur) var(--process));\n}\n\n/* Pulsing light along the wire */\n.wire[data-state=\"processing\"] path {\n  stroke-dasharray: 12 8;\n  stroke-dashoffset: 0;\n  animation: flow 1s linear infinite;\n}\n@keyframes flow {\n  to { stroke-dashoffset: -20; }\n}\n@keyframes blink {\n  50% { opacity: 0; }\n}\n\n--------------------------------------------------\n4. FRAMER MOTION VARIANTS (React)\n\nconst wireStates = {\n  idle:   { filter: 'drop-shadow(0 0 4px #00FF41)' },\n  success:{ filter: 'drop-shadow(0 0 12px #00FF41)' },\n  failure:{\n    filter: 'drop-shadow(0 0 20px #FF2E4C)',\n    opacity: [1,0,1],\n    transition: { repeat: Infinity, duration: 0.4 }\n  },\n  processing:{\n    strokeDashoffset: [0, -20],\n    transition: { repeat: Infinity, ease: 'linear', duration: 1 }\n  }\n};\n\nUsage:\n<motion.path\n  variants={wireStates}\n  animate={state}          // 'idle' | 'success' | 'failure' | 'processing'\n/>\n\n--------------------------------------------------\n5. TEXT & CURSOR FX\n\n.blink::after {\n  content: '▋';\n  @apply inline-block text-matrix animate-pulse;\n}\n\n.text-glow {\n  text-shadow: 0 0 4px var(--matrix), 0 0 8px var(--matrix);\n}\n\n--------------------------------------------------\n6. JIT UTILITY SHORTCUTS (Tailwind)\n\nAdd to tailwind.config.js\n\ntheme: {\n  extend: {\n    colors: {\n      void: 'var(--void)',\n      matrix: 'var(--matrix)',\n      alert: 'var(--alert)',\n      process: 'var(--process)',\n    },\n    fontFamily: { mono: ['var(--mono)'] },\n    animation: {\n      scan: 'scan var(--scan-speed) linear infinite',\n      flow: 'flow 1s linear infinite',\n      blink: 'blink 0.4s steps(2) infinite',\n    },\n  },\n}\n\n--------------------------------------------------\n7. IMPLEMENTATION NOTES\n\n- Use SVG pathLength=\"100\" for consistent dash calculations.  \n- Keep wires inside a <svg viewBox=\"0 0 100 100\"> so Framer’s dashoffset animations scale responsively.  \n- Attach state to the parent .wire, not the SVG, so you can swap colors & filters in one place.  \n- For “point of break” on failure, split the path at the fault coordinate and animate two separate <motion.path> elements with stagger = 0.  \n\nSPARK | END OF SPEC",
+    "falcon": "",
+    "eagle": "",
+    "owl": "",
+    "hawk": ""
+  },
+  "telemetry": {
+    "spark": {
+      "status": "success"
+    },
+    "falcon": {
+      "status": "idle"
+    },
+    "eagle": {
+      "status": "idle"
+    },
+    "owl": {
+      "status": "idle"
+    },
+    "hawk": {
+      "status": "idle"
+    }
+  },
+  "activePrompts": {
+    "spark": "02_spark_design",
+    "falcon": "03_falcon_architecture",
+    "eagle": "04_eagle_implementation",
+    "owl": "owl_v21",
+    "hawk": "05_hawk_qa"
+  },
+  "owlQueue": [],
+  "name": "AVIARY_INIT",
+  "id": "OP_1768632897903"
+}
