@@ -116,6 +116,33 @@ class AudioService {
     this.humOsc = null;
     this.humGain = null;
   }
+
+  playJackpot() {
+    this.init();
+    const now = this.ctx!.currentTime;
+
+    // Simple "Level Complete" arpeggio
+    const notes = [
+      { f: 523.25, t: 0 },    // C5
+      { f: 659.25, t: 0.1 },  // E5
+      { f: 783.99, t: 0.2 },  // G5
+      { f: 1046.50, t: 0.3 }, // C6
+      { f: 1318.51, t: 0.45 } // E6
+    ];
+
+    notes.forEach(note => {
+      const osc = this.ctx!.createOscillator();
+      const gain = this.ctx!.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(note.f, now + note.t);
+      gain.gain.setValueAtTime(0.05, now + note.t);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + note.t + 0.5);
+      osc.connect(gain);
+      gain.connect(this.ctx!.destination);
+      osc.start(now + note.t);
+      osc.stop(now + note.t + 0.5);
+    });
+  }
 }
 
 export const audioService = new AudioService();

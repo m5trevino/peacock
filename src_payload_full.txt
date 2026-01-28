@@ -1,0 +1,2393 @@
+FILE: ./services/api.ts
+import { ModelConfig } from '../types';
+
+const API_BASE = 'http://localhost:3099/v1';
+
+export const api = {
+    async fetchModels(): Promise<ModelConfig[]> {
+        try {
+            const res = await fetch(`${API_BASE}/models`);
+            if (!res.ok) throw new Error('Failed to fetch models');
+            return await res.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            return [];
+        }
+    },
+
+    async executeStrike(params: {
+        modelId: string;
+        prompt: string;
+        temp?: number;
+        format_mode?: string;
+    }): Promise<{ content: string; keyUsed?: string; ipUsed?: string }> {
+        try {
+            const res = await fetch(`${API_BASE}/strike`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(params),
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.detail || 'Strike failed');
+            }
+
+            const data = await res.json();
+            // Handle new backend object format { content, keyUsed }
+            if (typeof data === 'object' && data !== null && 'content' in data) {
+                return {
+                    content: data.content,
+                    keyUsed: data.keyUsed,
+                    ipUsed: data.ipUsed || 'ROTATING_PROXY'
+                };
+            }
+            // Fallback for raw string
+            return { content: typeof data === 'string' ? data : JSON.stringify(data) };
+        } catch (error) {
+            console.error('Strike Error:', error);
+            throw error;
+        }
+    },
+
+    async checkHealth(): Promise<boolean> {
+        try {
+            const res = await fetch('http://localhost:3099/health');
+            return res.ok;
+        } catch {
+            return false;
+        }
+    },
+
+    async fetchStartFiles(): Promise<string[]> {
+        try {
+            const res = await fetch(`${API_BASE}/fs/start`);
+            if (!res.ok) throw new Error('Failed to fetch start files');
+            return await res.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            return [];
+        }
+    },
+
+    async fetchStartFile(fileName: string): Promise<string> {
+        try {
+            const res = await fetch(`${API_BASE}/fs/start/${fileName}`);
+            if (!res.ok) throw new Error('Failed to fetch file content');
+            const data = await res.json();
+            return data.content;
+        } catch (error) {
+            console.error('API Error:', error);
+            return '';
+        }
+    },
+
+    async fetchPrompts(phase: string): Promise<import('../types').PromptAsset[]> {
+        try {
+            const res = await fetch(`${API_BASE}/fs/prompts/${phase}`);
+            if (!res.ok) throw new Error('Failed to fetch prompts');
+            return await res.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            return [];
+        }
+    }
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./services/geminiService.ts
+
+import { GoogleGenAI } from "@google/genai";
+
+// Initialize the Google GenAI client with the API key from environment variables.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+export const performIntelligentMerge = async (
+  template: string,
+  newData: string,
+  instruction: string
+): Promise<string> => {
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: `
+        SYSTEM INSTRUCTION: You are "The Architect," a high-performance cognitive processor specializing in structural text integration.
+        
+        TASK: Intelligently merge NEW DATA into a SOURCE TEMPLATE based on the provided STRATEGIC INSTRUCTION.
+        
+        STRATEGIC INSTRUCTION:
+        ${instruction}
+
+        SOURCE TEMPLATE (The Blueprint):
+        """
+        ${template}
+        """
+
+        NEW DATA (The Payload):
+        """
+        ${newData}
+        """
+
+        OPERATIONAL RULES:
+        1. IDENTIFY THE RIGHT SPOT: Look for placeholders like [Pending Merge], [REQUIREMENTS_CONTENT_HERE], or logical thematic breaks where the new data strengthens the narrative.
+        2. MAINTAIN STRUCTURE: Do not delete the fundamental headers or organizational hierarchy of the SOURCE TEMPLATE unless explicitly instructed.
+        3. SYNCHRONIZE: Adapt the language of the NEW DATA to match the tone of the SOURCE TEMPLATE if necessary.
+        4. NO CHATTER: Return ONLY the final, merged, and polished text. No introductions or explanations.
+      `,
+    });
+
+    return response.text || "Error: System failed to generate merged output.";
+  } catch (error) {
+    console.error("Gemini Merge Error:", error);
+    throw error;
+  }
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./services/db.ts
+import Dexie, { Table } from 'dexie';
+
+export interface StrikeLog {
+    id?: number;
+    timestamp: number;
+    modelId: string;
+    prompt: string;
+    response: string;
+    latency?: number;
+    status: 'success' | 'error';
+    sessionId?: number;
+}
+
+export interface Session {
+    id?: number;
+    name: string;
+    timestamp: number;
+    lastUpdated: number;
+    data: string; // JSON snapshot of full state
+}
+
+class PeacockDB extends Dexie {
+    logs!: Table<StrikeLog>;
+    sessions!: Table<Session>;
+
+    constructor() {
+        super('PeacockDB_V21');
+        this.version(1).stores({
+            logs: '++id, timestamp, modelId, status'
+        });
+
+        this.version(2).stores({
+            logs: '++id, timestamp, modelId, status, sessionId',
+            sessions: '++id, timestamp, lastUpdated'
+        });
+    }
+}
+
+export const db = new PeacockDB();
+-e 
+--- END OF FILE ---
+
+FILE: ./services/audioService.ts
+
+class AudioService {
+  private ctx: AudioContext | null = null;
+
+  private init() {
+    if (!this.ctx) {
+      this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+  }
+
+  playSuccess() {
+    this.init();
+    const osc = this.ctx!.createOscillator();
+    const gain = this.ctx!.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, this.ctx!.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1320, this.ctx!.currentTime + 0.1);
+
+    gain.gain.setValueAtTime(0.1, this.ctx!.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx!.currentTime + 0.4);
+
+    osc.connect(gain);
+    gain.connect(this.ctx!.destination);
+
+    osc.start();
+    osc.stop(this.ctx!.currentTime + 0.4);
+  }
+
+  playError() {
+    this.init();
+    const osc = this.ctx!.createOscillator();
+    const gain = this.ctx!.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(110, this.ctx!.currentTime);
+    osc.frequency.linearRampToValueAtTime(55, this.ctx!.currentTime + 0.3);
+
+    gain.gain.setValueAtTime(0.1, this.ctx!.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, this.ctx!.currentTime + 0.3);
+
+    osc.connect(gain);
+    gain.connect(this.ctx!.destination);
+
+    osc.start();
+    osc.start();
+    osc.stop(this.ctx!.currentTime + 0.3);
+  }
+
+  playScaleNote(index: number) {
+    this.init();
+    const osc = this.ctx!.createOscillator();
+    const gain = this.ctx!.createGain();
+
+    // C Major Scale frequencies (C4 to C5)
+    // Do, Re, Mi, Fa, Sol, La, Ti, Do
+    const scale = [
+      261.63, // C4
+      293.66, // D4
+      329.63, // E4
+      349.23, // F4
+      392.00, // G4
+      440.00, // A4
+      493.88, // B4
+      523.25  // C5
+    ];
+
+    const noteIndex = index % scale.length;
+    const freq = scale[noteIndex];
+
+    osc.type = 'triangle'; // Softer, more flute-like for the scale
+    osc.frequency.setValueAtTime(freq, this.ctx!.currentTime);
+
+    // Envelope for a clean "ding"
+    gain.gain.setValueAtTime(0, this.ctx!.currentTime);
+    gain.gain.linearRampToValueAtTime(0.1, this.ctx!.currentTime + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx!.currentTime + 0.5);
+
+    osc.connect(gain);
+    gain.connect(this.ctx!.destination);
+
+    osc.start();
+    osc.stop(this.ctx!.currentTime + 0.5);
+  }
+  private humOsc: OscillatorNode | null = null;
+  private humGain: GainNode | null = null;
+
+  startHum() {
+    this.init();
+    if (this.humOsc) return;
+
+    this.humOsc = this.ctx!.createOscillator();
+    this.humGain = this.ctx!.createGain();
+
+    this.humOsc.type = 'sine';
+    this.humOsc.frequency.setValueAtTime(50, this.ctx!.currentTime); // Low hum
+
+    this.humGain.gain.setValueAtTime(0, this.ctx!.currentTime);
+    this.humGain.gain.linearRampToValueAtTime(0.02, this.ctx!.currentTime + 2); // Fade in
+
+    this.humOsc.connect(this.humGain);
+    this.humGain.connect(this.ctx!.destination);
+
+    this.humOsc.start();
+  }
+
+  stopHum() {
+    if (!this.humOsc || !this.humGain) return;
+
+    const now = this.ctx!.currentTime;
+    this.humGain.gain.cancelScheduledValues(now);
+    this.humGain.gain.setValueAtTime(this.humGain.gain.value, now);
+    this.humGain.gain.linearRampToValueAtTime(0, now + 0.5);
+
+    this.humOsc.stop(now + 0.5);
+    this.humOsc = null;
+    this.humGain = null;
+  }
+
+  playJackpot() {
+    this.init();
+    const now = this.ctx!.currentTime;
+
+    // Simple "Level Complete" arpeggio
+    const notes = [
+      { f: 523.25, t: 0 },    // C5
+      { f: 659.25, t: 0.1 },  // E5
+      { f: 783.99, t: 0.2 },  // G5
+      { f: 1046.50, t: 0.3 }, // C6
+      { f: 1318.51, t: 0.45 } // E6
+    ];
+
+    notes.forEach(note => {
+      const osc = this.ctx!.createOscillator();
+      const gain = this.ctx!.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(note.f, now + note.t);
+      gain.gain.setValueAtTime(0.05, now + note.t);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + note.t + 0.5);
+      osc.connect(gain);
+      gain.connect(this.ctx!.destination);
+      osc.start(now + note.t);
+      osc.stop(now + note.t + 0.5);
+    });
+  }
+}
+
+export const audioService = new AudioService();
+-e 
+--- END OF FILE ---
+
+FILE: ./config/protocols.ts
+export const STAGE_HEADERS = {
+    nexus: "ELITE INTEL TRIAGE",
+    spark: "REQUIREMENTS ANALYST",
+    falcon: "SOLUTION ARCHITECT",
+    eagle: "SENIOR DEVELOPER",
+    hawk: "SENIOR QA ENGINEER"
+};
+
+export const PROTOCOLS = {
+    nexus: `ACT AS THE "NEXUS DEBRIEFER".
+YOUR MISSION: Analyze the User's Request (INPUT) and output a "Tactical Brief" (OUTPUT).
+FORMAT:
+- DOMAIN: [Category]
+- COMPLEXITY: [1-10]
+- CONTEXT: [Summary]
+- STRATEGY: [Rec]
+NO CODE. NO FLUFF.`,
+
+    spark: `ACT AS "SPARK", THE REQUIREMENTS LOOM.
+YOUR MISSION: Take the Nexus Brief (INPUT) and weave a "Functional Spec" (OUTPUT).
+FOCUS:
+- User Stories
+- Data Models
+- API Contracts
+NO CODE. PURE LOGIC.`,
+
+    falcon: `ACT AS "FALCON", THE ARCHITECT.
+YOUR MISSION: Transform the Spark Spec (INPUT) into a "File Structure Blueprint" (OUTPUT).
+FORMAT:
+- src/
+  - components/
+  - hooks/
+NO CODE BLOCKS. JUST TREE STRUCTURE.`,
+
+    eagle: `ACT AS "EAGLE", THE BUILDER.
+YOUR MISSION: Write the skeleton code for the Blueprint (INPUT).
+CRITICAL OUTPUT FORMAT:
+You MUST output a VALID JSON object with this exact structure:
+{
+  "project": "Project Name",
+  "files": [
+    {
+      "path": "src/components/Example.tsx",
+      "skeleton": "// Code here...",
+      "directives": "Implement using React hooks..."
+    }
+  ]
+}
+DO NOT USE MARKDOWN CODE BLOCKS around the JSON.
+Just raw JSON.`,
+
+    owl: `ACT AS "OWL", THE OPTIMIZER.
+YOUR MISSION: Refine and Polish the Eagle Code (INPUT).
+INPUT FORMAT:
+CONTEXT_FILE: [Path]
+DIRECTIVES: [Instructions]
+SKELETON_CODE:
+[Code]
+
+YOUR TASK:
+1. Implement the FULL code based on the skeleton and directives.
+2. Ensure no placeholders remain.
+3. Output ONLY the code content. No markdown wrappers.`,
+
+    hawk: `ACT AS "HAWK", THE VERIFIER.
+YOUR MISSION: Review the Eagle Code (INPUT) for bugs, security risks, and performance issues.
+OUTPUT:
+- PASS/FAIL
+- CRITICAL FIXES
+- OPTIMIZATIONS`
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./config/constants.ts
+import { PipelineStage } from '../types';
+
+export const THEME = {
+    void: '#050505',
+    surface: '#0A0B0D',
+    elevated: '#121418',
+    matrix: '#00FF41',
+    voltage: '#FFD700',
+    spark: '#0066FF',
+    falcon: '#BC13FE',
+    eagle: '#FF8C00',
+    error: '#FF3131',
+    glass: 'rgba(5, 5, 5, 0.85)',
+};
+
+export const STAGES = [
+    { id: PipelineStage.SPARK, label: 'SPARK', color: THEME.spark, icon: '⚡' },
+    { id: PipelineStage.FALCON, label: 'FALCON', color: THEME.falcon, icon: '🦅' },
+    { id: PipelineStage.EAGLE, label: 'EAGLE', color: THEME.eagle, icon: '🦅' },
+    { id: PipelineStage.OWL, label: 'OWL', color: THEME.matrix, icon: '🦉' },
+    { id: PipelineStage.HAWK, label: 'HAWK', color: THEME.matrix, icon: '🦅' }
+];
+
+export const ENGINE_URL = 'http://localhost:3099/v1';
+
+export const EAGLE_JSON_SCHEMA = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "eagle_scaffold",
+        "strict": true,
+        "schema": {
+            "type": "object",
+            "properties": {
+                "project": { "type": "string" },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "path": { "type": "string" },
+                            "skeleton": { "type": "string" },
+                            "directives": { "type": "string" }
+                        },
+                        "required": ["path", "skeleton", "directives"],
+                        "additionalProperties": false
+                    }
+                }
+            },
+            "required": ["project", "files"],
+            "additionalProperties": false
+        }
+    }
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./utils/engineUtils.ts
+import { OwlFile } from '../types';
+
+export const parseEagleResponse = (content: any): OwlFile[] => {
+    const queue: OwlFile[] = [];
+
+    // V21: Handle pre-parsed Object (from backend Pydantic model)
+    if (typeof content === 'object' && content !== null) {
+        if (content.files && Array.isArray(content.files)) {
+            content.files.forEach((file: any, index: number) => {
+                queue.push({
+                    id: `owl_file_obj_${Date.now()}_${index}`,
+                    path: file.path,
+                    skeleton: file.skeleton,
+                    directives: file.directives || "Follow standard implementation patterns.",
+                    status: 'pending'
+                });
+            });
+            console.log(`[ENGINE] Handled ${queue.length} files from Structured Object.`);
+            return queue;
+        }
+    }
+
+    // Convert to string for regex strategies if not an object
+    const strContent = typeof content === 'string' ? content : JSON.stringify(content);
+
+    try {
+        // Strategy 1: Find JSON block (strips markdown ```json wrapper if present)
+        const jsonMatch = strContent.match(/\{[\s\S]*\}/);
+
+        // Attempt to parse if match found, or try raw content
+        const jsonString = jsonMatch ? jsonMatch[0] : content;
+        const data = JSON.parse(jsonString);
+
+        if (data.files && Array.isArray(data.files)) {
+            data.files.forEach((file: any, index: number) => {
+                queue.push({
+                    id: `owl_file_${Date.now()}_${index}`,
+                    path: file.path,
+                    skeleton: file.skeleton,
+                    directives: file.directives || "Follow standard implementation patterns.",
+                    status: 'pending'
+                });
+            });
+            console.log(`[ENGINE] Successfully parsed ${queue.length} files from JSON.`);
+            return queue;
+        }
+    } catch (error) {
+        console.warn('[ENGINE] JSON Parsing failed, attempting fallback strategies...', error);
+    }
+
+    // Strategy 2: Fallback to Regex for Files (if JSON fails)
+    // Matches: { "path": "...", "skeleton": "...", ... } objects loosely
+    // This is less reliable but catches partial JSON streams
+    if (queue.length === 0) {
+        console.warn('[ENGINE] Attempting legacy EOF regex fallback...');
+        const eofRegex = /mkdir -p ([\w\/.-]+)\s+cat << 'EOF' > ([\w\/.-]+)\s+([\s\S]+?)EOF/g;
+        let match;
+        let count = 0;
+
+        while ((match = eofRegex.exec(content)) !== null) {
+            queue.push({
+                id: `owl_file_fallback_${Date.now()}_${count++}`,
+                path: match[2].trim(),
+                skeleton: match[3],
+                directives: "Extracted from EOF block (Fallback Mode)",
+                status: 'pending'
+            });
+        }
+    }
+
+    return queue;
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./utils/scriptGenerators.ts
+import { OwlFile } from '../types';
+
+export const generateScaffoldScript = (files: OwlFile[]) => {
+    let script = "#!/bin/bash\n\n";
+    const dirs = [...new Set(files.map(f => f.path.split('/').slice(0, -1).join('/')))].filter(d => d !== "");
+    dirs.forEach(d => script += `mkdir -p "${d}"\n`);
+    files.forEach(f => {
+        script += `\ncat << 'PEACOCK_EOF' > ${f.path}\n${f.skeleton}\n\n/* 
+DNA_CONTRACT:\n${f.directives}\n*/\nPEACOCK_EOF\n`;
+    });
+    return script;
+};
+
+export const generateOverwriteScript = (path: string, content: string) => {
+    const dir = path.split('/').slice(0, -1).join('/');
+
+    // V21 SMART DETECT: If content already has heredoc, don't wrap it.
+    if (content.trim().startsWith('mkdir') || content.includes('cat <<')) {
+        return content;
+    }
+
+    return `mkdir -p "${dir}"\nchmod 755 "${dir}"\ncat << 'PEACOCK_EOF' > ${path}\n${content}\nPEACOCK_EOF\nchmod 644 ${path}`;
+};
+
+export const generateFullDeployScript = (files: OwlFile[]) => {
+    let script = "#!/bin/bash\n\n# PEACOCK V21 AUTO-DEPLOY\n# PROJECT: CASEFLOW_PRO (INFERRED)\n\n";
+
+    files.filter(f => f.status === 'completed').forEach(f => {
+        const dir = f.path.split('/').slice(0, -1).join('/');
+
+        // V21 SMART DETECT: If content is already a script, append it directly.
+        if (f.output && (f.output.includes('cat <<') || f.output.includes('mkdir -p'))) {
+            script += `\n# --- ${f.path} ---\n${f.output}\n\n`;
+        } else {
+            // Legacy/Fallback Wrapping
+            script += `mkdir -p "${dir}"\nchmod 755 "${dir}"\ncat << 'PEACOCK_EOF' > ${f.path}\n${f.output}\nPEACOCK_EOF\nchmod 644 ${f.path}\n\n`;
+        }
+    });
+
+    script += "\n\necho '[✅] DEPLOYMENT COMPLETE'\n";
+    return script;
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./core/PeacockEngine.ts
+import { api } from '../services/api';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+
+export enum PipelineStage {
+    SPARK = 'spark',
+    FALCON = 'falcon',
+    EAGLE = 'eagle',
+    OWL = 'owl',
+    HAWK = 'hawk'
+}
+
+export interface OwlFile {
+    id: string;
+    path: string;
+    status: 'pending' | 'success' | 'error';
+    skeleton: string;
+    directives: string;
+    output?: string;
+    keyUsed?: string;
+    ipUsed?: string;
+    processedAt?: number;
+}
+
+export interface StrikeMeta {
+    timestamp: number;
+    key: string;
+    ip: string;
+    model: string;
+}
+
+export class PeacockEngine {
+    // State
+    inputs: Record<string, string> = {};
+    outputs: Record<string, string> = {};
+    prompts: Record<string, string> = {};
+    activeStage: PipelineStage = PipelineStage.SPARK;
+    owlQueue: OwlFile[] = [];
+    lastCallMeta: StrikeMeta | null = null;
+    telemetry: any = {};
+
+    constructor() {
+        this.resetState();
+    }
+
+    resetState() {
+        this.inputs = {
+            [PipelineStage.SPARK]: '',
+            [PipelineStage.FALCON]: '',
+            [PipelineStage.EAGLE]: '',
+            [PipelineStage.OWL]: '',
+            [PipelineStage.HAWK]: ''
+        };
+        this.outputs = {};
+        this.activeStage = PipelineStage.SPARK;
+        this.owlQueue = [];
+    }
+
+    async loadPrompt(stage: PipelineStage, filePath: string): Promise<void> {
+        try {
+            const content = await fs.readFile(filePath, 'utf-8');
+            this.prompts[stage] = content;
+            console.log(`[ENGINE] Loaded prompt for ${stage} from ${filePath}`);
+        } catch (error) {
+            console.error(`[ENGINE] Failed to load prompt: ${error}`);
+            throw error;
+        }
+    }
+
+    setPromptContent(stage: PipelineStage, content: string) {
+        this.prompts[stage] = content;
+    }
+
+    setInput(stage: PipelineStage, content: string) {
+        this.inputs[stage] = content;
+    }
+
+    async executeStrike(stage: PipelineStage, modelId: string = 'models/gemini-2.0-flash'): Promise<string> {
+        console.log(`[ENGINE] Striking ${stage} with model ${modelId}...`);
+
+        const prompt = this.prompts[stage];
+        const payload = this.inputs[stage];
+
+        if (!prompt) throw new Error(`No prompt loaded for ${stage}`);
+
+        // Construct full prompt
+        const fullPrompt = `${prompt}\n\n${payload}`;
+
+        try {
+            const response = await api.executeStrike({
+                modelId,
+                prompt: fullPrompt,
+                temp: 0.7
+            });
+
+            this.outputs[stage] = response.content;
+
+            this.lastCallMeta = {
+                timestamp: Date.now(),
+                key: response.keyUsed || 'UNKNOWN',
+                ip: response.ipUsed || 'UNKNOWN',
+                model: modelId
+            };
+
+            // Post-processing
+            if (stage === PipelineStage.EAGLE) {
+                this.parseEagleResponse(response.content);
+            }
+
+            return response.content;
+        } catch (error) {
+            console.error(`[ENGINE] Strike failed: ${error}`);
+            throw error;
+        }
+    }
+
+    parseEagleResponse(content: string) {
+        console.log('[ENGINE] Parsing Eagle Response...');
+        this.owlQueue = [];
+
+        try {
+            // Find JSON block
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) throw new Error('No JSON found in response');
+
+            const data = JSON.parse(jsonMatch[0]);
+
+            if (data.files && Array.isArray(data.files)) {
+                data.files.forEach((file: any, index: number) => {
+                    this.owlQueue.push({
+                        id: `file-${index}`,
+                        path: file.path,
+                        status: 'pending',
+                        skeleton: file.skeleton,
+                        directives: file.directives || "Follow standard implementation patterns."
+                    });
+                });
+            }
+            console.log(`[ENGINE] Successfully parsed ${this.owlQueue.length} files from JSON.`);
+        } catch (error) {
+            console.warn('[ENGINE] JSON Parsing failed, falling back to legacy EOF regex...');
+            // Fallback to legacy EOF regex
+            const eofRegex = /mkdir -p ([\w\/.-]+)\s+cat << 'EOF' > ([\w\/.-]+)\s+([\s\S]+?)EOF/g;
+            let match;
+            let count = 0;
+            while ((match = eofRegex.exec(content)) !== null) {
+                this.owlQueue.push({
+                    id: `file-${count++}`,
+                    path: match[2].trim(),
+                    status: 'pending',
+                    skeleton: match[3],
+                    directives: "Extracted from EOF block."
+                });
+            }
+            console.log(`[ENGINE] Fallback parsed ${this.owlQueue.length} files.`);
+        }
+    }
+
+    async executeOwlStrike(fileId: string, modelId: string = 'models/gemini-2.0-flash'): Promise<string> {
+        const file = this.owlQueue.find(f => f.id === fileId);
+        if (!file) throw new Error('File not found');
+
+        const prompt = this.prompts[PipelineStage.OWL];
+        if (!prompt) throw new Error('No Owl prompt loaded');
+
+        // Construct Payload
+        const payload = `
+CONTEXT_FILE: ${file.path}
+DIRECTIVES: ${file.directives}
+SKELETON_CODE:
+${file.skeleton}
+`;
+        const fullPrompt = `${prompt}\n\n${payload}`;
+
+        console.log(`[ENGINE] Striking Owl for ${file.path}...`);
+
+        try {
+            const response = await api.executeStrike({
+                modelId,
+                prompt: fullPrompt,
+                temp: 0.2 // Lower temp for code
+            });
+
+            file.output = response.content;
+            file.keyUsed = response.keyUsed;
+            file.ipUsed = response.ipUsed;
+            file.processedAt = Date.now();
+            file.status = 'success';
+
+            this.lastCallMeta = {
+                timestamp: Date.now(),
+                key: response.keyUsed || 'UNKNOWN',
+                ip: response.ipUsed || 'UNKNOWN',
+                model: modelId
+            };
+
+            return response.content;
+        } catch (error) {
+            file.status = 'error';
+            console.error(`[ENGINE] Owl Strike failed for ${file.path}: ${error}`);
+            throw error;
+        }
+    }
+
+    getTimeSinceLastStrike(): number {
+        if (!this.lastCallMeta) return Infinity;
+        return (Date.now() - this.lastCallMeta.timestamp) / 1000;
+    }
+
+    generateDeployScript(): string {
+        if (this.owlQueue.length === 0) return '# No files to deploy';
+
+        let script = '#!/bin/bash\n# Peacock Deploy Script\n\n';
+
+        for (const file of this.owlQueue) {
+            if (file.status === 'success' && file.output) {
+                script += `echo "Deploying ${file.path}..."\n`;
+                script += `mkdir -p $(dirname "${file.path}")\n`;
+
+                // Use EOF with delimiter that won't conflict
+                const delimiter = 'PeacockEndOF';
+                script += `cat << '${delimiter}' > "${file.path}"\n`;
+                script += file.output + '\n';
+                script += `${delimiter}\n\n`;
+            }
+        }
+
+        return script;
+    }
+}
+
+-e 
+--- END OF FILE ---
+
+FILE: ./types.ts
+export enum PipelineStage {
+    SPARK = 'spark',
+    FALCON = 'falcon',
+    EAGLE = 'eagle',
+    OWL = 'owl',
+    HAWK = 'hawk'
+}
+
+export interface ModelConfig {
+    id: string;
+    gateway: string;
+    tier?: string;
+    note?: string;
+    contextParams?: any;
+}
+
+export interface StageSettings {
+    model: string;
+    temperature: number;
+}
+
+export interface CasinoSettings {
+    enabled: boolean;
+    audio: boolean;
+    volume: number;
+}
+
+export interface CallTelemetry {
+    status: 'idle' | 'loading' | 'success' | 'error';
+    exitIP?: string;
+    assetLabel?: string;
+    latency?: number;
+}
+
+export interface OwlFile {
+    id: string;
+    path: string;
+    skeleton: string;
+    directives: string;
+    status: 'pending' | 'completed';
+    output?: string;
+}
+
+export interface PromptAsset {
+    id: string;
+    name: string;
+    content: string;
+}
+
+export interface SessionData {
+    name: string;
+    inputs: Record<string, string>;
+    outputs: Record<string, string>;
+    telemetry: Record<string, CallTelemetry>;
+    activePrompts: Record<string, string>;
+    owlQueue: OwlFile[];
+}
+
+export interface LogEntry {
+    id: string;
+    timestamp: number;
+    message: string;
+    type: 'info' | 'success' | 'warning' | 'error';
+}
+-e 
+--- END OF FILE ---
+
+FILE: ./hooks/useModelRegistry.ts
+import { useState, useEffect } from 'react';
+import { api } from '../services/api';
+import { ModelConfig } from '../types';
+
+export function useModelRegistry() {
+    const [models, setModels] = useState<ModelConfig[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let mounted = true;
+
+        async function load() {
+            try {
+                const data = await api.fetchModels();
+                if (mounted) {
+                    setModels(data);
+                    setLoading(false);
+                }
+            } catch (err) {
+                if (mounted) {
+                    setError('Failed to load arsenal');
+                    setLoading(false);
+                }
+            }
+        }
+
+        load();
+        return () => { mounted = false; };
+    }, []);
+
+    return { models, loading, error };
+}
+-e 
+--- END OF FILE ---
+
+FILE: ./components/views/SessionManager.tsx
+import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { db, Session } from '../../services/db';
+import { audioService } from '../../services/audioService';
+
+interface SessionManagerProps {
+    isOpen: boolean;
+    onClose: () => void;
+    currentSessionId: number | null;
+    onLoadSession: (session: Session) => void;
+    onNewSession: () => void;
+}
+
+export const SessionManager: React.FC<SessionManagerProps> = ({
+    isOpen, onClose, currentSessionId, onLoadSession, onNewSession
+}) => {
+    const [sessions, setSessions] = useState<Session[]>([]);
+
+    useEffect(() => {
+        if (isOpen) {
+            loadSessions();
+        }
+    }, [isOpen]);
+
+    const loadSessions = async () => {
+        const all = await db.sessions.orderBy('lastUpdated').reverse().toArray();
+        setSessions(all);
+    };
+
+    const handleDelete = async (id: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (confirm('AUTHORIZATION REQUIRED: CONFIRM PURGE?')) {
+            await db.sessions.delete(id);
+            await db.logs.where('sessionId').equals(id).delete();
+            audioService.playError(); // Destruction sound
+            loadSessions();
+        }
+    };
+
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex justify-end">
+                    <motion.div
+                        initial={{ x: '100%' }}
+                        animate={{ x: 0 }}
+                        exit={{ x: '100%' }}
+                        className="w-96 h-full bg-[#0A0B0D] border-l border-white/10 flex flex-col shadow-2xl"
+                    >
+                        <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+                            <h2 className="text-xl font-black italic text-white tracking-tight uppercase">TIMELINE</h2>
+                            <button onClick={onClose} className="text-muted hover:text-white transition-colors">✕</button>
+                        </div>
+
+                        <div className="p-6 border-b border-white/5">
+                            <button
+                                onClick={() => { onNewSession(); onClose(); }}
+                                className="w-full py-4 bg-void border border-matrix/30 text-matrix font-black uppercase tracking-widest hover:bg-matrix/10 hover:shadow-[0_0_20px_rgba(0,255,65,0.1)] transition-all rounded-xl"
+                            >
+                                + NEW_OPERATION
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4 custom-scrollbar">
+                            {sessions.map(s => (
+                                <div
+                                    key={s.id}
+                                    onClick={() => { onLoadSession(s); onClose(); }}
+                                    className={`p-4 rounded-xl border transition-all cursor-pointer group relative ${s.id === currentSessionId ? 'bg-white/10 border-white/30 shadow-lg' : 'bg-void border-white/5 hover:border-white/20'}`}
+                                >
+                                    <div className="flex justify-between items-start mb-2">
+                                        <span className="text-[10px] font-bold text-muted uppercase tracking-widest">OP_ID: {s.id}</span>
+                                        <button onClick={(e) => handleDelete(s.id!, e)} className="text-[10px] text-error opacity-0 group-hover:opacity-100 transition-opacity hover:underline">PURGE</button>
+                                    </div>
+                                    <h4 className="text-sm font-bold text-white mb-1 truncate">{s.name || 'Unknown Operation'}</h4>
+                                    <span className="text-[10px] font-mono text-white/30">
+                                        {new Date(s.lastUpdated).toLocaleString()}
+                                    </span>
+
+                                    {s.id === currentSessionId && (
+                                        <div className="absolute right-4 bottom-4 w-2 h-2 bg-matrix rounded-full animate-pulse shadow-[0_0_10px_#00FF41]" />
+                                    )}
+                                </div>
+                            ))}
+
+                            {sessions.length === 0 && (
+                                <div className="text-center py-10 text-white/20 text-xs font-mono italic">
+                                    // NO_TIMELINE_DATA
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
+    );
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./components/views/OwlHangar.tsx
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { PipelineStage, OwlFile, ModelConfig, StageSettings } from '../../types';
+import { audioService } from '../../services/audioService';
+import { generateOverwriteScript, generateFullDeployScript } from '../../utils/scriptGenerators';
+
+interface OwlHangarProps {
+    queue: OwlFile[];
+    executeStrike: (fileId: string) => void;
+    stageSettings: Record<string, StageSettings>;
+    onInspect: (fileId: string) => void;
+    audioEnabled?: boolean;
+    rawEagleResponse?: string; // V21: Inject raw response for inspection
+}
+
+export const OwlHangar: React.FC<OwlHangarProps> = ({
+    queue,
+    executeStrike,
+    stageSettings,
+    onInspect,
+    audioEnabled = true,
+    rawEagleResponse = "NO_DATA"
+}) => {
+    // Find the currently active file (first pending or last active)
+    const activeFileId = queue.find(f => f.status === 'pending')?.id;
+    const completedCount = queue.filter(f => f.status === 'completed').length;
+    const isAllComplete = completedCount === queue.length && queue.length > 0;
+    const [showRaw, setShowRaw] = React.useState(false);
+    const [showRawType, setShowRawType] = React.useState<'global' | 'file'>('global');
+    const [showRawFileId, setShowRawFileId] = React.useState<string | null>(null);
+
+    // Calculate progress
+    const progress = queue.length > 0 ? (completedCount / queue.length) * 100 : 0;
+
+    return (
+        <div className="w-full max-w-[1800px] h-full flex gap-8">
+
+            {/* LEFT RAIL: PRODUCTION QUEUE */}
+            <div className="w-96 flex flex-col gap-4 h-full">
+                <div className="bg-surface/50 border border-white/10 rounded-2xl p-6 flex flex-col gap-2">
+                    <h2 className="text-xl font-black italic text-white tracking-tight uppercase">Owl_Hangar</h2>
+                    <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${isAllComplete ? 'bg-matrix shadow-[0_0_10px_#00FF41]' : 'bg-voltage animate-pulse'}`} />
+                        <span className="text-[10px] font-bold text-muted uppercase tracking-widest">{isAllComplete ? 'PRODUCTION_COMPLETE' : 'ASSEMBLY_ACTIVE'}</span>
+                        <button onClick={() => setShowRaw(!showRaw)} className="ml-auto text-[9px] font-bold text-white/40 hover:text-white uppercase transition-colors">
+                            {showRaw ? 'HIDE_INTEL' : 'VIEW_RAW'}
+                        </button>
+                    </div>
+
+                    {/* PROGRESS BADGE */}
+                    <div className="mt-4 relative h-24 bg-void border border-white/10 rounded-xl flex items-center justify-center overflow-hidden">
+                        <div className="absolute inset-0 bg-matrix/10 z-0" style={{ transform: `scaleX(${progress / 100})`, transformOrigin: 'left', transition: 'transform 1s ease' }} />
+                        <div className="z-10 text-center">
+                            <span className="text-3xl font-black text-white">{completedCount} <span className="text-white/30">/</span> {queue.length}</span>
+                            <span className="block text-[9px] font-bold text-matrix uppercase tracking-widest mt-1">FILES_WRITTEN</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex-1 bg-void/30 border border-white/5 rounded-2xl p-4 overflow-y-auto custom-scrollbar flex flex-col gap-3">
+                    {queue.map((f, i) => {
+                        const isActive = f.id === activeFileId;
+                        const isDone = f.status === 'completed';
+
+                        return (
+                            <div
+                                key={f.id}
+                                className={`p-4 rounded-xl border transition-all relative overflow-hidden group ${isActive ? 'bg-white/5 border-white/20 shadow-lg' :
+                                    isDone ? 'bg-matrix/5 border-matrix/30 opacity-60 hover:opacity-100' :
+                                        'bg-void border-white/5 opacity-40'
+                                    }`}
+                            >
+                                <div className="flex justify-between items-start mb-2">
+                                    <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">DOC</span>
+
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setShowRawType('file');
+                                                setShowRawFileId(f.id);
+                                                setShowRaw(true);
+                                            }}
+                                            className="text-[9px] font-bold text-white/20 hover:text-white uppercase transition-colors"
+                                        >
+                                            INSPECT
+                                        </button>
+                                        {isDone && <span className="text-matrix">✓</span>}
+                                    </div>
+                                </div>
+                                <h4 className={`text-sm font-bold truncate mb-3 ${isActive ? 'text-white' : isDone ? 'text-matrix' : 'text-muted'}`}>{f.path.split('/').pop()}</h4>
+
+                                <div className="flex gap-2">
+                                    {isDone ? (
+                                        <button
+                                            onClick={() => { navigator.clipboard.writeText(generateOverwriteScript(f.path, f.output || '')); if (audioEnabled) audioService.playSuccess(); }}
+                                            className="flex-1 py-2 bg-matrix text-void text-[10px] font-black uppercase rounded hover:bg-white transition-colors"
+                                        >
+                                            COPY_WRITTEN_FILE
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={() => isActive && executeStrike(f.id)}
+                                            disabled={!isActive}
+                                            className={`flex-1 py-2 text-[10px] font-black uppercase rounded transition-colors ${isActive ? 'bg-voltage text-void hover:bg-white' : 'bg-white/5 text-white/20 cursor-not-allowed'}`}
+                                        >
+                                            {isActive ? 'SEND_API_CALL' : 'WAITING'}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* CENTER: CONSOLE / MONITORING */}
+            <div className="flex-1 bg-surface/30 border border-white/10 rounded-2xl p-8 relative overflow-hidden flex flex-col">
+                {/* OVERLAY IF LOCKED */}
+                {!activeFileId && !isAllComplete && queue.length > 0 && (
+                    <div className="absolute inset-0 z-10 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                        <span className="bg-black/80 border border-white/20 px-6 py-3 rounded-lg text-xs font-mono text-white/60">INITIALIZING_QUEUE...</span>
+                    </div>
+                )}
+
+                {/* TOP STATS BAR */}
+                <div className="flex justify-between items-center mb-8">
+                    <div className="flex gap-12">
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[10px] font-black text-muted uppercase tracking-widest">CONTEXT_PRESSURE</span>
+                            <div className="flex gap-1 w-32 h-2">
+                                {Array.from({ length: 10 }).map((_, i) => (
+                                    <div key={i} className={`flex-1 rounded-sm ${i < 3 ? 'bg-matrix' : 'bg-white/10'}`} />
+                                ))}
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[10px] font-black text-muted uppercase tracking-widest">WEAPON_SELECTION</span>
+                            <span className="text-xs font-bold text-white mono">{stageSettings[PipelineStage.OWL].model.split('/').pop()}</span>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-4">
+                        <button className="px-6 py-3 bg-void border border-matrix/30 rounded-lg text-matrix text-[10px] font-black uppercase hover:bg-matrix/10 transition-colors">
+                            INTEL_HUB
+                        </button>
+                        <button className="px-6 py-3 bg-void border border-white/10 rounded-lg text-muted text-[10px] font-black uppercase hover:border-white/30 transition-colors">
+                            TELEMETRY
+                        </button>
+                    </div>
+                </div>
+
+                {/* MAIN DISPLAY AREA */}
+                {/* MAIN DISPLAY AREA */}
+                <div className="flex-1 flex items-center justify-center border border-white/5 rounded-xl bg-void/50 mb-8 relative group">
+                    <div className="absolute inset-0 bg-[url('/assets/images/grid.svg')] opacity-10" />
+
+                    {activeFileId && !isAllComplete ? (
+                        <div className="text-center">
+                            <div className="w-24 h-24 bg-voltage/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-voltage/30 animate-pulse">
+                                <span className="text-4xl">⚡</span>
+                            </div>
+                            <h3 className="text-2xl font-black text-white italic tracking-tight mb-2">TARGET_LOCKED</h3>
+                            <p className="text-sm font-mono text-white/50">{queue.find(f => f.id === activeFileId)?.path}</p>
+                            <div className="mt-8">
+                                <span className="text-[10px] font-black text-voltage uppercase tracking-[0.3em] blink">AWAITING_FIRE_COMMAND</span>
+                            </div>
+                        </div>
+                    ) : isAllComplete ? (
+                        <div className="text-center">
+                            <div className="w-24 h-24 bg-matrix/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-matrix/30 shadow-[0_0_50px_rgba(0,255,65,0.2)]">
+                                <span className="text-4xl text-matrix">✔</span>
+                            </div>
+                            <h3 className="text-2xl font-black text-white italic tracking-tight mb-2">RUN_COMPLETE</h3>
+                            <p className="text-sm font-mono text-white/50">All modules successfully generated.</p>
+                        </div>
+                    ) : (
+                        <span className="text-xs font-mono text-white/20">SYSTEM_IDLE</span>
+                    )}
+
+                </div>
+
+                {/* RAW OVERLAY (GLOBAL or PER FILE) */}
+                <AnimatePresence>
+                    {showRaw && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="absolute inset-4 z-50 bg-black/95 border border-white/20 rounded-xl p-4 overflow-hidden flex flex-col shadow-2xl"
+                        >
+                            <div className="flex justify-between items-center mb-2">
+                                <h3 className="text-xs font-black text-white uppercase tracking-widest">
+                                    {showRawType === 'global' ? 'RAW_EAGLE_INTEL' : `FILE_INTEL: ${queue.find(f => f.id === showRawFileId)?.path}`}
+                                </h3>
+                                <div className="flex gap-4 items-center">
+                                    {showRawType === 'file' && (
+                                        <button
+                                            onClick={() => {
+                                                const f = queue.find(f => f.id === showRawFileId);
+                                                if (f) {
+                                                    const payload = `CONTEXT_FILE: ${f.path}\nDIRECTIVES: ${f.directives}\nSKELETON_CODE:\n${f.skeleton}`;
+                                                    navigator.clipboard.writeText(payload);
+                                                }
+                                            }}
+                                            className="text-[10px] font-bold text-matrix hover:text-white uppercase"
+                                        >
+                                            COPY_PAYLOAD
+                                        </button>
+                                    )}
+                                    <button onClick={() => { setShowRaw(false); setShowRawType('global'); setShowRawFileId(null); }} className="text-white/50 hover:text-white">✕</button>
+                                </div>
+                            </div>
+                            <pre className="flex-1 overflow-auto text-[10px] font-mono text-white/70 whitespace-pre-wrap srollbar-thin p-4 bg-void/50 border border-white/5 rounded-lg">
+                                {showRawType === 'global' ? rawEagleResponse :
+                                    (() => {
+                                        const f = queue.find(f => f.id === showRawFileId);
+                                        return f ? `PATH: ${f.path}\n\n=== DIRECTIVES ===\n${f.directives}\n\n=== SKELETON ===\n${f.skeleton}` : 'FILE_NOT_FOUND';
+                                    })()
+                                }
+                            </pre>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* BIG BUTTON AREA */}
+                <button
+                    disabled={!activeFileId && !isAllComplete}
+                    onClick={() => {
+                        if (isAllComplete) {
+                            navigator.clipboard.writeText(generateFullDeployScript(queue));
+                            if (audioEnabled) audioService.playSuccess();
+                        } else if (activeFileId) {
+                            executeStrike(activeFileId);
+                        }
+                    }}
+                    className={`w-full h-16 rounded-xl border transition-all relative overflow-hidden group ${activeFileId ? 'bg-void text-white border-white/20 hover:border-voltage hover:text-voltage hover:shadow-[0_0_50px_rgba(255,215,0,0.2)] cursor-pointer' : isAllComplete ? 'bg-void text-white border-white/20 hover:border-matrix hover:text-matrix hover:shadow-[0_0_50px_rgba(0,255,65,0.2)] cursor-pointer' : 'bg-void border-white/5 opacity-50 cursor-not-allowed'}`}
+                >
+                    <span className={`text-xl font-black tracking-[0.5em] italic transition-colors ${activeFileId ? 'text-white group-hover:text-voltage' : isAllComplete ? 'text-white group-hover:text-matrix' : 'text-white/10'}`}>
+                        {isAllComplete ? 'DEPLOY_SYSTEM' : 'FIRE_OWL'}
+                    </span>
+                </button>
+
+            </div>
+        </div >
+    );
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./components/views/StageConsole.tsx
+import React from 'react';
+import { motion } from 'framer-motion';
+import { TacticalMinimap } from '../ui/TacticalMinimap';
+import { StartFileSelector } from '../ui/StartFileSelector';
+
+import { PipelineStage, CallTelemetry, ModelConfig, StageSettings } from '../../types';
+import { VUMeter } from '../ui/VUMeter';
+import { TacticalDropdown } from '../ui/TacticalDropdown';
+import { audioService } from '../../services/audioService';
+
+interface StageConsoleProps {
+    activeStageId: PipelineStage;
+    activeStageConfig: any;
+    inputs: Record<string, string>;
+    outputs: Record<string, string>;
+    telemetry: Record<string, CallTelemetry>;
+    models: ModelConfig[];
+    stageSettings: Record<string, StageSettings>;
+    setStageSettings: React.Dispatch<React.SetStateAction<Record<string, StageSettings>>>;
+    handleStrike: () => void;
+    setHubOpen: (v: 'DATA' | 'PROMPTS' | boolean) => void;
+    isArmed: boolean;
+    promptContent: string;
+    onInputUpdate: (val: string) => void;
+}
+
+export const StageConsole: React.FC<StageConsoleProps> = ({
+    activeStageId, activeStageConfig, inputs = {}, outputs = {}, telemetry, models, stageSettings, setStageSettings,
+    handleStrike, openEditor, setHubOpen, isArmed, promptContent, onInputUpdate
+}) => {
+    console.log("StageConsole Mounted", { activeStageId });
+    return (
+        <motion.div
+            key={activeStageId}
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="w-full max-w-6xl tactical-glass rounded-3xl p-6 flex flex-col items-center relative border border-white/5 shadow-[0_50px_100px_rgba(0,0,0,0.5)]"
+        >
+
+            {/* TOP ROW: MINIMAPS */}
+            <div className="w-full grid grid-cols-2 gap-6 mb-6">
+                <div className="relative group">
+                    {/* V21: SPARK FILE LOADER - ABSOLUTE POSITIONED IN HEADER */}
+                    {activeStageId === PipelineStage.SPARK && (
+                        <div className="absolute top-2 right-2 z-20">
+                            <StartFileSelector onSelect={onInputUpdate} />
+                        </div>
+                    )}
+
+                    <TacticalMinimap
+                        label="ACTIVE_PAYLOAD"
+                        type="input"
+                        color="white"
+                        content={inputs[activeStageId]}
+                        onExpand={() => openEditor('input')}
+                    />
+                    {/* INJECT FILE SELECTOR FOR SPARK ONLY */}
+                    {activeStageId === PipelineStage.SPARK && (
+                        <div className="absolute top-0 right-0 z-20 transform -translate-y-1/2">
+                            <StartFileSelector onSelect={(content) => {
+                                onInputUpdate(content);
+                            }} />
+                        </div>
+                    )}
+                </div>
+                <TacticalMinimap
+                    label="SYSTEM_PROMPT"
+                    type="output"
+                    color="white"
+                    content={promptContent}
+                    onExpand={() => openEditor('prompt')}
+                />
+            </div>
+
+            {/* CENTER STAGE ICON */}
+            <div className="w-40 h-40 rounded-3xl border-2 border-dashed border-white/10 flex items-center justify-center mb-12 relative group transition-all duration-500 hover:border-current" style={{ color: activeStageConfig.color }}>
+                <div className="absolute inset-0 rounded-3xl blur-3xl opacity-10 group-hover:opacity-30 transition-opacity animate-pulse" style={{ background: activeStageConfig.color }} />
+                <span className="text-7xl font-black text-white/10 italic group-hover:text-current transition-all transform group-hover:scale-110 duration-500">{activeStageConfig.icon}</span>
+            </div>
+
+            {/* CONTROLS ROW */}
+            <div className="w-full flex gap-10 mb-16">
+                <div className="flex-1 bg-surface/50 border border-white/10 rounded-2xl p-10 flex flex-col gap-8 shadow-inner">
+                    <VUMeter value={Math.floor((inputs[activeStageId]?.length || 0 / 10000) * 100)} label="Context_Pressure" />
+                    <TacticalDropdown
+                        label="Weapon_Selection"
+                        value={stageSettings[activeStageId].model}
+                        options={models}
+                        onChange={m => setStageSettings(v => ({ ...v, [activeStageId]: { ...v[activeStageId], model: m } }))}
+                    />
+                </div>
+                <div className="w-80 bg-surface/50 border border-white/10 rounded-2xl p-8 flex flex-col justify-center gap-6 shadow-inner">
+                    <button onClick={() => setHubOpen('DATA')} className="w-full py-6 bg-black/40 border border-matrix/30 rounded-xl text-matrix font-black text-xs tracking-widest uppercase hover:bg-matrix/10 hover:shadow-[0_0_20px_rgba(0,255,65,0.1)] transition-all flex items-center justify-center gap-4 group">
+                        <span className="group-hover:scale-110 transition-transform">📂</span> DATA_INTEL
+                    </button>
+                    <button onClick={() => setHubOpen('PROMPTS')} className="w-full py-6 bg-void border border-white/5 rounded-xl text-muted font-black text-xs tracking-widest uppercase italic hover:border-white/20 transition-all flex items-center justify-center gap-4 group">
+                        <span className="group-hover:scale-110 transition-transform">⚡</span> PROMPTS
+                    </button>
+                </div>
+            </div>
+
+            {/* TACTICAL MONITOR (OUTPUT DISPLAY) */}
+            {outputs[activeStageId] && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full mb-10 bg-black/50 border border-matrix/30 rounded-2xl p-6 relative overflow-hidden group"
+                >
+                    <div className="absolute top-0 left-0 w-full h-1 bg-matrix/20" />
+                    <div className="flex justify-between items-center mb-4 border-b border-white/5 pb-2">
+                        <span className="text-[10px] font-black text-matrix uppercase tracking-widest">Incoming_Transmission</span>
+                        <div className="flex gap-2">
+                            <button onClick={() => navigator.clipboard.writeText(outputs[activeStageId])} className="text-[9px] text-muted hover:text-white uppercase tracking-wider">Copy</button>
+                        </div>
+                    </div>
+                    <pre className="text-xs font-mono text-gray-300 whitespace-pre-wrap max-h-60 overflow-y-auto custom-scrollbar selection:bg-matrix selection:text-black">
+                        {outputs[activeStageId]}
+                    </pre>
+                </motion.div>
+            )}
+
+            {/* FIRE BUTTON */}
+            <button disabled={telemetry[activeStageId].status === 'loading'}
+                onClick={handleStrike}
+                className={`w-full py-16 rounded-3xl font-black text-5xl tracking-[0.4em] transition-all chasing-light border shadow-2xl relative overflow-hidden group ${telemetry[activeStageId].status === 'loading' ? 'system-stress bg-void border-white/5' : isArmed ? 'bg-void text-white border-white/20 hover:border-matrix hover:text-matrix hover:shadow-[0_0_50px_rgba(0,255,65,0.2)]' : 'bg-void text-white/5 border-white/5 cursor-not-allowed'}`}
+            >
+                <span className="relative z-10 transition-transform group-hover:scale-105 inline-block">
+                    {telemetry[activeStageId].status === 'loading' ? 'STRIKING...' : activeStageId === PipelineStage.EAGLE && outputs[activeStageId] ? 'CLIPBOARD_SURGE' : `FIRE_${activeStageConfig.label}`}
+                </span>
+                {isArmed && !telemetry[activeStageId].status && (
+                    <div className="absolute inset-0 bg-matrix/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                )}
+            </button>
+
+            <div className="absolute -bottom-10 left-0 w-full flex justify-center">
+                <span className="text-[9px] font-black text-muted uppercase tracking-[1.5em] opacity-30 animate-pulse">Tactical_Orchestration_Active</span>
+            </div>
+        </motion.div>
+    );
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./components/views/SettingsDeck.tsx
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useModelRegistry } from '../../hooks/useModelRegistry';
+import { StageSettings, CasinoSettings } from '../../types';
+
+interface SettingsDeckProps {
+    isOpen: boolean;
+    onClose: () => void;
+    stageSettings: Record<string, StageSettings>;
+    setStageSettings: React.Dispatch<React.SetStateAction<Record<string, StageSettings>>>;
+    casinoSettings: CasinoSettings;
+    setCasinoSettings: React.Dispatch<React.SetStateAction<CasinoSettings>>;
+}
+
+export const SettingsDeck: React.FC<SettingsDeckProps> = ({ isOpen, onClose, stageSettings, setStageSettings, casinoSettings, setCasinoSettings }) => {
+    const [activeTab, setActiveTab] = useState<'NODES' | 'PROMPTS' | 'CASINO' | 'ENGINE'>('NODES');
+
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center p-20">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="w-full max-w-5xl tactical-glass rounded-2xl flex flex-col h-[70vh] border border-white/10 shadow-2xl relative overflow-hidden"
+                    >
+                        {/* HEADER */}
+                        <div className="flex justify-between items-center p-8 border-b border-white/10 bg-white/5">
+                            <h2 className="text-3xl font-black italic tracking-tighter uppercase text-white">
+                                SYSTEM_CONFIG_<span className="text-matrix">V21</span>
+                            </h2>
+                            <button onClick={onClose} className="w-10 h-10 rounded-lg border border-white/10 flex items-center justify-center text-muted hover:text-white hover:border-white/30 transition-all">✕</button>
+                        </div>
+
+                        <div className="flex flex-1 overflow-hidden">
+                            {/* SIDEBAR TABS */}
+                            <div className="w-64 border-r border-white/10 p-6 flex flex-col gap-2 bg-black/20">
+                                {['NODES', 'PROMPTS', 'CASINO', 'ENGINE'].map((tab) => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setActiveTab(tab as any)}
+                                        className={`p-4 rounded-xl text-left font-black tracking-widest text-xs border transition-all ${activeTab === tab
+                                            ? 'bg-matrix text-black border-matrix shadow-[0_0_20px_rgba(0,255,65,0.4)]'
+                                            : 'bg-transparent text-muted border-transparent hover:bg-white/5 hover:text-white'
+                                            }`}
+                                    >
+                                        [{tab}]
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* CONTENT AREA */}
+                            <div className="flex-1 p-10 overflow-y-auto bg-gradient-to-br from-black/50 to-void/50">
+                                {activeTab === 'NODES' && (
+                                    <div className="space-y-8">
+                                        <h3 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-4">NODE_CONFIGURATION</h3>
+                                        <div className="grid grid-cols-1 gap-4">
+                                            <div className="p-6 rounded-xl border border-white/10 bg-white/5">
+                                                <div className="flex justify-between mb-2">
+                                                    <span className="font-bold text-matrix">MOONSHOT_NODE_01</span>
+                                                    <span className="text-xs bg-matrix/20 text-matrix px-2 py-1 rounded">ACTIVE</span>
+                                                </div>
+                                                <div className="text-xs text-muted font-mono">Gateway: api.moonshot.cn/v1</div>
+                                            </div>
+                                            {/* Expandable node list can go here */}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {activeTab === 'CASINO' && (
+                                    <div className="space-y-8">
+                                        <h3 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-4">CASINO_DOCTRINE</h3>
+
+                                        <div className="flex items-center justify-between p-6 rounded-xl border border-white/10 bg-white/5">
+                                            <div>
+                                                <h4 className="font-bold text-white">VISUAL_FEEDBACK_LOOPS</h4>
+                                                <p className="text-xs text-muted mt-1">Enable screen shake, scanlines, and matrix rain.</p>
+                                            </div>
+                                            <button
+                                                onClick={() => setCasinoSettings(prev => ({ ...prev, enabled: !prev.enabled }))}
+                                                className={`w-14 h-8 rounded-full p-1 transition-colors ${casinoSettings.enabled ? 'bg-matrix' : 'bg-white/10'}`}
+                                            >
+                                                <div className={`w-6 h-6 rounded-full bg-white shadow-md transform transition-transform ${casinoSettings.enabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                                            </button>
+                                        </div>
+
+                                        <div className="flex items-center justify-between p-6 rounded-xl border border-white/10 bg-white/5">
+                                            <div>
+                                                <h4 className="font-bold text-white">HAPTIC_AUDIO</h4>
+                                                <p className="text-xs text-muted mt-1">Enable interface clicks, hums, and success chimes.</p>
+                                            </div>
+                                            <button
+                                                onClick={() => setCasinoSettings(prev => ({ ...prev, audio: !prev.audio }))}
+                                                className={`w-14 h-8 rounded-full p-1 transition-colors ${casinoSettings.audio ? 'bg-matrix' : 'bg-white/10'}`}
+                                            >
+                                                <div className={`w-6 h-6 rounded-full bg-white shadow-md transform transition-transform ${casinoSettings.audio ? 'translate-x-6' : 'translate-x-0'}`} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {activeTab === 'PROMPTS' && (
+                                    <div className="space-y-8">
+                                        <div className="p-10 border border-dashed border-white/20 rounded-2xl flex flex-col items-center justify-center text-center">
+                                            <span className="text-4xl mb-4">📂</span>
+                                            <h3 className="font-bold text-white">LOCAL_ARSENAL_LINK</h3>
+                                            <p className="text-sm text-muted mt-2 max-w-sm">
+                                                Prompts are loaded directly from <code className="text-matrix bg-black/50 px-2 py-1 rounded">/home/flintx/peacock/prompts</code>.
+                                                <br />
+                                                Edit files locally to update the arsenal.
+                                            </p>
+                                            <button className="mt-6 px-6 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors">
+                                                REFRESH_INDEX
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {activeTab === 'ENGINE' && (
+                                    <div className="space-y-8">
+                                        <div className="p-6 rounded-xl border border-white/10 bg-white/5 font-mono text-xs">
+                                            <div className="flex justify-between border-b border-white/5 pb-2 mb-2">
+                                                <span className="text-muted">ENGINE_STATUS</span>
+                                                <span className="text-matrix">ONLINE (PORT 3099)</span>
+                                            </div>
+                                            <div className="flex justify-between border-b border-white/5 pb-2 mb-2">
+                                                <span className="text-muted">LATENCY</span>
+                                                <span className="text-white">12ms</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
+    );
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./components/ui/MatrixTerminal.tsx
+import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { LogEntry } from '../../types';
+
+interface MatrixTerminalProps {
+    logs: LogEntry[];
+    casinoMode?: boolean;
+}
+
+export const MatrixTerminal: React.FC<MatrixTerminalProps> = ({ logs, casinoMode = false }) => {
+    // We only show the last 20 logs to keep it performant
+    const visibleLogs = logs.slice(-20);
+
+    return (
+        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden flex flex-col justify-end pb-10 pl-10 opacity-20">
+            <div className={`w-1/2 flex flex-col gap-1 font-mono text-[10px] uppercase tracking-widest text-matrix/50 ${casinoMode ? 'drop-shadow-[0_0_5px_rgba(0,255,65,0.8)] animate-pulse' : ''}`}>
+                {visibleLogs.map((log) => (
+                    <motion.div
+                        key={log.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0 }}
+                        className={`
+                            whitespace-nowrap 
+                            ${log.type === 'error' ? 'text-error' : log.type === 'success' ? 'text-matrix' : 'text-white/30'}
+                        `}
+                    >
+                        <span className="opacity-50">[{new Date(log.timestamp).toLocaleTimeString()}]</span> {log.message}
+                    </motion.div>
+                ))}
+            </div>
+            {/* Gradient Mask to fade top */}
+            <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-void to-transparent" />
+        </div>
+    );
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./components/ui/StartFileSelector.tsx
+
+import React, { useEffect, useState } from 'react';
+import { api } from '../../services/api';
+import { audioService } from '../../services/audioService';
+
+interface StartFileSelectorProps {
+    onSelect: (content: string) => void;
+}
+
+export const StartFileSelector: React.FC<StartFileSelectorProps> = ({ onSelect }) => {
+    const [files, setFiles] = useState<string[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            setLoading(true);
+            api.fetchStartFiles()
+                .then(f => setFiles(f))
+                .catch(err => console.error(err))
+                .finally(() => setLoading(false));
+        }
+    }, [isOpen]);
+
+    const handleFileClick = async (fileName: string) => {
+        try {
+            setLoading(true);
+            const content = await api.fetchStartFile(fileName);
+            onSelect(content);
+            audioService.playSuccess();
+            setIsOpen(false);
+        } catch (e) {
+            console.error(e);
+            audioService.playError();
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="relative">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="px-4 py-2 bg-white/5 border border-white/10 rounded text-xs font-bold text-muted hover:text-white uppercase tracking-wider transition-colors flex items-center gap-2"
+            >
+                <span>📂</span> {isOpen ? 'CLOSE_INTEL' : 'LOAD_START_FILE'}
+            </button>
+
+            {isOpen && (
+                <div className="absolute top-full left-0 mt-2 w-64 bg-black/90 border border-white/20 rounded-xl p-2 z-50 shadow-xl backdrop-blur-md max-h-60 overflow-y-auto custom-scrollbar">
+                    {loading ? (
+                        <div className="p-4 text-center text-xs text-muted animate-pulse">SCANNING_DIR...</div>
+                    ) : files.length === 0 ? (
+                        <div className="p-4 text-center text-xs text-white/30">NO_FILES_FOUND</div>
+                    ) : (
+                        <div className="flex flex-col gap-1">
+                            {files.map(f => (
+                                <button
+                                    key={f}
+                                    onClick={() => handleFileClick(f)}
+                                    className="text-left px-3 py-2 rounded hover:bg-white/10 text-xs font-mono text-white/70 hover:text-white truncate transition-colors"
+                                >
+                                    {f}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./components/ui/VUMeter.tsx
+import React from 'react';
+import { motion } from 'framer-motion';
+
+interface VUMeterProps {
+    value: number;
+    label: string;
+}
+
+export const VUMeter: React.FC<VUMeterProps> = ({ value, label }) => {
+    const segments = 20;
+    const activeSegments = Math.floor((value / 100) * segments);
+    const isRedlining = value > 85;
+    return (
+        <div className="flex flex-col gap-2 w-full">
+            <div className="flex justify-between text-[7px] font-black text-muted uppercase tracking-widest">
+                <span>{label}</span>
+                <span className={isRedlining ? 'text-error animate-pulse' : 'text-matrix'}>{value}%</span>
+            </div>
+            <div className="flex gap-[2px] h-4 w-full">
+                {Array.from({ length: segments }).map((_, i) => (
+                    <motion.div key={i} animate={i < activeSegments && isRedlining ? { x: [0, -1, 1, 0] } : {}} transition={{ repeat: Infinity, duration: 0.1 }}
+                        className={`flex-1 rounded-sm transition-all duration-300 ${i >= activeSegments ? 'bg-white/5' : i > segments * 0.85 ? 'bg-error shadow-[0_0_10px_#FF3131]' : i > segments * 0.6 ? 'bg-voltage shadow-[0_0_10px_#FFD700]' : 'bg-matrix shadow-[0_0_10px_#00FF41]'}`}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./components/ui/EditorOverlay.tsx
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { audioService } from '../../services/audioService';
+
+interface EditorOverlayProps {
+    isOpen: boolean;
+    content: string;
+    onSave: (val: string) => void;
+    onClose: () => void;
+    title: string;
+}
+
+export const EditorOverlay: React.FC<EditorOverlayProps> = ({
+    isOpen,
+    content,
+    onSave,
+    onClose,
+    title
+}) => {
+    const [val, setVal] = useState(content || '');
+    useEffect(() => { setVal(content || ''); }, [content]);
+
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-10"
+                >
+                    <div className="w-full max-w-6xl h-full flex flex-col border border-white/10 rounded-2xl overflow-hidden shadow-[0_0_100px_rgba(0,0,0,1)] bg-[#050505]">
+                        <div className="h-16 bg-black/50 border-b border-white/5 px-8 flex justify-between items-center">
+                            <div className="flex items-center gap-4">
+                                <div className="w-2 h-2 rounded-full bg-matrix animate-pulse" />
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/50">{title}</h3>
+                            </div>
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => {
+                                        const blob = new Blob([val], { type: 'text/plain' });
+                                        const url = URL.createObjectURL(blob);
+                                        const a = document.createElement('a');
+                                        a.href = url;
+                                        a.download = `artifact_${title.split(' // ')[1]}_${Date.now()}.txt`;
+                                        a.click();
+                                    }}
+                                    className="px-6 py-2 bg-white/5 text-white/60 text-[9px] font-black uppercase rounded-md hover:text-white transition-all"
+                                >
+                                    Download_Artifact
+                                </button>
+                                <button onClick={() => { navigator.clipboard.writeText(val); audioService.playSuccess(); }} className="px-6 py-2 bg-white/5 text-white/60 text-[9px] font-black uppercase rounded-md hover:text-white transition-all">Copy</button>
+                                <button onClick={() => onSave(val)} className="px-6 py-2 bg-matrix text-void text-[9px] font-black uppercase rounded-md hover:bg-white transition-all">Save_Changes</button>
+                                <button onClick={onClose} className="px-6 py-2 bg-white/5 text-white text-[9px] font-black uppercase rounded-md hover:bg-error transition-all">Close</button>
+                            </div>
+                        </div>
+                        <textarea
+                            value={val}
+                            onChange={(e) => setVal(e.target.value)}
+                            style={{ backgroundColor: '#050505', color: '#00FF41', fontFamily: 'monospace' }}
+                            className="flex-1 p-10 text-sm outline-none resize-none custom-scrollbar border-none shadow-inner"
+                            spellCheck={false}
+                        />
+                        <div className="h-10 bg-black/50 border-t border-white/5 px-8 flex items-center justify-between">
+                            <span className="text-[7px] text-muted mono uppercase">System_Protocol_V26.6</span>
+                            <span className="text-[7px] text-muted mono uppercase">{val.length} Chars // {val.split('\n').length} Lines</span>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+    );
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./components/ui/TacticalMinimap.tsx
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+interface TacticalMinimapProps {
+    label: string;
+    content: string;
+    type: 'input' | 'output';
+    color: string;
+    onExpand: () => void;
+}
+
+export const TacticalMinimap: React.FC<TacticalMinimapProps> = ({
+    label, content, type, color, onExpand
+}) => {
+    const isOutput = type === 'output';
+
+    return (
+        <div className="flex flex-col gap-2 w-full group">
+            <div className="flex justify-between items-center px-1">
+                <span className="text-[9px] font-black uppercase tracking-widest text-muted group-hover:text-white transition-colors">
+                    {label}
+                </span>
+                <span className="text-[9px] font-mono text-muted/50">
+                    {content?.length || 0} chars
+                </span>
+            </div>
+
+            <button
+                onClick={onExpand}
+                className={`relative w-full h-32 rounded-xl border border-white/5 bg-surface/50 overflow-hidden text-left transition-all hover:border-opacity-50 hover:shadow-lg group-hover:border-${isOutput ? 'matrix' : 'white'}/20`}
+                style={{ borderColor: isOutput ? undefined : undefined }}
+            >
+                {/* Mini-map Content */}
+                <div className="absolute inset-0 p-3 opacity-50 group-hover:opacity-80 transition-opacity">
+                    <pre className="text-[6px] leading-[8px] font-mono text-muted/70 whitespace-pre-wrap overflow-hidden h-full pointer-events-none select-none">
+                        {content || "// NO DATA STREAM"}
+                    </pre>
+                </div>
+
+                {/* Hover Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-3">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-white border border-white/20 px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm">
+                        EXPAND VIEW
+                    </span>
+                </div>
+
+                {/* Status Indicator */}
+                <div className={`absolute top-2 right-2 w-1.5 h-1.5 rounded-full ${content ? 'bg-' + (isOutput ? 'matrix' : 'white') : 'bg-white/10'}`} />
+            </button>
+        </div>
+    );
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./components/ui/MiniMap.tsx
+import React, { useMemo } from 'react';
+import { STAGES, THEME } from '../../config/constants';
+import { PipelineStage, CallTelemetry } from '../../types';
+import { motion } from 'framer-motion';
+
+interface MiniMapProps {
+    telemetry: Record<string, CallTelemetry>;
+    activeStageId: PipelineStage;
+    setActiveStageId: (id: PipelineStage) => void;
+}
+
+export const MiniMap: React.FC<MiniMapProps> = ({ telemetry, activeStageId, setActiveStageId }) => {
+    // Determine the furthest progress
+    const furthestStageIndex = useMemo(() => {
+        let maxIdx = 0;
+        STAGES.forEach((s, i) => {
+            if (telemetry[s.id]?.status === 'success') maxIdx = i + 1;
+        });
+        return Math.min(maxIdx, STAGES.length - 1);
+    }, [telemetry]);
+
+    return (
+        <div className="relative w-full max-w-4xl h-48 flex items-center justify-between px-12 mt-10">
+            {/* SVG Layer for Connecting Lines */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
+                {STAGES.map((s, i) => {
+                    if (i === STAGES.length - 1) return null;
+                    const isCompleted = telemetry[s.id]?.status === 'success';
+                    return (
+                        <motion.line
+                            key={`line-${s.id}`}
+                            x1={`${(i / (STAGES.length - 1)) * 100}%`}
+                            y1="50%"
+                            x2={`${((i + 1) / (STAGES.length - 1)) * 100}%`}
+                            y2="50%"
+                            stroke={isCompleted ? THEME.matrix : "rgba(255,255,255,0.05)"}
+                            strokeWidth="2"
+                            strokeDasharray="4 4"
+                            initial={{ pathLength: 0 }}
+                            animate={{ pathLength: isCompleted ? 1 : 0 }}
+                            transition={{ duration: 1.5, ease: "easeInOut" }}
+                        />
+                    );
+                })}
+            </svg>
+
+            {/* Nodes Layer */}
+            {STAGES.map((s, i) => {
+                const isSuccess = telemetry[s.id]?.status === 'success';
+                const isActive = activeStageId === s.id;
+                const isAvailable = i <= furthestStageIndex;
+                const isSparkBoot = s.id === PipelineStage.SPARK && !isSuccess && !isActive;
+
+                // Tactical color logic
+                let nodeColor = "rgba(255, 255, 255, 0.05)";
+                if (isSuccess) nodeColor = THEME.matrix;
+                else if (isActive) nodeColor = THEME.voltage;
+                else if (s.id === PipelineStage.SPARK && isAvailable) nodeColor = THEME.voltage;
+
+                return (
+                    <div
+                        key={s.id}
+                        onClick={() => setActiveStageId(s.id)}
+                        className={`relative z-10 flex flex-col items-center gap-4 cursor-pointer transition-all duration-500 ${!isAvailable ? 'opacity-20 grayscale cursor-not-allowed' : 'opacity-100 hover:scale-110'}`}
+                    >
+                        {/* THE NODE */}
+                        <motion.div
+                            className={`w-14 h-14 rounded-2xl border-2 flex items-center justify-center transition-all duration-700 bg-void/80 backdrop-blur-md ${isSparkBoot ? 'pulse-voltage border-voltage' : isSuccess ? 'border-matrix shadow-[0_0_20px_var(--matrix-glow)]' : isActive ? 'border-voltage shadow-[0_0_15px_var(--voltage-glow)]' : 'border-white/10'}`}
+                            animate={isSparkBoot ? { scale: [1, 1.1, 1] } : {}}
+                            transition={isSparkBoot ? { repeat: Infinity, duration: 2 } : {}}
+                        >
+                            <span className={`text-2xl transition-all ${isSuccess ? 'text-matrix' : isActive ? 'text-voltage' : 'text-white/20'}`}>
+                                {s.icon}
+                            </span>
+                        </motion.div>
+
+                        {/* LABEL */}
+                        <div className="flex flex-col items-center">
+                            <span className={`text-[8px] font-black tracking-[0.3em] uppercase transition-all ${isSuccess ? 'text-matrix' : isActive ? 'text-voltage' : 'text-muted'}`}>
+                                {s.label}
+                            </span>
+                            {isSuccess && (
+                                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[6px] font-bold text-matrix/50 tracking-tighter mt-1">COMPLETED_ASSET</motion.span>
+                            )}
+                        </div>
+
+                        {/* ACTIVE GLOW ORB */}
+                        {isActive && (
+                            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-1 bg-voltage shadow-[0_0_10px_var(--voltage-glow)] rounded-full" />
+                        )}
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./components/ui/SavePromptModal.tsx
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { audioService } from '../../services/audioService';
+
+interface SavePromptModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    pendingRawData: any;
+}
+
+export const SavePromptModal: React.FC<SavePromptModalProps> = ({ isOpen, onClose, pendingRawData }) => {
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[2000] bg-black/90 backdrop-blur-3xl flex items-center justify-center"
+                >
+                    <div className="w-full max-w-lg tactical-glass border border-matrix/20 rounded-2xl p-10 flex flex-col items-center gap-8 shadow-[0_0_100px_rgba(0,255,65,0.1)]">
+                        <div className="w-20 h-20 bg-matrix/10 rounded-full flex items-center justify-center border border-matrix/20">
+                            <span className="text-4xl animate-pulse">💾</span>
+                        </div>
+                        <div className="text-center flex flex-col gap-2">
+                            <h3 className="text-2xl font-black italic tracking-tighter text-white uppercase">Eagle_Strike_Secured</h3>
+                            <p className="text-[10px] text-muted mono uppercase tracking-widest">Would you like to export the raw API response to your local drive?</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 w-full">
+                            <button
+                                onClick={() => {
+                                    const blob = new Blob([JSON.stringify(pendingRawData, null, 2)], { type: 'application/json' });
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = `RAW_EAGLE_STRIKE_${new Date().getTime()}.json`;
+                                    a.click();
+                                    onClose();
+                                    audioService.playSuccess();
+                                }}
+                                className="py-4 bg-matrix text-void font-black text-[10px] uppercase rounded-xl hover:bg-white transition-all shadow-[0_0_20px_rgba(0,255,65,0.2)]"
+                            >
+                                Download_Raw_JSON
+                            </button>
+                            <button
+                                onClick={onClose}
+                                className="py-4 bg-white/5 text-white/60 font-black text-[10px] uppercase rounded-xl hover:bg-white/10 transition-all border border-white/5"
+                            >
+                                Skip_Export
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+    );
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./components/ui/TacticalDropdown.tsx
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ModelConfig } from '../../types';
+
+interface TacticalDropdownProps {
+    value: string;
+    options: ModelConfig[];
+    onChange: (v: string) => void;
+    label: string;
+}
+
+export const TacticalDropdown: React.FC<TacticalDropdownProps> = ({ value, options, onChange, label }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const clickOutside = (e: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(e.target as Node)) setIsOpen(false);
+        };
+        document.addEventListener('mousedown', clickOutside);
+        return () => document.removeEventListener('mousedown', clickOutside);
+    }, []);
+
+    return (
+        <div className="relative w-full" ref={containerRef}>
+            <span className="text-[8px] font-black text-muted uppercase tracking-[0.3em] mb-2 block pl-1">{label}</span>
+            <button onClick={() => setIsOpen(!isOpen)} className="w-full bg-void border border-white/5 rounded-lg p-3 text-[10px] mono text-white font-black uppercase flex justify-between items-center hover:border-voltage transition-all shadow-inner">
+                <span className="truncate">{value.toUpperCase()}</span>
+                <span className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>▼</span>
+            </button>
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} className="absolute bottom-full left-0 w-full mb-2 bg-elevated border border-white/10 rounded-xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-[200] max-h-64 overflow-y-auto custom-scrollbar">
+                        {options.map(opt => (
+                            <button key={opt.id} onClick={() => { onChange(opt.id); setIsOpen(false); }} className={`w-full text-left px-4 py-3 text-[9px] mono font-bold uppercase transition-all flex justify-between items-center border-b border-white/5 hover:bg-matrix/10 hover:text-matrix ${value === opt.id ? 'text-matrix bg-matrix/5' : 'text-white/60'}`}>
+                                <span>{opt.id.toUpperCase()}</span>
+                                {value === opt.id && <span className="text-matrix">●</span>}
+                            </button>
+                        ))}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./components/SystemDiagnostics.tsx
+import React, { useEffect, useState } from 'react';
+import { api } from '../services/api';
+
+export const SystemDiagnostics: React.FC = () => {
+    const [status, setStatus] = useState<'checking' | 'online' | 'offline'>('checking');
+
+    useEffect(() => {
+        const check = async () => {
+            const isAlive = await api.checkHealth();
+            setStatus(isAlive ? 'online' : 'offline');
+        };
+
+        check();
+        const interval = setInterval(check, 30000); // Poll every 30s
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+        <div className={`flex items-center space-x-2 text-xs font-mono border px-2 py-1 rounded ${status === 'online' ? 'border-green-900 bg-green-900/10 text-green-400' :
+                status === 'offline' ? 'border-red-900 bg-red-900/10 text-red-400' :
+                    'border-gray-800 text-gray-500'
+            }`}>
+            <div className={`w-2 h-2 rounded-full ${status === 'online' ? 'bg-green-500 animate-pulse' :
+                    status === 'offline' ? 'bg-red-500' : 'bg-gray-500'
+                }`} />
+            <span>
+                ENGINE: {status.toUpperCase()}
+                {status === 'online' && ' [PORT:3099]'}
+            </span>
+        </div>
+    );
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./components/layout/IntelHub.tsx
+import React from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { PipelineStage, PromptAsset } from '../../types';
+import { audioService } from '../../services/audioService';
+import { ENGINE_URL, STAGES } from '../../config/constants';
+import axios from 'axios';
+
+interface IntelHubProps {
+    isOpen: boolean;
+    onClose: () => void;
+    activeStageId: PipelineStage;
+    startFiles: string[];
+    arsenal: Record<string, PromptAsset[]>;
+    activePrompts: Record<string, string>;
+    setInputs: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+    setActivePrompts: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+    executeStrike: (id: PipelineStage, content?: string) => void;
+    sessionOutputs?: Record<string, string>;
+    initialTab?: 'DATA' | 'PROMPTS';
+}
+
+export const IntelHub: React.FC<IntelHubProps> = ({
+    isOpen, onClose, activeStageId, startFiles, arsenal, activePrompts,
+    setInputs, setActivePrompts, executeStrike, sessionOutputs, initialTab
+}) => {
+    const activeStageConfig = STAGES.find(s => s.id === activeStageId)!;
+    const [activeTab, setActiveTab] = React.useState<'DATA' | 'PROMPTS'>(initialTab || 'DATA');
+
+    // Calculate Previous Stage
+    const stageIds = STAGES.map(s => s.id);
+    const currentIndex = stageIds.indexOf(activeStageId);
+    const prevStageId = currentIndex > 0 ? stageIds[currentIndex - 1] : undefined;
+    const prevStageOutput = prevStageId && sessionOutputs ? sessionOutputs[prevStageId] : undefined;
+
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center p-20">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                        className="w-full max-w-6xl tactical-glass rounded-2xl p-14 flex flex-col h-[80vh] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,1)]"
+                    >
+                        <div className="flex justify-between items-center border-b border-white/10 pb-10 mb-10">
+                            <div className="flex items-center gap-6">
+                                <div className="p-4 bg-white/5 rounded-xl border border-white/10" style={{ color: activeStageConfig.color }}>
+                                    <span className="text-4xl">{activeStageConfig.icon}</span>
+                                </div>
+                                <div>
+                                    <h3 className="text-4xl font-black italic tracking-tighter uppercase text-white">Mission_Start_Intel</h3>
+                                    <p className="text-xs font-bold text-muted uppercase tracking-widest mt-2">{activeStageConfig.label} PHASE // ASSET SELECTION</p>
+                                </div>
+                            </div>
+                            <button onClick={onClose} className="text-muted hover:text-white text-4xl transition-colors bg-white/5 w-16 h-16 rounded-xl flex items-center justify-center border border-white/5 hover:bg-error/20 hover:border-error/50 hover:text-error">✕</button>
+                        </div>
+
+                        {/* TABS HEADER */}
+                        <div className="flex gap-8 border-b border-white/10 mb-8">
+                            <button onClick={() => setActiveTab('DATA')} className={`pb-4 text-xs font-black uppercase tracking-[0.2em] transition-all border-b-2 ${activeTab === 'DATA' ? 'text-white border-matrix' : 'text-white/30 border-transparent hover:text-white'}`}>
+                                DATA_ASSETS
+                            </button>
+                            <button onClick={() => setActiveTab('PROMPTS')} className={`pb-4 text-xs font-black uppercase tracking-[0.2em] transition-all border-b-2 ${activeTab === 'PROMPTS' ? 'text-white border-matrix' : 'text-white/30 border-transparent hover:text-white'}`}>
+                                PROMPT_ARSENAL
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-4 content-start">
+
+                            {/* DATA TAB */}
+                            {activeTab === 'DATA' && (
+                                <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                    <div className="pb-2 border-b border-white/5 flex items-center gap-4">
+                                        <span className="text-xs font-black text-matrix uppercase tracking-[0.3em]">Data_Assets</span>
+                                        <span className="text-[10px] text-white/30 font-mono">CONTEXT_LOADER</span>
+                                    </div>
+
+                                    {prevStageOutput && (
+                                        <button onClick={() => {
+                                            setInputs(v => ({ ...v, [activeStageId]: prevStageOutput }));
+                                            audioService.playSuccess();
+                                        }} className="text-left p-6 bg-surface/40 border border-white/5 rounded-xl hover:border-voltage hover:bg-voltage/10 transition-all group flex flex-col gap-2 shadow-sm hover:shadow-[0_0_20px_rgba(0,255,255,0.1)] mb-4">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[9px] font-black text-voltage uppercase tracking-widest">PREVIOUS_STAGE_INTEL</span>
+                                                <span className="text-[10px] text-white/20">AUTO_CAPTURED</span>
+                                            </div>
+                                            <h4 className="text-sm font-black text-white group-hover:text-voltage truncate">LOAD {prevStageId?.toUpperCase()} OUTPUT</h4>
+                                            <p className="text-[10px] text-white/40 line-clamp-2 font-mono">{prevStageOutput.substring(0, 100)}...</p>
+                                        </button>
+                                    )}
+
+                                    {startFiles.map(name => (
+                                        <button key={name} onClick={async () => {
+                                            const res = await axios.get(`${ENGINE_URL}/fs/start/${name}`);
+                                            setInputs(v => ({ ...v, [activeStageId]: res.data.content }));
+                                            audioService.playSuccess();
+                                        }} className="text-left p-6 bg-surface/40 border border-white/5 rounded-xl hover:border-matrix hover:bg-matrix/5 transition-all group flex flex-col gap-2 shadow-sm hover:shadow-[0_0_20px_rgba(0,255,65,0.1)]">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[9px] font-black text-muted uppercase tracking-widest">Start_File</span>
+                                                <span className="text-[10px] text-white/20">.MD</span>
+                                            </div>
+                                            <h4 className="text-sm font-black text-white group-hover:text-matrix truncate">{name}</h4>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* PROMPTS TAB */}
+                            {activeTab === 'PROMPTS' && (
+                                <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                    <div className="pb-2 border-b border-white/5 flex items-center gap-4">
+                                        <span className="text-xs font-black uppercase tracking-[0.3em]" style={{ color: activeStageConfig.color }}>Prompt_Arsenal</span>
+                                        <span className="text-[10px] text-white/30 font-mono">/home/flintx/peacock/prompts/{activeStageId}</span>
+                                    </div>
+
+                                    {arsenal[activeStageId]?.map(p => (
+                                        <button key={p.id} onClick={() => {
+                                            setActivePrompts(v => ({ ...v, [activeStageId]: p.name }));
+                                            localStorage.setItem(`default_prompt_${activeStageId}`, p.name);
+                                            audioService.playSuccess();
+                                        }} className={`text-left p-6 border rounded-xl transition-all group relative flex flex-col gap-2 ${activePrompts[activeStageId] === p.name ? 'border-matrix bg-matrix/10 shadow-[0_0_30px_rgba(0,255,65,0.15)]' : 'bg-surface/40 border-white/5 hover:border-white/20'}`}>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[9px] font-black text-muted uppercase tracking-widest">Strike_Weapon</span>
+                                                {activePrompts[activeStageId] === p.name && <span className="text-[9px] font-bold text-matrix animate-pulse">ACTIVE</span>}
+                                            </div>
+                                            <h4 className={`text-sm font-black truncate ${activePrompts[activeStageId] === p.name ? 'text-matrix' : 'text-white'}`}>{p.name}</h4>
+                                        </button>
+                                    ))}
+
+                                    {(!arsenal[activeStageId] || arsenal[activeStageId].length === 0) && (
+                                        <div className="p-10 text-center text-muted italic border border-dashed border-white/10 rounded-xl">
+                                            No prompts found.
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
+    );
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./components/layout/Header.tsx
+import React from 'react';
+import { THEME } from '../../config/constants';
+
+interface HeaderProps {
+    logoIndex: number;
+    onArchiveOpen: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ logoIndex, onArchiveOpen }) => {
+    return (
+        <header className="h-24 border-b border-white/10 px-10 flex justify-between items-center bg-void z-50 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+            <div className="flex items-center gap-6">
+                <div className="w-14 h-14 bg-matrix rounded-xl flex items-center justify-center shadow-[0_0_20px_#00FF41]">
+                    <img src={`/assets/images/peacock${logoIndex}.png`} className="w-9 h-9 brightness-0" alt="Peacock Logo" />
+                </div>
+                <div>
+                    <h1 className="text-3xl font-black text-white italic tracking-tighter">
+                        PEACOCK<span className="text-matrix">_V26.4</span>
+                    </h1>
+                    <div className="flex items-center gap-2 mt-1">
+                        <span className="w-2 h-2 bg-voltage rounded-full animate-pulse" />
+                        <span className="text-[10px] font-bold text-muted uppercase tracking-[0.2em]">System_Online</span>
+                    </div>
+                </div>
+            </div>
+            <button
+                onClick={onArchiveOpen}
+                className="px-10 py-3 bg-surface border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest hover:border-matrix hover:text-matrix hover:shadow-[0_0_20px_rgba(0,255,65,0.2)] transition-all"
+            >
+                Archive_Vault
+            </button>
+        </header>
+    );
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./components/layout/CommandHUD.tsx
+import React from 'react';
+import { SystemDiagnostics } from '../SystemDiagnostics';
+
+interface CommandHUDProps {
+    onReset: () => void;
+    onSettings: () => void;
+}
+
+export const CommandHUD: React.FC<CommandHUDProps> = ({ onReset, onSettings }) => {
+    return (
+        <div className="flex items-center justify-between p-4 border-b border-gray-800 bg-[#050505] z-50">
+            <div className="flex items-center space-x-4">
+                <h1 className="text-xl font-bold text-[#00FF41] font-mono tracking-tighter">
+                    PEACOCK<span className="text-gray-600">_V21</span>
+                </h1>
+                <SystemDiagnostics />
+            </div>
+
+            <div className="flex items-center space-x-2">
+                <button
+                    onClick={onReset}
+                    className="px-3 py-1 text-xs font-mono text-gray-400 hover:text-red-400 border border-transparent hover:border-red-900 transition-colors"
+                >
+                    [SYSTEM FLUSH]
+                </button>
+                <button
+                    onClick={onSettings}
+                    className="px-3 py-1 text-xs font-mono text-[#00FF41] border border-[#00FF41]/30 hover:bg-[#00FF41]/10 transition-colors"
+                >
+                    [SETTINGS]
+                </button>
+            </div>
+        </div>
+    );
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./components/layout/IdentityNode.tsx
+import React, { useState, useEffect } from 'react';
+
+// Simplified Identity Node that doesn't rely on 7 images initially to avoid missing asset errors.
+// It will just show a stylized text node for now, or a single placeholder.
+
+export const IdentityNode: React.FC = () => {
+    return (
+        <div className="w-12 h-12 rounded-full bg-[#050505] border border-[#00FF41] flex items-center justify-center shadow-[0_0_10px_rgba(0,255,65,0.3)]">
+            <span className="text-xl">🦚</span>
+        </div>
+    );
+};
+-e 
+--- END OF FILE ---
+
+FILE: ./components/layout/FooterConsole.tsx
+import React, { useState, useEffect } from 'react';
+import { PipelineStage } from '../../types';
+
+interface FooterConsoleProps {
+    inputs: Record<string, string>;
+    outputs: Record<string, string>;
+    activeStageId: PipelineStage;
+    height: number;
+    setHeight: (h: number) => void;
+}
+
+export const FooterConsole: React.FC<FooterConsoleProps> = ({ inputs, outputs, activeStageId, height, setHeight }) => {
+    const [isDragging, setIsDragging] = useState(false);
+
+    useEffect(() => {
+        const move = (e: MouseEvent) => { if (isDragging) setHeight(Math.max(40, window.innerHeight - e.clientY)); };
+        const up = () => setIsDragging(false);
+        window.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', up);
+        return () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+    }, [isDragging, setHeight]);
+
+    return (
+        <footer className="bg-void border-t border-white/10 relative scanlines overflow-hidden shadow-[0_-10px_40px_rgba(0,0,0,0.8)]" style={{ height }}>
+            <div
+                className="h-1 w-full bg-white/5 hover:bg-matrix cursor-ns-resize transition-colors"
+                onMouseDown={() => setIsDragging(true)}
+            />
+            <div className="flex h-full divide-x divide-white/10">
+                <div className="w-1/2 flex flex-col">
+                    <div className="h-10 bg-surface/80 px-6 flex items-center border-b border-white/10 backdrop-blur-md">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted">Outbound // Wrapped_Payload</span>
+                    </div>
+                    <div className="flex-1 p-6 overflow-y-auto text-xs text-white/50 whitespace-pre-wrap font-mono leading-relaxed custom-scrollbar">
+                        {inputs[activeStageId] || <span className="opacity-20 italic">Awaiting input...</span>}
+                    </div>
+                </div>
+                <div className="w-1/2 flex flex-col bg-matrix/[0.02]">
+                    <div className="h-10 bg-surface/80 px-6 flex items-center border-b border-white/10 backdrop-blur-md justify-between">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-matrix animate-pulse">Inbound // Token_Waterfall</span>
+                        <span className="text-[9px] font-bold text-matrix/50">{outputs[activeStageId]?.length || 0} TOKENS</span>
+                    </div>
+                    <div className="flex-1 p-6 overflow-y-auto text-xs text-matrix/80 whitespace-pre-wrap font-mono leading-relaxed custom-scrollbar">
+                        {outputs[activeStageId] || <span className="opacity-20 italic">Awaiting response...</span>}
+                    </div>
+                </div>
+            </div>
+        </footer>
+    );
+};
+-e 
+--- END OF FILE ---
+

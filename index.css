@@ -1,0 +1,129 @@
+:root {
+    /* THEME TOKENS: MATRIX-VOLTAGE-VOID */
+    --void: #050505;
+    --surface: #0a0a0a;
+    --elevated: #111111;
+
+    --matrix: #00FF41;
+    --matrix-glow: rgba(0, 255, 65, 0.3);
+    --matrix-dim: rgba(0, 255, 65, 0.1);
+
+    --voltage: #FFD700;
+    --voltage-glow: rgba(255, 215, 0, 0.3);
+    --voltage-dim: rgba(255, 215, 0, 0.1);
+
+    --error: #FF3131;
+    --error-glow: rgba(255, 49, 49, 0.3);
+
+    --muted: #666666;
+    --white-soft: rgba(255, 255, 255, 0.8);
+
+    /* SCANLINE & TEXTURE */
+    --scanline-opacity: 0.03;
+    --grid-opacity: 0.05;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body {
+        @apply bg-void text-white font-sans selection:bg-matrix selection:text-void overflow-hidden;
+        background-color: var(--void);
+    }
+}
+
+@layer components {
+
+    /* TACTICAL GLASS MORPHISM */
+    .tactical-glass {
+        @apply backdrop-blur-xl border border-white/5 bg-surface/80;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+    }
+
+    /* SCANLINES EFFECT */
+    .scanlines {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .scanlines::after {
+        content: " ";
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+        z-index: 2;
+        background-size: 100% 2px, 3px 100%;
+        pointer-events: none;
+        opacity: var(--scanline-opacity);
+    }
+
+    /* PULSING UTILITY */
+    .pulse-matrix {
+        animation: pulse-matrix 2s infinite;
+    }
+
+    @keyframes pulse-matrix {
+
+        0%,
+        100% {
+            box-shadow: 0 0 10px var(--matrix-dim);
+            border-color: rgba(0, 255, 65, 0.2);
+        }
+
+        50% {
+            box-shadow: 0 0 25px var(--matrix-glow);
+            border-color: var(--matrix);
+        }
+    }
+
+    .pulse-voltage {
+        animation: pulse-voltage 2s infinite;
+    }
+
+    @keyframes pulse-voltage {
+
+        0%,
+        100% {
+            box-shadow: 0 0 10px var(--voltage-dim);
+            border-color: rgba(255, 215, 0, 0.2);
+        }
+
+        50% {
+            box-shadow: 0 0 25px var(--voltage-glow);
+            border-color: var(--voltage);
+        }
+    }
+
+    /* TACTICAL BUTTONS */
+    .btn-tactical {
+        @apply px-6 py-3 rounded-lg font-black uppercase tracking-widest text-[10px] transition-all duration-300 border;
+    }
+
+    .btn-matrix {
+        @apply bg-void text-matrix border-matrix/30 hover:bg-matrix/10 hover:border-matrix hover:shadow-[0_0_15px_var(--matrix-glow)];
+    }
+
+    .btn-voltage {
+        @apply bg-void text-voltage border-voltage/30 hover:bg-voltage/10 hover:border-voltage hover:shadow-[0_0_15px_var(--voltage-glow)];
+    }
+
+    /* CUSTOM SCROLLBAR */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        @apply bg-white/10 rounded-full hover:bg-matrix/40 transition-colors;
+    }
+}
