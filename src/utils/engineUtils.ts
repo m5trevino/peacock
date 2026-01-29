@@ -125,8 +125,15 @@ export const extractProjectName = (rawInput: string): string => {
         }
 
         // Fallback to first non-empty / non-metadata line
-        const clean = line.replace(/[^a-z0-9]/gi, '_').toLowerCase().replace(/^_+|_+$/g, '');
-        if (clean && clean !== 'json') return clean.substring(0, 32);
+        const clean = line
+            .replace(/[^a-z0-9\s]/gi, '_')
+            .replace(/\s+/g, '_')
+            .replace(/app_name/gi, '')
+            .replace(/project_name/gi, '')
+            .replace(/^_+|_+$/g, '')
+            .toLowerCase();
+
+        if (clean && clean !== 'json' && clean.length > 2) return clean.substring(0, 32);
     }
 
     return `mission_${Date.now()}`;

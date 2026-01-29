@@ -19,6 +19,7 @@ export const api = {
         prompt: string;
         temp?: number;
         format_mode?: string;
+        response_format?: any;
     }): Promise<{ content: string; keyUsed?: string; ipUsed?: string }> {
         try {
             const res = await fetch(`${API_BASE}/strike`, {

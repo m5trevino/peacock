@@ -70,6 +70,7 @@ function App() {
     const [isConsoleExpanded, setConsoleExpanded] = useState(false);
     const [manifestContent, setManifestContent] = useState<string>('');
     const [manifestOpen, setManifestOpen] = useState(false);
+    const [lastRawOwl, setLastRawOwl] = useState<string>('');
 
     // Assets
     const [startFiles, setStartFiles] = useState<string[]>([]);
@@ -175,8 +176,6 @@ function App() {
         setTimeout(() => setShowFlare(false), 200);
     };
 
-    const [lastRawOwl, setLastRawOwl] = useState<string>('');
-
     const handleNewSession = () => {
         setCurrentSessionId(null);
         setInputs({}); setOutputs({}); setOwlQueue([]); setPendingStageId(null);
@@ -269,19 +268,33 @@ function App() {
                 modelId: stageSettings.owl.model,
                 prompt: `ACT AS OWL. FLESH OUT THIS SKELETON PER THE DIRECTIVES.
                 
-                OUTPUT_FORMAT: JSON_ONLY
-                SCHEMA: { "path": "${file.path}", "code": "PURE_CODE_STRING" }
-                
-                DO NOT INCLUDE MARKDOWN FENCES IN THE JSON VALUE.
-                DO NOT INCLUDE EXPLANATIONS.
+                STRICT_RULES:
+                1. YOUR OUTPUT MUST BE VALID JSON MATCHING THE SCHEMA.
+                2. THE 'code' PROPERTY MUST CONTAIN PURE SOURCE CODE ONLY.
+                3. NO GREETINGS, NO EXPLANTIONS, NO HOOTING, NO MARKDOWN FENCES INSIDE THE JSON.
+                4. ZERO CONVERSATIONAL FILLER. SILENCE IS MANDATORY.
 
                 FILE_PATH: ${file.path}
                 DIRECTIVES: ${file.directives}
                 SKELETON_CODE:
                 ${file.skeleton}`,
                 temp: stageSettings.owl.temperature,
-                // @ts-ignore - Tooling might be out of date
-                response_format: { type: "json_object" }
+                response_format: {
+                    type: "json_schema",
+                    json_schema: {
+                        name: "owl_flesh_out",
+                        schema: {
+                            type: "object",
+                            properties: {
+                                path: { type: "string" },
+                                code: { type: "string" }
+                            },
+                            required: ["path", "code"],
+                            additionalProperties: false
+                        },
+                        strict: false
+                    }
+                }
             });
 
             triggerHardwareShift();
