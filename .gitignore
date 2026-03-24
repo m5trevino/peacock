@@ -1,0 +1,70 @@
+# 💀 THE SYNDICATE 43 EXCLUSION PROTOCOL 💀
+
+# 1. THE DNA & THE VAULTS (KEEP IN THE SHADOWS)
+*_vault/
+*_storage/
+*_DNA/
+organized_vaults/
+clean_complete_vault/
+distilled_dna/
+payloads/
+payloads_*/
+TREESITTER_EXTRACTED/
+marrow_extracted/
+repaired_candidates/
+antivibe-goldbricks/
+
+# 2. THE HIT LISTS & FORENSICS (LEAVE NO TRACE)
+*.txt
+*.tar.gz
+*.prompt
+MISSION_GROUND_TRUTH.md
+MISSION_HISTORY/
+FORENSIC_LOGS/
+organization_log.txt
+*audit_report.txt
+*report.txt
+*log.txt
+mercenary_failure.json
+hawk_audit_v*.json
+manifest_logs/
+tasks_for_gemini/
+manual_prompts_for_strike/
+
+# 3. LEGACY WEAPONRY (OLD SCRIPTS)
+# Ignore everything at root that isn't the mission-critical core
+/*
+!/.gitignore
+!/SYNDICATE_43_MANIFESTO.md
+!/PROJECT_STATE_COLD_START.md
+!/SOCIAL_LUBE_MANIFESTO.md
+!/syndicate_33/
+
+# Inside syndicate_33, keep only the high-resolution tools
+/syndicate_33/*
+!/syndicate_33/peacock_orchestrator.py
+!/syndicate_33/syndicate_governor_v11.py
+!/syndicate_33/owl_cli_v3.py
+!/syndicate_33/hawk_cli_v3.py
+!/syndicate_33/mercenary_loop_v2.py
+!/syndicate_33/TREVINO_DOCTRINE_v2.txt
+!/syndicate_33/syndicate_diamond_miner.py
+
+# 4. ENVIRONMENT & JUNK
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+.omega_state*
+.shadow_omega_state*
+manifest.json
+flash_manifest.json
+BALANCED_MASTER_MANIFEST.json
+bkup/
+repos/
+script-repos/
+syndicate_33/diamond_shards/
+syndicate_33/mission_logs/
+syndicate_33/crammed_repos/
+syndicate_33/super/
+syndicate_33/__pycache__/
