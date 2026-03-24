@@ -39,6 +39,9 @@ manual_prompts_for_strike/
 !/PROJECT_STATE_COLD_START.md
 !/SOCIAL_LUBE_MANIFESTO.md
 !/syndicate_33/
+!/.claude/
+!/.gemini/
+!/ANTIVIBE_MISSION_DOSSIER.txt
 
 # Inside syndicate_33, keep only the high-resolution tools
 /syndicate_33/*
@@ -49,6 +52,7 @@ manual_prompts_for_strike/
 !/syndicate_33/mercenary_loop_v2.py
 !/syndicate_33/TREVINO_DOCTRINE_v2.txt
 !/syndicate_33/syndicate_diamond_miner.py
+!/syndicate_33/syndicate_dossier_compiler.py
 
 # 4. ENVIRONMENT & JUNK
 .venv/
